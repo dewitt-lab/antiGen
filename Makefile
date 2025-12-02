@@ -1,94 +1,49 @@
-# Compiler and flags
-CXX := g++
-CXXFLAGS := -std=c++17 -Wall -Wextra -O3 -march=native
-DEBUG_FLAGS := -g -O0 -DDEBUG
+CXX = g++
+CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -D_GLIBCXX_USE_CXX11_ABI=1
+INCLUDES = -Iinclude
+LDFLAGS = 
 
-# Directories
-SRC_DIR := src
-INC_DIR := include
-BUILD_DIR := build
-BIN_DIR := bin
-TEST_DIR := tests
+# LibTorch paths
+LIBTORCH_PATH = /opt/miniconda3/lib/python3.13/site-packages/torch
+INCLUDES += -I$(LIBTORCH_PATH)/include -I$(LIBTORCH_PATH)/include/torch/csrc/api/include
+LDFLAGS += -L$(LIBTORCH_PATH)/lib -ltorch -lc10 -ltorch_cpu
+LDFLAGS += -Wl,-rpath,$(LIBTORCH_PATH)/lib
 
-# LibTorch paths (update these for your system)
-LIBTORCH_PATH := /path/to/libtorch
-TORCH_INCLUDE := $(LIBTORCH_PATH)/include
-TORCH_LIB := $(LIBTORCH_PATH)/lib
+# For macOS, use:
+# LDFLAGS += -Wl,-rpath,@executable_path/../lib
 
-# Include paths
-INCLUDES := -I$(INC_DIR) -I$(TORCH_INCLUDE) -I$(TORCH_INCLUDE)/torch/csrc/api/include
+TARGET = fitness-inference
 
-# Library paths and libraries
-LDFLAGS := -L$(TORCH_LIB) -Wl,-rpath,$(TORCH_LIB)
-LDLIBS := -ltorch -ltorch_cpu -lc10
+# Source and object file directories
+SRC_DIR = src
+OBJ_DIR = obj
+INC_DIR = include
 
-# CUDA support (uncomment if using GPU)
-# LDLIBS += -ltorch_cuda -lc10_cuda
+# Source files
+SOURCES = $(SRC_DIR)/main.cpp $(SRC_DIR)/tree.cpp $(SRC_DIR)/fitness_transformer.cpp
+OBJECTS = $(OBJ_DIR)/main.o $(OBJ_DIR)/tree.o $(OBJ_DIR)/fitness_transformer.o
 
-# Find source files
-SOURCES := $(wildcard $(SRC_DIR)/*.cpp)
-OBJECTS := $(SOURCES:$(SRC_DIR)/%.cpp=$(BUILD_DIR)/%.o)
-TEST_SOURCES := $(wildcard $(TEST_DIR)/*.cpp)
-TEST_OBJECTS := $(TEST_SOURCES:$(TEST_DIR)/%.cpp=$(BUILD_DIR)/%.o)
-
-# Main target
-TARGET := $(BIN_DIR)/fitness-inference
+# Header files
+HEADERS = $(INC_DIR)/tree.h $(INC_DIR)/fitness_transformer.h
 
 # Default target
-all: directories $(TARGET)
+all: $(OBJ_DIR) $(TARGET)
 
-# Create directories
-directories:
-	@mkdir -p $(BUILD_DIR) $(BIN_DIR)
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
 
-# Build main executable
 $(TARGET): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS) $(LDLIBS)
-	@echo "Build complete: $(TARGET)"
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
-# Compile source files
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
-# Compile test files
-$(BUILD_DIR)/%.o: $(TEST_DIR)/%.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
-
-# Debug build
-debug: CXXFLAGS := -std=c++17 -Wall -Wextra $(DEBUG_FLAGS)
-debug: clean directories $(TARGET)
-
-# Tests
-tests: directories $(TEST_OBJECTS) $(filter-out $(BUILD_DIR)/main.o, $(OBJECTS))
-	$(CXX) $(CXXFLAGS) $^ -o $(BIN_DIR)/run_tests $(LDFLAGS) $(LDLIBS)
-	@echo "Test build complete: $(BIN_DIR)/run_tests"
-
-# Clean build artifacts
 clean:
-	rm -rf $(BUILD_DIR) $(BIN_DIR)
+	rm -rf $(OBJ_DIR) $(TARGET)
 
-# Clean and rebuild
 rebuild: clean all
 
-# Run the program
 run: $(TARGET)
-	./$(TARGET)
+	./$(TARGET) ncov_global.json NC_045512.2.fasta
 
-# Install dependencies (example)
-install-deps:
-	@echo "Download LibTorch from https://pytorch.org/get-started/locally/"
-	@echo "Extract to a location and update LIBTORCH_PATH in Makefile"
-
-# Show help
-help:
-	@echo "Fitness Inference - Makefile targets:"
-	@echo "  make              - Build the project"
-	@echo "  make debug        - Build with debug flags"
-	@echo "  make tests        - Build tests"
-	@echo "  make clean        - Remove build artifacts"
-	@echo "  make rebuild      - Clean and rebuild"
-	@echo "  make run          - Build and run the program"
-	@echo "  make install-deps - Show dependency installation instructions"
-
-# Phony targets
-.PHONY: all directories debug tests clean rebuild run install-deps help
+.PHONY: all clean rebuild run

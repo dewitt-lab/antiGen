@@ -12,10 +12,8 @@ import csv
 import math
 
 
-allowed_characters = "ACGT-"
-D = len(allowed_characters)
 
-def nucToIndex(nuc):
+def nucToIndex(nuc, allowed_characters):
     # return our out-of-vocabulary character if we encounter a letter unknown to our model
     if nuc not in allowed_characters:
         raise RuntimeError("Invalid nucleotide")
@@ -27,8 +25,8 @@ def parse_mutation(mut):
     """
     Mutation parser
 
-    Takes in a mutation in standard format, e.g. A123C
-    Returns the nucleotide before, the position with 0-indexing (1 less than the number in the input srting), and the nucleotide after
+    Input: mutation in standard (e.g. Nextstrain) format, e.g. A123C
+    Outputs: the nucleotide before, the 0-indexed position (1 less than the number in the input srting), and the nucleotide after
     """
     ref = mut[0]
     alt = mut[-1]
@@ -43,6 +41,8 @@ class Tree(object):
     def __init__(self):
         """
         Initializer for Tree
+
+        No inputs or outputs
         """
         self.dt = None # Max branch length for a training example (also, used as discreization timestep for solving diff eqs later)
         self.start_pos = None # Starting position for the portion of the sequence we wish to model. 0-indexed, inclusive
@@ -50,15 +50,26 @@ class Tree(object):
         self.root_seq = None # Wild type sequence
         self.tree = None # Tree, as read from Nextstrain JSON format
         self.max_t = None # Maximum time of a node on the tree
-        self.n_grid = None # Number of grid boxes of width dt needed to cover the tree
+        self.n_grid = None # Number of grid intervals of width dt needed to cover the tree
         self.training_examples = [] # Training examples to feed into ML model. Tuple of length 5: (sequence, ancestral_sequence, start_time, end_time, event_at_start_time)
         # In a training example, time is measured in years ***SINCE*** max_t
         
     def set_dt(self, dt):
+        """
+        Set max branch length of a training example
+
+        Input: dt, the max branch length
+        """
+
         self.dt = dt
 
     # Read the root sequence
     def read_root_seq(self, root_seq_file):
+        """
+        Read root sequence of tree
+
+        Input: root_seq_file, filepath to root seuqence in FASTA format
+        """
         root_seq = SeqIO.read(root_seq_file, "fasta")
         self.root_seq = str(root_seq.seq)
         self.start_pos = 0
@@ -66,6 +77,13 @@ class Tree(object):
 
     # Set a subsequence region of the root sequence to analyze
     def set_region(self, start_pos, end_pos):
+        """
+        Select region of genome sequence to analyze
+
+        Inputs: 
+        - start_pos: position to start reading genome (0-indexed, inclusive)
+        - end_pos: position to stop reading genome (0-indexed, exclusive)
+        """
         self.start_pos = start_pos # Inclusive, 0-indexed
         self.end_pos = end_pos # Exclusive, 0-indexed
         self.root_seq = self.root_seq[start_pos:end_pos]
@@ -73,6 +91,8 @@ class Tree(object):
     def load_tree(self, tree_file):
         """
         Load mutation-annotated tree from JSON file
+
+        Input: tree_file, filepath to Nextstrain JSON file
         """
         with open(tree_file, 'r') as f:
             data = json.load(f)
@@ -80,6 +100,9 @@ class Tree(object):
 
 
     def compute_max_time(self):
+        """
+        Compute maximum time assigned to a leaf on the tree
+        """
 
         max_t = float('-inf')
 
@@ -100,15 +123,15 @@ class Tree(object):
         search_tree(self.tree)  # You need to call it on the root
         self.max_t = max_t
 
-        print("max time:")
-        print(self.max_t)
-
+        # Time of root, for computing number of grid intervals
         min_t = self.tree.get('node_attrs', {}).get('num_date', {}).get('value', None)
         self.n_grid = int((max_t - min_t) / self.dt) + 1
-        print("n grid:")
-        print(self.n_grid)
+
 
     def get_n_grid(self):
+        """
+        Return number of grid intervals
+        """
         return self.n_grid
 
     def generate_training_examples(self):
@@ -288,71 +311,66 @@ def update_p_RK4(p_i, lam_i, f, gam, psi, mu, q_i, q_i_plus_one, is_mutation, N,
     return p_i + (k1 + (2*k2) + (2*k3) + k4) * dt / 6
 
 
-
-
-
 def main():
     
     """
     Main runner function
     """
 
-    np.random.seed(42)
-
-    csv_filename = "training_loss.csv"
-    with open(csv_filename, 'w', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(['iter', 'loss'])  # Header
-
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"Using device: {device}")
-
     # Check that the file is being properly used
     if (len(sys.argv) !=3):
         print("Please specify a tree_file and root_seq_file.")
         return
-        
+
+    # Set seed
+    np.random.seed(42)
+
+    # Define alphabet
+    allowed_characters = "ACGT-"
+    D = len(allowed_characters) # Alphabet size = embedding dimension for now. TO BE IMPROVED
+
+    # Device
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"Using device: {device}")
+
     # Input files
     tree_file = sys.argv[1]
     root_seq_file = sys.argv[2]
 
+    # Set time discretization value
     DT = 0.01
 
-    # Create fitness model
+    # Create training examples
     tree = Tree()
-
-    print("Setting delta_t.")
     tree.set_dt(DT)
-
-    print("Reading root sequence...")
     tree.read_root_seq(root_seq_file)
 
-    print("Filtering to RBD...")
+    # RBD
     start_pos = 22516
     end_pos = 23185
-    N = end_pos - start_pos
-    tree.set_region(start_pos, end_pos) # RBD spefically, for a simple test
 
-    print("Loading tree...")
+    N = end_pos - start_pos # Number of tokens in sequence
+
+    tree.set_region(start_pos, end_pos) 
     tree.load_tree(tree_file)
-
-    print("Computing max time...")
     tree.compute_max_time()
 
     print("Generating training examples...")
     tree.generate_training_examples()
     training_examples = tree.get_training_examples()
 
-    print(len(training_examples))
+    print(f"Generated {len(training_examples)} training examples from tree")
 
     # Get number of grid steps
     N_GRID = tree.get_n_grid()
 
 
+    # Create device tensor from sequence
+    # Using one-hot encoding for now
     def create_tensor_on_device(seq, device):
         tensor = torch.zeros(N, D, device=device)
         for pos in range(len(seq)):
-            idx = nucToIndex(seq[pos])
+            idx = nucToIndex(seq[pos], allowed_characters)
             tensor[pos, idx] = 1.0
         return tensor
 
@@ -368,193 +386,164 @@ def main():
 
     GAMMA = 73.0
     
-    """
-    # Birth rate on each interval
-    lam = torch.full((N_GRID,), GAMMA, requires_grad = True)
-
-    # Death rate
-    gam = torch.tensor(GAMMA, requires_grad = True) # 5-day duration of infection on average
-
-    # Sampling rate
-    psi = torch.tensor(GAMMA / 100.0, requires_grad = True)
-
-    # Mutation rate
-    mu = torch.tensor(0.001, requires_grad = True)
-
-
-    ## Simple approach for now: transform 1-hot encoding of sequence to absolute fitness of each mutation away from wild type
-    # This is clearly a bad approach but just to get the code functioning
-    transformer_block = TransformerBlock(d_model=D, nhead=1)
-    """
-
+   
     # Then move your model to GPU:
     transformer_block = TransformerBlock(d_model=D, nhead=1)
     transformer_block = transformer_block.to(device)
 
-    # Move parameters to GPU:
+    # Make parameters on GPU:
     lam = torch.full((N_GRID,), GAMMA, requires_grad=True, device=device)
     gam = torch.tensor(GAMMA, requires_grad=True, device=device)
     psi = torch.tensor(GAMMA / 100.0, requires_grad=True, device=device)
     mu = torch.tensor(0.001, requires_grad=True, device=device)
 
     BATCH_SIZE = 256
-    N_SGD_ITERS = 10000
+    N_EPOCHS = 10
+
+    print(f"Using batch size {BATCH_SIZE}. {math.ceil(len(training_examples) / BATCH_SIZE)} batches per epoch are needed.")
 
     optimizer = optim.Adam([
         {'params': transformer_block.parameters()},
-        {'params': [psi, mu]} # Could also include lam here if we want that to be unknown
+        {'params': [psi, mu]} # Could also include lam here if we want that to be unknown. Fixing for now.
     ], lr=0.0005)
 
-    for iter in range(N_SGD_ITERS):
-        # Obtain BATCH_SIZE ***unique*** sequence embeddings
-        sequences_in_batch = []
-        ancestral_sequences_in_batch = []
-        idxs_in_batch = []
+    for epoch in range(N_EPOCHS):
 
-        while len(sequences_in_batch) < BATCH_SIZE:
+        # Shuffle order of training examples
+        random.shuffle(training_examples)
 
-            # Training example index
-            idx = random.randrange(len(training_examples))
+        # Index of first training example in batch (gets incremented by BATCH_SIZE)
+        start_idx = 0
 
-            seq = training_examples[idx][0]
-            anc_seq = training_examples[idx][1]
+        # Track total loss
+        total_loss = 0.0
 
-            if (seq not in sequences_in_batch) and (anc_seq not in ancestral_sequences_in_batch):
-                sequences_in_batch.append(seq)
-                ancestral_sequences_in_batch.append(anc_seq)
-                idxs_in_batch.append(idx)
-        
-        # Get a list of tensor encodings of these
-        tensors_in_batch = [sequence_to_tensor[seq] for seq in sequences_in_batch]
+        # SGD loop
+        while start_idx < len(training_examples):
+            # Obtain BATCH_SIZE ***unique*** sequence embeddings
+            idxs_in_batch = range(start_idx, min(start_idx + BATCH_SIZE, len(training_examples)))
 
-        # Stack to get a BATCH_SIZE x N x D tensor, N = length of genome, D = alphabet size
-        stack = torch.stack(tensors_in_batch, dim=0)
+            actual_batch_size = len(idxs_in_batch)
 
-        # Apply transformer
-        fitness_by_mutation = transformer_block(stack)
-        fitness_by_mutation = torch.sigmoid(fitness_by_mutation)
-        fitness_by_mutation = -torch.log(1 - fitness_by_mutation)
+            #print(f"   Actual batch size: {actual_batch_size}")
+            
+            sequences_in_batch = [training_examples[idx][0] for idx in idxs_in_batch]
+            ancestral_sequences_in_batch = [training_examples[idx][1] for idx in idxs_in_batch]
+            
+            # Get a list of tensor encodings of these
+            tensors_in_batch = [sequence_to_tensor[seq] for seq in sequences_in_batch]
 
-        # Now, the ancestral sequence in each training example
-        ancestral_tensors_in_batch = []
-        for seq in ancestral_sequences_in_batch:
-            if seq is not None:
-                ancestral_tensors_in_batch.append(sequence_to_tensor[seq])
-            else:
-                ancestral_tensors_in_batch.append(torch.zeros(N, D, device=device))
-        
-        # Stack to get a BATCH_SIZE x N x D tensor, N = length of genome, D = alphabet size
-        ancestral_stack = torch.stack(ancestral_tensors_in_batch, dim=0)
+            # Stack to get a BATCH_SIZE x N x D tensor, N = length of genome, D = alphabet size
+            stack = torch.stack(tensors_in_batch, dim=0)
 
-        # Apply transformer
-        fitness = transformer_block(ancestral_stack)
-        fitness = torch.sigmoid(fitness)
-        fitness = -torch.log(1 - fitness)
+            # Apply transformer
+            fitness_by_mutation = transformer_block(stack)
+            fitness_by_mutation = torch.sigmoid(fitness_by_mutation)
+            fitness_by_mutation = -torch.log(1.0 - fitness_by_mutation)
 
-        # For each level, get the fitness of the mutation that actually happened
-        fitness_of_G = torch.ones(BATCH_SIZE, device=device)
+            # Now, the ancestral sequence in each training example
+            ancestral_tensors_in_batch = []
+            for seq in ancestral_sequences_in_batch:
+                if seq is not None:
+                    ancestral_tensors_in_batch.append(sequence_to_tensor[seq])
+                else:
+                    ancestral_tensors_in_batch.append(torch.zeros(N, D, device=device))
+            
+            # Stack to get a BATCH_SIZE x N x D tensor, N = length of genome, D = alphabet size
+            ancestral_stack = torch.stack(ancestral_tensors_in_batch, dim=0)
 
-        for i in range(BATCH_SIZE):
-            # Default fitness if actually there's no ancestral sequence is 1.0; no need to consider else case
-            if ancestral_sequences_in_batch[i] is not None:
-                for pos in range(N):
-                    if ancestral_sequences_in_batch[i][pos] != sequences_in_batch[i][pos]:
-                        mutated_pos = pos
-                        break
-                fitness_of_G[i] = fitness[i, mutated_pos, nucToIndex(sequences_in_batch[i][mutated_pos])]
+            # Apply transformer
+            fitness = transformer_block(ancestral_stack)
+            fitness = torch.sigmoid(fitness)
+            fitness = -torch.log(1.0 - fitness)
+
+            # For each level, get the fitness of the mutation that actually happened
+            fitness_of_G = torch.ones(actual_batch_size, device=device)
+
+            for i in range(actual_batch_size):
+                # Default fitness if actually there's no ancestral sequence is 1.0; no need to consider else case
+                if ancestral_sequences_in_batch[i] is not None:
+                    for pos in range(N):
+                        if ancestral_sequences_in_batch[i][pos] != sequences_in_batch[i][pos]:
+                            mutated_pos = pos
+                            break
+                    fitness_of_G[i] = fitness[i, mutated_pos, nucToIndex(sequences_in_batch[i][mutated_pos], allowed_characters)]
 
 
-        # Get p, q at each grid point
-        q_before = None
-        q_after = torch.ones(BATCH_SIZE, N, D, device=device)
+            # Get p, q at each grid point
+            q_before = None
+            q_after = torch.ones(actual_batch_size, N, D, device=device)
 
-        p_before = None
-        p_after = torch.ones(BATCH_SIZE, device=device)
+            p_before = None
+            p_after = torch.ones(actual_batch_size, device=device)
 
-        loss = torch.tensor(0.0, device=device)
+            loss = torch.tensor(0.0, device=device)
 
-        for interval in range(N_GRID):
-            q_before = q_after
-            q_after = update_q_RK4(q_before, lam[interval], fitness_by_mutation, gam, psi, DT)
+            for interval in range(N_GRID):
+                q_before = q_after
+                q_after = update_q_RK4(q_before, lam[interval], fitness_by_mutation, gam, psi, DT)
 
-            p_before = p_after
-            p_after = update_p_RK4(p_before, lam[interval], fitness_of_G, gam, psi, mu, q_before, q_after, 1.0 - stack, N, DT)
+                p_before = p_after
+                p_after = update_p_RK4(p_before, lam[interval], fitness_of_G, gam, psi, mu, q_before, q_after, 1.0 - stack, N, DT)
 
-            for i in range(len(idxs_in_batch)):
-                idx = idxs_in_batch[i]
-                # Check that start and end times of training example are in interval
-                start_time = training_examples[idx][2] 
-                end_time = training_examples[idx][3]
+                for i in range(len(idxs_in_batch)):
+                    idx = idxs_in_batch[i]
+                    # Check that start and end times of training example are in interval
+                    start_time = round(training_examples[idx][2], 3)
+                    end_time = round(training_examples[idx][3], 3)
 
-                # Fudge this to make sure it fits into the right interval
-                if start_time != end_time:
-                    start_time += 0.00000001
-                    end_time -= 0.00000001
+                    # Fudge this to make sure it fits into the right interval
+                    if start_time != end_time:
+                        start_time += 0.00000001
+                        end_time -= 0.00000001
 
-                if int(start_time / DT) == interval:
-                    
-                    if int(end_time / DT) != interval:
-                        print(start_time)
-                        print(end_time)
-                        raise ValueError("Start and end times should be in the same interval")
-
-                    # Approximate average value of p
-                    approx_p_at_start = p_before[i] + (start_time - interval*DT) * (p_after[i] - p_before[i]) / DT
-                    approx_p_at_end = p_before[i] + (end_time - interval*DT) * (p_after[i] - p_before[i]) / DT
-
-                    approx_avg_p = (approx_p_at_start + approx_p_at_end) / 2.0
-
-                    delta_t = end_time - start_time
-
-                    loss += delta_t * (mu * N + lam[interval] * (1.0 - 2.0*approx_avg_p) + gam + psi)
-
-                    event_type = training_examples[idx][4]
-
-                    if event_type == "Mutation":
-                        loss -= torch.log(mu / 3.0)
-                    elif event_type == "Birth":
-                        loss -= torch.log(2.0 * lam[interval])
-                    elif event_type == "Sample":
-                        loss -= torch.log(psi)
-                    else:
-                        if event_type != "Nothing":
-                            raise ValueError("Unknown event type")
+                    if int(start_time / DT) == interval:
                         
-                        
-        # Backpropagation
-        print("Computing gradient of loss...")
-        loss.backward()
+                        if int(end_time / DT) != interval:
+                            print(start_time)
+                            print(end_time)
+                            raise ValueError("Start and end times should be in the same interval")
 
-        print("Taking step...")
-        optimizer.step()
+                        # Approximate average value of p
+                        approx_p_at_start = p_before[i] + (start_time - interval*DT) * (p_after[i] - p_before[i]) / DT
+                        approx_p_at_end = p_before[i] + (end_time - interval*DT) * (p_after[i] - p_before[i]) / DT
 
-        print("Zeroing out gradient...")
-        optimizer.zero_grad()
+                        approx_avg_p = (approx_p_at_start + approx_p_at_end) / 2.0
 
-        print("Loss on batch:")
-        print(loss.item())
+                        delta_t = end_time - start_time
 
-        with open(csv_filename, 'a', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow([iter, loss.item()])
+                        loss += delta_t * (mu * N + lam[interval] * (1.0 - 2.0*approx_avg_p) + gam + psi)
 
+                        event_type = training_examples[idx][4]
 
+                        if event_type == "Mutation":
+                            loss -= torch.log(mu / 3.0)
+                        elif event_type == "Birth":
+                            loss -= torch.log(2.0 * lam[interval])
+                        elif event_type == "Sample":
+                            loss -= torch.log(psi)
+                        else:
+                            if event_type != "Nothing":
+                                raise ValueError("Unknown event type")
+                            
+                            
+            # Backpropagation
+            loss.backward()
 
+            # Step
+            optimizer.step()
 
+            # Zero out gradient
+            optimizer.zero_grad()
 
+            # Print batch loss
+            print(f"   Loss for batch {int(start_idx / BATCH_SIZE)}: {loss.item()}")
+            # Update total loss on epoch
+            total_loss += loss.item()
 
-
-
-
+            start_idx += BATCH_SIZE
         
-                
-        
-
-        
-
-        
-
-        
+        print(f"Loss for epoch {epoch}: {total_loss}")
 
     print("Done")
 

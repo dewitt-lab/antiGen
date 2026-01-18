@@ -19,8 +19,6 @@ echo "Running on node: $(hostname)"
 echo "Job ID: $SLURM_JOB_ID"
 echo "GPU: $CUDA_VISIBLE_DEVICES"
 
-mkdir -p logs
-
 python python/main.py data/mutation-annotated-trees/SARS-CoV-2.json data/mutation-annotated-trees/NC_045512.2.fasta
 
 echo "Job finished at: $(date)"

@@ -10,28 +10,7 @@ import torch.nn as nn
 import torch.optim as optim
 import csv
 import math
-
-
-
-def nucToIndex(nuc, allowed_characters):
-    # return our out-of-vocabulary character if we encounter a letter unknown to our model
-    if nuc not in allowed_characters:
-        raise RuntimeError("Invalid nucleotide")
-    return allowed_characters.find(nuc)
-    
-
-
-def parse_mutation(mut):
-    """
-    Mutation parser
-
-    Input: mutation in standard (e.g. Nextstrain) format, e.g. A123C
-    Outputs: the nucleotide before, the 0-indexed position (1 less than the number in the input srting), and the nucleotide after
-    """
-    ref = mut[0]
-    alt = mut[-1]
-    pos = int(mut[1:-1]) - 1 # KEY INDEX CHANGE
-    return ref, alt, pos
+from helpers import *
 
 class Tree(object):
     """
@@ -51,9 +30,19 @@ class Tree(object):
         self.tree = None # Tree, as read from Nextstrain JSON format
         self.max_t = None # Maximum time of a node on the tree
         self.n_grid = None # Number of grid intervals of width dt needed to cover the tree
+        self.codon_mutation_dict = None
+        self.total_samples = 0
+        self.total_evolutionary_time = 0.0
+        self.total_nucleotide_mutations = 0
         self.training_examples = [] # Training examples to feed into ML model. Tuple of length 5: (sequence, ancestral_sequence, start_time, end_time, event_at_start_time)
         # In a training example, time is measured in years ***SINCE*** max_t
         
+    def set_codon_mutation_dict(self, allowed_nucleotides, allowed_aas):
+        self.codon_mutation_dict = create_codon_mutation_dict(allowed_nucleotides)
+
+    def get_codon_mutation_dict(self):
+        return self.codon_mutation_dict
+    
     def set_dt(self, dt):
         """
         Set max branch length of a training example
@@ -137,8 +126,17 @@ class Tree(object):
     def generate_training_examples(self):
 
         
-        def traverse_tree(node, parent_seq, parent_ancestral_seq = None, parent_time = None):
-            """Recursively traverse the tree and extract relevant information."""
+        def traverse_tree(
+            node, 
+            parent_nuc_seq, 
+            parent_aa_seq, 
+            parent_ancestral_nuc_seq = None, 
+            parent_ancestral_aa_seq = None, 
+            parent_time = None
+        ):
+            """
+            Recursively traverse the tree and extract relevant information.
+            """
                         
             # Extract time of node (num_date value)
             num_date = node.get('node_attrs', {}).get('num_date', {})
@@ -149,21 +147,23 @@ class Tree(object):
                 if len(node['children']) > 0:
                     is_leaf = False
 
+            # Nuc sequence at the ancestral node
+            curr_nuc_seq = parent_nuc_seq
 
-            #print("processing node at time:")
-            #print(node_time)
+            # Ancestral nuc sequence of parent_nuc_seq
+            curr_ancestral_nuc_seq = parent_ancestral_nuc_seq
 
-            # Sequence at the ancestral node
-            curr_seq = parent_seq
-
-            # Ancestral sequence of parent_seq
-            curr_ancestral_seq = parent_ancestral_seq
+            # Same for AA sequences
+            curr_aa_seq = parent_aa_seq
+            curr_ancestral_aa_seq = parent_ancestral_aa_seq
 
             if parent_time is not None:
 
                 # Ensure parent time is not after node_time
                 if parent_time > node_time:
                     parent_time = node_time
+                
+                self.total_evolutionary_time += (node_time - parent_time)
 
             
                 # Extract nucleotide mutations from branch_attrs
@@ -172,11 +172,13 @@ class Tree(object):
                 nuc_mutations = mutations.get('nuc', [])
 
                 # Filter to those in the correct positional range
+
                 for i in range(len(nuc_mutations) - 1, -1, -1):
                     mut = nuc_mutations[i]
                     ref, alt, pos = parse_mutation(mut)
                     if not (pos >= self.start_pos and pos < self.end_pos):
                         del nuc_mutations[i]
+                        continue            
 
                 # Scramble the order
                 random.shuffle(nuc_mutations)
@@ -206,9 +208,10 @@ class Tree(object):
 
                     if (next_grid_time > node_time) and (next_mut_time > node_time):
                         if is_leaf:
-                            example = (curr_seq, curr_ancestral_seq, self.max_t - node_time, self.max_t - curr_time, "Sample")
+                            example = (curr_nuc_seq, curr_ancestral_nuc_seq, curr_aa_seq, curr_ancestral_aa_seq, self.max_t - node_time, self.max_t - curr_time, "Sample")
+                            self.total_samples += 1
                         else:
-                            example = (curr_seq, curr_ancestral_seq, self.max_t - node_time, self.max_t - curr_time, "Birth")
+                            example = (curr_nuc_seq, curr_ancestral_nuc_seq, curr_aa_seq, curr_ancestral_aa_seq, self.max_t - node_time, self.max_t - curr_time, "Birth")
                         self.training_examples.append(example)
 
                         curr_time = node_time
@@ -216,25 +219,52 @@ class Tree(object):
 
                     # If we get here, either mutation or grid comes next
                     if next_grid_time < next_mut_time:
-                        example = (curr_seq, curr_ancestral_seq, self.max_t - next_grid_time, self.max_t - curr_time, "Nothing")
+                        example = (curr_nuc_seq, curr_ancestral_nuc_seq, curr_aa_seq, curr_ancestral_aa_seq, self.max_t - next_grid_time, self.max_t - curr_time, "Nothing")
                         self.training_examples.append(example)
 
                         curr_time = next_grid_time
 
                         curr_grid_idx -= 1
                     else:
-                        example = (curr_seq, curr_ancestral_seq, self.max_t - next_mut_time, self.max_t - curr_time, "Mutation")
+                        example = (curr_nuc_seq, curr_ancestral_nuc_seq, curr_aa_seq, curr_ancestral_aa_seq, self.max_t - next_mut_time, self.max_t - curr_time, "Mutation")
                         self.training_examples.append(example)
+                        self.total_nucleotide_mutations += 1
+
+                        # Obtain mutation
+                        mut = nuc_mutations[curr_mut_idx]
                         
+                        # Update AA sequence, if nonsynonymous (and non garbage) mutation
+                        # If mutation introduces garbage codon, e.g. A-C, simply say AA seq stays the same, i.e. same fitness as synonymous mutation
+                        
+                        # Before, after, position for NUCLEOTIDE sub
+                        ref, alt, pos = parse_mutation(mut)
+                        pos -= self.start_pos # Shift coordinate space to subsequence being studied
+                        aa_pos = pos//3 # Amino acid coord
+                        codon_pos = pos % 3 # Position within codon
+                        curr_aa = curr_aa_seq[aa_pos] # Current AA
+                        curr_codon = curr_nuc_seq[(aa_pos*3):(aa_pos*3 + 3)] # Current codon
+
+                        if curr_codon[codon_pos] != ref:
+                            raise ValueError("nuc mismatch 1")
+                        
+                        # Check if the new codon is non-garbage; if so, get its translation
+                        is_translatable, new_aa = self.codon_mutation_dict[curr_codon][codon_pos][alt]
+
+                        
+                        if is_translatable:                            
+                            if new_aa != curr_aa:
+                                # If not garbage, and nonsynonymous, apply the mutation
+                                curr_ancestral_aa_seq = curr_aa_seq
+                                curr_aa_seq = list(curr_aa_seq)
+                                curr_aa_seq[aa_pos] = new_aa
+                                curr_aa_seq = ''.join(curr_aa_seq)
+
+
                         curr_time = next_mut_time
 
-                        curr_ancestral_seq = curr_seq
-                        ref, alt, pos = parse_mutation(nuc_mutations[curr_mut_idx])
-                        if curr_seq[pos - self.start_pos] != ref:
-                            raise ValueError("nuc mismatch")
-                        curr_seq = list(curr_seq)
-                        curr_seq[pos - self.start_pos] = alt
-                        curr_seq = ''.join(curr_seq)
+                        # Nucleotide sequence ALWAYS gets updated
+                        curr_ancestral_nuc_seq = curr_nuc_seq
+                        curr_nuc_seq = apply_nuc_mutation(curr_nuc_seq, mut, self.start_pos)
 
                         curr_mut_idx += 1
             
@@ -245,13 +275,28 @@ class Tree(object):
             # Process children
             if 'children' in node:
                 for child in node['children']:
-                    traverse_tree(child, curr_seq, curr_ancestral_seq, node_time)
+                    traverse_tree(child, curr_nuc_seq, curr_aa_seq, curr_ancestral_nuc_seq, curr_ancestral_aa_seq, node_time)
         
         # Start traversal from root
-        traverse_tree(self.tree, self.root_seq)
+        root_is_translatable, root_aa_seq = translate(self.root_seq)
+
+        if not root_is_translatable:
+            raise ValueError("Root nucleotide sequence cannot be translated")
+
+
+        traverse_tree(self.tree, self.root_seq, root_aa_seq)
 
     def get_training_examples(self):
         return self.training_examples
+
+    def get_total_nucleotide_mutations(self):
+        return self.total_nucleotide_mutations
+    
+    def get_total_evolutionary_time(self):
+        return self.total_evolutionary_time
+
+    def get_total_samples(self):
+        return self.total_samples
 
 
 ### Set up loss function, made of many functions layered on top of one another
@@ -295,18 +340,18 @@ def update_q_RK4(q_i, lam_i, f, gam, psi, dt):
 # q: BATCH_SIZE x N x D
 # is_mutation: BATCH_SIZE x N x D, whether each change is actually different than the sequence on the tree
 
-def dp_dt(p, lam, f, gam, psi, mu, q, is_mutation, N):
-    return -(lam * f + gam + psi + mu*N) * p + (lam * f * p * p) + gam + (mu / 3) * (q * is_mutation).sum(dim=(1, 2))
+def dp_dt(p, lam, f, gam, psi, mu, q, is_mutation, N, D):
+    return -(lam * f + gam + psi + mu*N) * p + (lam * f * p * p) + gam + (mu / (D-1)) * (q * is_mutation).sum(dim=(1, 2))
 
-def update_p_RK4(p_i, lam_i, f, gam, psi, mu, q_i, q_i_plus_one, is_mutation, N, dt):
+def update_p_RK4(p_i, lam_i, f, gam, psi, mu, q_i, q_i_plus_one, is_mutation, N, D, dt):
 
     q_midpoint = (q_i + q_i_plus_one) / 2
 
     # Approximate q via linear interpolation
-    k1 = dp_dt(p_i, lam_i, f, gam, psi, mu, q_i, is_mutation, N)
-    k2 = dp_dt(p_i + (dt * k1 / 2), lam_i, f, gam, psi, mu, q_midpoint, is_mutation, N)
-    k3 = dp_dt(p_i + (dt * k2 / 2), lam_i, f, gam, psi, mu, q_midpoint, is_mutation, N)
-    k4 = dp_dt(p_i + (dt * k3), lam_i, f, gam, psi, mu, q_i_plus_one, is_mutation, N)
+    k1 = dp_dt(p_i, lam_i, f, gam, psi, mu, q_i, is_mutation, N, D)
+    k2 = dp_dt(p_i + (dt * k1 / 2), lam_i, f, gam, psi, mu, q_midpoint, is_mutation, N, D)
+    k3 = dp_dt(p_i + (dt * k2 / 2), lam_i, f, gam, psi, mu, q_midpoint, is_mutation, N, D)
+    k4 = dp_dt(p_i + (dt * k3), lam_i, f, gam, psi, mu, q_i_plus_one, is_mutation, N, D)
 
     return p_i + (k1 + (2*k2) + (2*k3) + k4) * dt / 6
 
@@ -316,6 +361,8 @@ def main():
     """
     Main runner function
     """
+    
+    print("hi")
 
     # Check that the file is being properly used
     if (len(sys.argv) !=3):
@@ -326,8 +373,11 @@ def main():
     np.random.seed(42)
 
     # Define alphabet
-    allowed_characters = "ACGT-"
-    D = len(allowed_characters) # Alphabet size = embedding dimension for now. TO BE IMPROVED
+    allowed_nucleotides = "ACGT-"
+    D = len(allowed_nucleotides) # Alphabet size = embedding dimension for now. TO BE IMPROVED
+
+    allowed_aas = "ACDEFGHIKLMNPQRSTVWY*-"
+    E = len(allowed_aas)
 
     # Device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -337,11 +387,19 @@ def main():
     tree_file = sys.argv[1]
     root_seq_file = sys.argv[2]
 
+    # Loss logger
+    csv_filename = "training_loss.csv"
+    with open(csv_filename, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['iter', 'loss'])  # Header
+
     # Set time discretization value
     DT = 0.01
 
     # Create training examples
     tree = Tree()
+    tree.set_codon_mutation_dict(allowed_nucleotides, allowed_aas)
+
     tree.set_dt(DT)
     tree.read_root_seq(root_seq_file)
 
@@ -367,20 +425,80 @@ def main():
 
     # Create device tensor from sequence
     # Using one-hot encoding for now
-    def create_tensor_on_device(seq, device):
-        tensor = torch.zeros(N, D, device=device)
+    def create_one_hot_tensor(seq, dim_1, dim_2, allowed_characters, device):
+        tensor = torch.zeros(dim_1, dim_2, device=device)
         for pos in range(len(seq)):
-            idx = nucToIndex(seq[pos], allowed_characters)
+            idx = char_to_index(seq[pos], allowed_characters)
             tensor[pos, idx] = 1.0
         return tensor
+    
+
 
     # Map from sequences observed on tree to 1-hot encodings
-    sequence_to_tensor = {}
+    nuc_sequence_to_tensor = {}
+    aa_sequence_to_tensor = {}
+
+    # Dictionary that takes in a nucleotide sequence and outputs an N x D tensor, where entry [pos][idx] is the index of the new amino acid at codon floor(pos/3)
+    nuc_sequence_to_aa_idx = {}
+
+    # Helper dictionary
+    codon_mutation_dict = tree.get_codon_mutation_dict()
+
+    print("Creating maps...")
     for i in range(len(training_examples)):
-        seq = training_examples[i][0]
-        if seq not in sequence_to_tensor:
-            tensor = create_tensor_on_device(seq, device)
-            sequence_to_tensor[seq] = tensor
+
+        # Get nucleotide sequence
+        nuc_seq = training_examples[i][0]
+
+        # Map nucleotide sequence to its 1-hot encoding
+        if nuc_seq not in nuc_sequence_to_tensor:
+            nuc_tensor = create_one_hot_tensor(nuc_seq, N, D, allowed_nucleotides, device)
+            nuc_sequence_to_tensor[nuc_seq] = nuc_tensor
+
+        # Get AA seq 
+        aa_seq = training_examples[i][2]
+
+        # Map AA sequence to its 1-hot encoding
+        if aa_seq not in aa_sequence_to_tensor:
+            aa_tensor = create_one_hot_tensor(aa_seq, int(N/3), E, allowed_aas, device)
+            aa_sequence_to_tensor[aa_seq] = aa_tensor
+
+        # Make mapping from each nuc sub to each new AA idx, as tensor
+        if nuc_seq not in nuc_sequence_to_aa_idx:
+            mut_tensor = torch.zeros((N, D), dtype=torch.long, device = device)
+            for codon_start_pos in range(0, N, 3):
+                # Index on AA sequence
+                aa_pos = int(codon_start_pos / 3)
+                # Current amino acid
+                curr_aa = aa_seq[aa_pos]
+
+                # Extract codon
+                codon = nuc_seq[codon_start_pos:(codon_start_pos + 3)]
+
+                # Apply each possible mutation to codon
+                for codon_idx in range(3):
+                    for nuc_idx in range(D):
+                        
+                        # Translate new codon, if possible
+                        is_translatable, new_aa = codon_mutation_dict[codon][codon_idx][allowed_nucleotides[nuc_idx]]
+
+                        # If not translatable, or if synonymous mutation, there's no fitness effect
+                        # This is already accounted for in the initialization of fitness_by_mutation
+                        # Otherwise, record fitness effect
+                        different = False
+                        if is_translatable:
+                            if new_aa != curr_aa:
+                                mut_tensor[codon_start_pos + codon_idx][nuc_idx] = char_to_index(new_aa, allowed_aas)
+                                different = True
+                        if not different:
+                            # Default value for no change: E
+                            mut_tensor[codon_start_pos + codon_idx][nuc_idx] = E
+            nuc_sequence_to_aa_idx[nuc_seq] = mut_tensor
+
+
+        
+        
+
 
     # Parameters of model: both pop gen and deep learning!
 
@@ -388,14 +506,23 @@ def main():
     
    
     # Then move your model to GPU:
-    transformer_block = TransformerBlock(d_model=D, nhead=1)
+    transformer_block = TransformerBlock(d_model=E, nhead=1)
     transformer_block = transformer_block.to(device)
 
+    est_mu = tree.get_total_nucleotide_mutations() / tree.get_total_evolutionary_time() / N
+    est_psi = tree.get_total_samples() / tree.get_total_evolutionary_time()
+    print(f"Estimate of mutation rate: {est_mu}")
+    print(f"Estimate of sampling rate: {est_psi}")
+
     # Make parameters on GPU:
-    lam = torch.full((N_GRID,), GAMMA, requires_grad=True, device=device)
-    gam = torch.tensor(GAMMA, requires_grad=True, device=device)
-    psi = torch.tensor(GAMMA / 100.0, requires_grad=True, device=device)
-    mu = torch.tensor(0.001, requires_grad=True, device=device)
+    log_lam = torch.full((N_GRID,), math.log(GAMMA), requires_grad=True, device=device)
+    log_gam = torch.tensor(math.log(GAMMA), requires_grad=True, device=device)
+    log_psi = torch.tensor(math.log(est_psi), requires_grad=True, device=device)
+    log_mu = torch.tensor(math.log(est_mu), requires_grad=True, device=device)
+
+    # We also need an unknown fitness for the wild type strain
+    # Setting this to 1 as default (log(1) = 0)
+    log_f0 = torch.tensor(0.0, requires_grad=True, device=device)
 
     BATCH_SIZE = 256
     N_EPOCHS = 10
@@ -404,9 +531,44 @@ def main():
 
     optimizer = optim.Adam([
         {'params': transformer_block.parameters()},
-        {'params': [psi, mu]} # Could also include lam here if we want that to be unknown. Fixing for now.
-    ], lr=0.0005)
+        {'params': [log_psi, log_mu, log_f0]} # Could also include lam here if we want that to be unknown. Fixing for now.
+    ], lr=0.001)
 
+
+    def make_stack(sequences_in_batch, is_aa):
+        tensors_in_batch = []
+        for seq in sequences_in_batch:
+            if seq is not None:
+                if is_aa:
+                    tensors_in_batch.append(aa_sequence_to_tensor[seq])
+                else:
+                    tensors_in_batch.append(nuc_sequence_to_tensor[seq])
+            else:
+                if is_aa:
+                    tensors_in_batch.append(torch.zeros(int(N/3), E, device=device))
+                else:
+                    tensors_in_batch.append(torch.zeros(N, D, device=device))
+        stack = torch.stack(tensors_in_batch, dim=0)
+        return stack
+
+
+    def get_fitnesses(aa_sequences_in_batch):
+        # Stack to get a BATCH_SIZE x (N/3) x E tensor, N = length of AA seq, E = AA alphabet size
+        stack = make_stack(aa_sequences_in_batch, True)
+
+        # Apply transformer
+        fitness = transformer_block(stack)
+        fitness = torch.sigmoid(fitness)
+        fitness = -torch.log(1.0 - fitness)
+
+        # Zero out fitness for stop codon
+        fitness[:, :, char_to_index('*', allowed_aas)] = 0.0
+
+        return fitness
+    
+    
+
+    print("Entering training loop...")
     for epoch in range(N_EPOCHS):
 
         # Shuffle order of training examples
@@ -420,55 +582,97 @@ def main():
 
         # SGD loop
         while start_idx < len(training_examples):
-            # Obtain BATCH_SIZE ***unique*** sequence embeddings
-            idxs_in_batch = range(start_idx, min(start_idx + BATCH_SIZE, len(training_examples)))
 
+            # Transform parameters to positive values
+            lam = torch.exp(log_lam)
+            gam = torch.exp(log_gam)
+            psi = torch.exp(log_psi)
+            mu = torch.exp(log_mu)
+            f0 = torch.exp(log_f0)
+
+            print(f"   mu: {mu}")
+            print(f"   psi: {psi}")
+            print(f"   R0: {f0 * lam[len(lam) - 1] / gam}")
+
+            # Here we could compile mutation rate matrix
+            # Not necessary if assuming JC69 model, which is what we're doing for now
+
+            # Obtain BATCH_SIZE sequence embeddings
+            idxs_in_batch = range(start_idx, min(start_idx + BATCH_SIZE, len(training_examples)))
             actual_batch_size = len(idxs_in_batch)
 
-            #print(f"   Actual batch size: {actual_batch_size}")
-            
-            sequences_in_batch = [training_examples[idx][0] for idx in idxs_in_batch]
-            ancestral_sequences_in_batch = [training_examples[idx][1] for idx in idxs_in_batch]
-            
-            # Get a list of tensor encodings of these
-            tensors_in_batch = [sequence_to_tensor[seq] for seq in sequences_in_batch]
+            ### ---- Extract relevant sequences in batch ---- ###
 
-            # Stack to get a BATCH_SIZE x N x D tensor, N = length of genome, D = alphabet size
-            stack = torch.stack(tensors_in_batch, dim=0)
+            # Nucleotide sequences
+            nuc_sequences_in_batch = [training_examples[idx][0] for idx in idxs_in_batch]
 
-            # Apply transformer
-            fitness_by_mutation = transformer_block(stack)
-            fitness_by_mutation = torch.sigmoid(fitness_by_mutation)
-            fitness_by_mutation = -torch.log(1.0 - fitness_by_mutation)
+            # Ancestral nucleotide sequences
+            # ancestral_nuc_sequences_in_batch = [training_examples[idx][1] for idx in idxs_in_batch]
 
-            # Now, the ancestral sequence in each training example
-            ancestral_tensors_in_batch = []
-            for seq in ancestral_sequences_in_batch:
-                if seq is not None:
-                    ancestral_tensors_in_batch.append(sequence_to_tensor[seq])
-                else:
-                    ancestral_tensors_in_batch.append(torch.zeros(N, D, device=device))
-            
-            # Stack to get a BATCH_SIZE x N x D tensor, N = length of genome, D = alphabet size
-            ancestral_stack = torch.stack(ancestral_tensors_in_batch, dim=0)
+            # AA sequences
+            aa_sequences_in_batch = [training_examples[idx][2] for idx in idxs_in_batch]
 
-            # Apply transformer
-            fitness = transformer_block(ancestral_stack)
-            fitness = torch.sigmoid(fitness)
-            fitness = -torch.log(1.0 - fitness)
+            # Ancestral AA sequences
+            ancestral_aa_sequences_in_batch = [training_examples[idx][3] for idx in idxs_in_batch]
+
+            # Fitness tensor for ancestral sequences
+            # Dimension BATCH_SIZE x (N/3) x E
+            ancestral_fitness = get_fitnesses(ancestral_aa_sequences_in_batch)
 
             # For each level, get the fitness of the mutation that actually happened
-            fitness_of_G = torch.ones(actual_batch_size, device=device)
+            fitness_of_G = f0.expand(actual_batch_size).clone()
 
+            
             for i in range(actual_batch_size):
-                # Default fitness if actually there's no ancestral sequence is 1.0; no need to consider else case
-                if ancestral_sequences_in_batch[i] is not None:
-                    for pos in range(N):
-                        if ancestral_sequences_in_batch[i][pos] != sequences_in_batch[i][pos]:
-                            mutated_pos = pos
-                            break
-                    fitness_of_G[i] = fitness[i, mutated_pos, nucToIndex(sequences_in_batch[i][mutated_pos], allowed_characters)]
+                # If there's no ancestral sequence, default to fitness of f0, hence no need to consider else case
+                if ancestral_aa_sequences_in_batch[i] is not None:
+                    found = False
+                    mutated_pos = None
 
+                    # Search for position with AA substitution
+                    for pos in range(int(N/3)):
+                        if ancestral_aa_sequences_in_batch[i][pos] != aa_sequences_in_batch[i][pos]:
+                            if found:
+                                print(ancestral_aa_sequences_in_batch[i])
+                                print(aa_sequences_in_batch[i])
+                                raise ValueError("Found multiple positions with AA substitutions")
+                            mutated_pos = pos
+                            found = True
+                    
+                    if mutated_pos is None:
+                        raise ValueError("Could not find position with mutation")
+                    fitness_of_G[i] = ancestral_fitness[i, mutated_pos, char_to_index(aa_sequences_in_batch[i][mutated_pos], allowed_aas)]
+
+
+            
+            # Fitness tensor for present AA sequences
+            # Dimension: actual_batch_size x (N/3) x E
+            fitness = get_fitnesses(aa_sequences_in_batch)
+
+            
+
+            # Broadcast to actual_batch_size x N x E by repeating each dim 1 slice 3x
+            fitness = fitness.repeat_interleave(3, dim=1)
+
+            # Get the fitness associated with each nucleotide mutation away from present sequence
+            # Dimension: actual_batch_size x N
+            default_fitness = fitness_of_G.unsqueeze(1).expand(actual_batch_size, N)
+
+            # This is the default layer (index E). Concatenate to get tensor of dim actual_batch_size x N x (E+1)
+            fitness_by_mutation = torch.cat([fitness, default_fitness.unsqueeze(2)], dim=2)
+
+            # Stack the nuc sequence to aa idx maps
+            # Dimension actual_batch_size x N x D, 
+            # entry [i,j,k] is index of AA (or no change) that gets subbed into sequence i at AA position floor(j/3) when nuc position j is swapped to allowed_nucleotides[k]
+            aa_idxs_in_batch = [nuc_sequence_to_aa_idx[nuc_seq] for nuc_seq in nuc_sequences_in_batch]
+            aa_idx = torch.stack(aa_idxs_in_batch, dim=0)
+
+            fitness_by_mutation = torch.gather(fitness_by_mutation, dim=2, index=aa_idx)
+
+
+            # 1-hot tensor encoding of nucleotide sequences
+            # actual_batch_size x N x D
+            nuc_stack = make_stack(nuc_sequences_in_batch, False)
 
             # Get p, q at each grid point
             q_before = None
@@ -484,13 +688,13 @@ def main():
                 q_after = update_q_RK4(q_before, lam[interval], fitness_by_mutation, gam, psi, DT)
 
                 p_before = p_after
-                p_after = update_p_RK4(p_before, lam[interval], fitness_of_G, gam, psi, mu, q_before, q_after, 1.0 - stack, N, DT)
+                p_after = update_p_RK4(p_before, lam[interval], fitness_of_G, gam, psi, mu, q_before, q_after, 1.0 - nuc_stack, N, D, DT)
 
                 for i in range(len(idxs_in_batch)):
                     idx = idxs_in_batch[i]
                     # Check that start and end times of training example are in interval
-                    start_time = round(training_examples[idx][2], 3)
-                    end_time = round(training_examples[idx][3], 3)
+                    start_time = round(training_examples[idx][4], 3)
+                    end_time = round(training_examples[idx][5], 3)
 
                     # Fudge this to make sure it fits into the right interval
                     if start_time != end_time:
@@ -512,14 +716,14 @@ def main():
 
                         delta_t = end_time - start_time
 
-                        loss += delta_t * (mu * N + lam[interval] * (1.0 - 2.0*approx_avg_p) + gam + psi)
+                        loss += delta_t * ((mu * N) + (lam[interval] * fitness_of_G[i] * (1.0 - 2.0*approx_avg_p)) + gam + psi)
 
-                        event_type = training_examples[idx][4]
+                        event_type = training_examples[idx][6]
 
                         if event_type == "Mutation":
-                            loss -= torch.log(mu / 3.0)
+                            loss -= torch.log(mu / (D-1))
                         elif event_type == "Birth":
-                            loss -= torch.log(2.0 * lam[interval])
+                            loss -= torch.log(2.0 * lam[interval] * fitness_of_G[i])
                         elif event_type == "Sample":
                             loss -= torch.log(psi)
                         else:
@@ -528,7 +732,9 @@ def main():
                             
                             
             # Backpropagation
+            #print("   Starting backprop...")
             loss.backward()
+            #print("   Done with backprop")
 
             # Step
             optimizer.step()
@@ -540,6 +746,12 @@ def main():
             print(f"   Loss for batch {int(start_idx / BATCH_SIZE)}: {loss.item()}")
             # Update total loss on epoch
             total_loss += loss.item()
+
+            
+
+            with open(csv_filename, 'a', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow([int(start_idx / BATCH_SIZE), loss.item()])
 
             start_idx += BATCH_SIZE
         

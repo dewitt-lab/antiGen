@@ -282,6 +282,8 @@ class Tree(object):
 
         if not root_is_translatable:
             raise ValueError("Root nucleotide sequence cannot be translated")
+        
+        print(root_aa_seq)
 
 
         traverse_tree(self.tree, self.root_seq, root_aa_seq)
@@ -300,20 +302,44 @@ class Tree(object):
 
 
 ### Set up loss function, made of many functions layered on top of one another
-
-class TransformerBlock(nn.Module):
-    def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1):
+class FitnessPredictor(nn.Module):
+    def __init__(self, vocab_size, seq_len, d_model=128, nhead=4, dim_feedforward=512, dropout=0.1):
         super().__init__()
-        self.transformer_block = nn.TransformerEncoderLayer(
+        
+        # Embedding layer: vocab_size → d_model
+        self.embedding = nn.Linear(vocab_size, d_model)
+        
+        # Positional encoding (optional but recommended)
+        self.pos_encoding = nn.Parameter(torch.randn(1, seq_len, d_model))
+        
+        # Transformer
+        self.transformer = nn.TransformerEncoderLayer(
             d_model=d_model,
             nhead=nhead,
             dim_feedforward=dim_feedforward,
             dropout=dropout,
             batch_first=True
         )
-
+        
+        # Output projection: d_model → vocab_size
+        self.output_proj = nn.Linear(d_model, vocab_size)
+    
     def forward(self, x):
-        return self.transformer_block(x)
+        # x: (batch, seq_len, vocab_size) - one-hot encoded
+        
+        # Embed to d_model dimension
+        x = self.embedding(x)  # (batch, seq_len, d_model)
+        
+        # Add positional encoding
+        x = x + self.pos_encoding  # (batch, seq_len, d_model)
+        
+        # Transformer
+        x = self.transformer(x)  # (batch, seq_len, d_model)
+        
+        # Project back to vocab_size for fitness predictions
+        x = self.output_proj(x)  # (batch, seq_len, vocab_size)
+        
+        return x
 
 # q: BATCH_SIZE x N x D
 # lam: scalar
@@ -321,7 +347,7 @@ class TransformerBlock(nn.Module):
 # gam: scalar
 # psi: scalar
 def dq_dt(q, lam, f, gam, psi):
-    return -(lam*f + gam + psi)*q + (lam*f*q*q) + psi
+    return -(lam*f + gam + psi)*q + (lam*f*q*q) + gam
 
 def update_q_RK4(q_i, lam_i, f, gam, psi, dt):
     k1 = dq_dt(q_i, lam_i, f, gam, psi)
@@ -391,7 +417,7 @@ def main():
     csv_filename = "training_loss.csv"
     with open(csv_filename, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['iter', 'loss'])  # Header
+        writer.writerow(['iter', 'loss', 'mu', 'psi', 'R0'])  # Header
 
     # Set time discretization value
     DT = 0.01
@@ -404,8 +430,8 @@ def main():
     tree.read_root_seq(root_seq_file)
 
     # RBD
-    start_pos = 22516
-    end_pos = 23185
+    start_pos = 21562
+    end_pos = 25381
 
     N = end_pos - start_pos # Number of tokens in sequence
 
@@ -446,6 +472,9 @@ def main():
 
     print("Creating maps...")
     for i in range(len(training_examples)):
+
+        if i % 100 == 0:
+            print(i)
 
         # Get nucleotide sequence
         nuc_seq = training_examples[i][0]
@@ -496,7 +525,8 @@ def main():
             nuc_sequence_to_aa_idx[nuc_seq] = mut_tensor
 
 
-        
+    print(f"Number of unique AA sequences on tree: {len(aa_sequence_to_tensor)}")
+    print(f"Number of fitnesses modeled (approx.): {len(aa_sequence_to_tensor) * E * (N // 3)}")
         
 
 
@@ -505,12 +535,22 @@ def main():
     GAMMA = 73.0
     
    
-    # Then move your model to GPU:
-    transformer_block = TransformerBlock(d_model=E, nhead=1)
-    transformer_block = transformer_block.to(device)
+    # Fitness transformer
+    d_model = 128  # Or 256, 512, whatever you want
+    fitness_model = FitnessPredictor(
+        vocab_size=E,
+        seq_len=N//3,
+        d_model=d_model,
+        nhead=4,  # Use more heads with larger d_model
+        dim_feedforward=4*d_model,
+        dropout=0.1
+    )
+    fitness_model = fitness_model.to(device)
 
     est_mu = tree.get_total_nucleotide_mutations() / tree.get_total_evolutionary_time() / N
     est_psi = tree.get_total_samples() / tree.get_total_evolutionary_time()
+    #est_mu = 0.0025
+    #est_psi = 0.22
     print(f"Estimate of mutation rate: {est_mu}")
     print(f"Estimate of sampling rate: {est_psi}")
 
@@ -524,15 +564,15 @@ def main():
     # Setting this to 1 as default (log(1) = 0)
     log_f0 = torch.tensor(0.0, requires_grad=True, device=device)
 
-    BATCH_SIZE = 256
-    N_EPOCHS = 10
+    BATCH_SIZE = 64
+    N_EPOCHS = 4
 
     print(f"Using batch size {BATCH_SIZE}. {math.ceil(len(training_examples) / BATCH_SIZE)} batches per epoch are needed.")
 
     optimizer = optim.Adam([
-        {'params': transformer_block.parameters()},
+        {'params': fitness_model.parameters()},
         {'params': [log_psi, log_mu, log_f0]} # Could also include lam here if we want that to be unknown. Fixing for now.
-    ], lr=0.001)
+    ], lr=0.005)
 
 
     def make_stack(sequences_in_batch, is_aa):
@@ -557,7 +597,7 @@ def main():
         stack = make_stack(aa_sequences_in_batch, True)
 
         # Apply transformer
-        fitness = transformer_block(stack)
+        fitness = fitness_model(stack)
         fitness = torch.sigmoid(fitness)
         fitness = -torch.log(1.0 - fitness)
 
@@ -589,10 +629,11 @@ def main():
             psi = torch.exp(log_psi)
             mu = torch.exp(log_mu)
             f0 = torch.exp(log_f0)
+            r0 = f0 * lam[len(lam) - 1] / gam
 
             print(f"   mu: {mu}")
             print(f"   psi: {psi}")
-            print(f"   R0: {f0 * lam[len(lam) - 1] / gam}")
+            print(f"   R0: {r0}")
 
             # Here we could compile mutation rate matrix
             # Not necessary if assuming JC69 model, which is what we're doing for now
@@ -747,16 +788,36 @@ def main():
             # Update total loss on epoch
             total_loss += loss.item()
 
-            
-
             with open(csv_filename, 'a', newline='') as f:
                 writer = csv.writer(f)
-                writer.writerow([int(start_idx / BATCH_SIZE), loss.item()])
+                writer.writerow([int(start_idx / BATCH_SIZE), loss.item(), mu.item(), psi.item(), r0.item()])
 
             start_idx += BATCH_SIZE
         
         print(f"Loss for epoch {epoch}: {total_loss}")
 
+    # After training completes:
+    print("Saving trained model...")
+    torch.save({
+        'epoch': N_EPOCHS,
+        'model_state_dict': fitness_model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'log_lam': log_lam,
+        'log_gam': log_gam,
+        'log_psi': log_psi,
+        'log_mu': log_mu,
+        'log_f0': log_f0,
+        'loss': total_loss,
+        # Save hyperparameters for reconstruction
+        'd_model': d_model,
+        'N': N,
+        'E': E,
+        'D': D,
+        'N_GRID': N_GRID,
+        'DT': DT,
+    }, 'trained_fitness_model.pt')
+
+    print("Model saved to trained_fitness_model.pt")
     print("Done")
 
 if __name__=="__main__":

@@ -301,7 +301,10 @@ class Tree(object):
         return self.total_samples
 
 
-### Set up loss function, made of many functions layered on top of one another
+# Transformer for fitness
+# Input: tensor of dimension batch_size x (N/3) x E, 1-hot encoded AA sequence
+# Output: tensor of dimension batch_size x (N/3) x E, fitness change
+
 class FitnessPredictor(nn.Module):
     def __init__(self, vocab_size, seq_len, d_model=128, nhead=4, dim_feedforward=512, dropout=0.1):
         super().__init__()
@@ -387,8 +390,6 @@ def main():
     """
     Main runner function
     """
-    
-    print("hi")
 
     # Check that the file is being properly used
     if (len(sys.argv) !=3):
@@ -448,84 +449,17 @@ def main():
     # Get number of grid steps
     N_GRID = tree.get_n_grid()
 
-
-    # Create device tensor from sequence
-    # Using one-hot encoding for now
-    def create_one_hot_tensor(seq, dim_1, dim_2, allowed_characters, device):
-        tensor = torch.zeros(dim_1, dim_2, device=device)
-        for pos in range(len(seq)):
-            idx = char_to_index(seq[pos], allowed_characters)
-            tensor[pos, idx] = 1.0
-        return tensor
-    
-
-
-    # Map from sequences observed on tree to 1-hot encodings
-    nuc_sequence_to_tensor = {}
-    aa_sequence_to_tensor = {}
-
-    # Dictionary that takes in a nucleotide sequence and outputs an N x D tensor, where entry [pos][idx] is the index of the new amino acid at codon floor(pos/3)
-    nuc_sequence_to_aa_idx = {}
-
     # Helper dictionary
     codon_mutation_dict = tree.get_codon_mutation_dict()
 
-    print("Creating maps...")
-    for i in range(len(training_examples)):
 
-        if i % 100 == 0:
-            print(i)
-
-        # Get nucleotide sequence
-        nuc_seq = training_examples[i][0]
-
-        # Map nucleotide sequence to its 1-hot encoding
-        if nuc_seq not in nuc_sequence_to_tensor:
-            nuc_tensor = create_one_hot_tensor(nuc_seq, N, D, allowed_nucleotides, device)
-            nuc_sequence_to_tensor[nuc_seq] = nuc_tensor
-
-        # Get AA seq 
-        aa_seq = training_examples[i][2]
-
-        # Map AA sequence to its 1-hot encoding
-        if aa_seq not in aa_sequence_to_tensor:
-            aa_tensor = create_one_hot_tensor(aa_seq, int(N/3), E, allowed_aas, device)
-            aa_sequence_to_tensor[aa_seq] = aa_tensor
-
-        # Make mapping from each nuc sub to each new AA idx, as tensor
-        if nuc_seq not in nuc_sequence_to_aa_idx:
-            mut_tensor = torch.zeros((N, D), dtype=torch.long, device = device)
-            for codon_start_pos in range(0, N, 3):
-                # Index on AA sequence
-                aa_pos = int(codon_start_pos / 3)
-                # Current amino acid
-                curr_aa = aa_seq[aa_pos]
-
-                # Extract codon
-                codon = nuc_seq[codon_start_pos:(codon_start_pos + 3)]
-
-                # Apply each possible mutation to codon
-                for codon_idx in range(3):
-                    for nuc_idx in range(D):
-                        
-                        # Translate new codon, if possible
-                        is_translatable, new_aa = codon_mutation_dict[codon][codon_idx][allowed_nucleotides[nuc_idx]]
-
-                        # If not translatable, or if synonymous mutation, there's no fitness effect
-                        # This is already accounted for in the initialization of fitness_by_mutation
-                        # Otherwise, record fitness effect
-                        different = False
-                        if is_translatable:
-                            if new_aa != curr_aa:
-                                mut_tensor[codon_start_pos + codon_idx][nuc_idx] = char_to_index(new_aa, allowed_aas)
-                                different = True
-                        if not different:
-                            # Default value for no change: E
-                            mut_tensor[codon_start_pos + codon_idx][nuc_idx] = E
-            nuc_sequence_to_aa_idx[nuc_seq] = mut_tensor
+    nuc_sequence_to_tensor, aa_sequence_to_tensor, nuc_sequence_to_aa_idx = make_maps(training_examples, codon_mutation_dict, N, D, E, allowed_nucleotides, allowed_aas, device)
+    
+    
 
 
     print(f"Number of unique AA sequences on tree: {len(aa_sequence_to_tensor)}")
+    print(f"Number of unique nucleotide sequences on tree: {len(nuc_sequence_to_tensor)}")
     print(f"Number of fitnesses modeled (approx.): {len(aa_sequence_to_tensor) * E * (N // 3)}")
         
 
@@ -536,7 +470,7 @@ def main():
     
    
     # Fitness transformer
-    d_model = 128  # Or 256, 512, whatever you want
+    d_model = 128
     fitness_model = FitnessPredictor(
         vocab_size=E,
         seq_len=N//3,
@@ -573,39 +507,6 @@ def main():
         {'params': fitness_model.parameters()},
         {'params': [log_psi, log_mu, log_f0]} # Could also include lam here if we want that to be unknown. Fixing for now.
     ], lr=0.005)
-
-
-    def make_stack(sequences_in_batch, is_aa):
-        tensors_in_batch = []
-        for seq in sequences_in_batch:
-            if seq is not None:
-                if is_aa:
-                    tensors_in_batch.append(aa_sequence_to_tensor[seq])
-                else:
-                    tensors_in_batch.append(nuc_sequence_to_tensor[seq])
-            else:
-                if is_aa:
-                    tensors_in_batch.append(torch.zeros(int(N/3), E, device=device))
-                else:
-                    tensors_in_batch.append(torch.zeros(N, D, device=device))
-        stack = torch.stack(tensors_in_batch, dim=0)
-        return stack
-
-
-    def get_fitnesses(aa_sequences_in_batch):
-        # Stack to get a BATCH_SIZE x (N/3) x E tensor, N = length of AA seq, E = AA alphabet size
-        stack = make_stack(aa_sequences_in_batch, True)
-
-        # Apply transformer
-        fitness = fitness_model(stack)
-        fitness = torch.sigmoid(fitness)
-        fitness = -torch.log(1.0 - fitness)
-
-        # Zero out fitness for stop codon
-        fitness[:, :, char_to_index('*', allowed_aas)] = 0.0
-
-        return fitness
-    
     
 
     print("Entering training loop...")
@@ -658,7 +559,7 @@ def main():
 
             # Fitness tensor for ancestral sequences
             # Dimension BATCH_SIZE x (N/3) x E
-            ancestral_fitness = get_fitnesses(ancestral_aa_sequences_in_batch)
+            ancestral_fitness = get_fitnesses(fitness_model, ancestral_aa_sequences_in_batch, nuc_sequence_to_tensor, aa_sequence_to_tensor, N, D, E, allowed_aas, device)
 
             # For each level, get the fitness of the mutation that actually happened
             fitness_of_G = f0.expand(actual_batch_size).clone()
@@ -688,7 +589,7 @@ def main():
             
             # Fitness tensor for present AA sequences
             # Dimension: actual_batch_size x (N/3) x E
-            fitness = get_fitnesses(aa_sequences_in_batch)
+            fitness = get_fitnesses(fitness_model, aa_sequences_in_batch, nuc_sequence_to_tensor, aa_sequence_to_tensor, N, D, E, allowed_aas, device)
 
             
 
@@ -713,7 +614,7 @@ def main():
 
             # 1-hot tensor encoding of nucleotide sequences
             # actual_batch_size x N x D
-            nuc_stack = make_stack(nuc_sequences_in_batch, False)
+            nuc_stack = make_stack(nuc_sequences_in_batch, False, nuc_sequence_to_tensor, aa_sequence_to_tensor, N, D, E, device)
 
             # Get p, q at each grid point
             q_before = None

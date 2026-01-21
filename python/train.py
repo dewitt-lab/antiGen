@@ -309,11 +309,14 @@ class FitnessPredictor(nn.Module):
     def __init__(self, vocab_size, seq_len, d_model=128, nhead=4, dim_feedforward=512, dropout=0.1):
         super().__init__()
         
-        # Embedding layer: vocab_size → d_model
-        self.embedding = nn.Linear(vocab_size, d_model)
+        # ADD: Learnable amino acid embedding
+        self.aa_embedding = nn.Embedding(vocab_size, d_model)
         
-        # Positional encoding (optional but recommended)
-        self.pos_encoding = nn.Parameter(torch.randn(1, seq_len, d_model))
+        # Remove the linear embedding layer - not needed anymore
+        # self.embedding = nn.Linear(vocab_size, d_model)
+        
+        # Positional encoding
+        self.pos_encoding = nn.Parameter(torch.randn(1, seq_len, d_model) * 0.02)
         
         # Transformer
         self.transformer = nn.TransformerEncoderLayer(
@@ -324,23 +327,26 @@ class FitnessPredictor(nn.Module):
             batch_first=True
         )
         
-        # Output projection: d_model → vocab_size
+        # Output projection
         self.output_proj = nn.Linear(d_model, vocab_size)
     
     def forward(self, x):
-        # x: (batch, seq_len, vocab_size) - one-hot encoded
+        # x: (batch, seq_len, vocab_size) - one-hot
         
-        # Embed to d_model dimension
-        x = self.embedding(x)  # (batch, seq_len, d_model)
+        # Convert one-hot to indices
+        aa_indices = torch.argmax(x, dim=-1)  # (batch, seq_len)
+        
+        # Embed amino acids with learned representations
+        x = self.aa_embedding(aa_indices)  # (batch, seq_len, d_model)
         
         # Add positional encoding
-        x = x + self.pos_encoding  # (batch, seq_len, d_model)
+        x = x + self.pos_encoding
         
         # Transformer
-        x = self.transformer(x)  # (batch, seq_len, d_model)
+        x = self.transformer(x)
         
-        # Project back to vocab_size for fitness predictions
-        x = self.output_proj(x)  # (batch, seq_len, vocab_size)
+        # Project to fitness space
+        x = self.output_proj(x)
         
         return x
 

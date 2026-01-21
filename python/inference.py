@@ -2,7 +2,7 @@ import sys
 import csv
 import torch
 import torch.nn as nn
-from main import FitnessPredictor  # Import your model class
+from train import FitnessPredictor  # Import your model class
 from helpers import *
 
 def load_trained_model(checkpoint_path, device='cuda'):

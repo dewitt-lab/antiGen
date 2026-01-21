@@ -349,7 +349,8 @@ class FitnessPredictor(nn.Module):
         x = self.output_proj(x)
         
         return x
-
+    
+    
 # q: BATCH_SIZE x N x D
 # lam: scalar
 # f: BATCH_SIZE x N x D
@@ -505,7 +506,7 @@ def main():
     log_f0 = torch.tensor(0.0, requires_grad=True, device=device)
 
     BATCH_SIZE = 64
-    N_EPOCHS = 4
+    N_EPOCHS = 1
 
     print(f"Using batch size {BATCH_SIZE}. {math.ceil(len(training_examples) / BATCH_SIZE)} batches per epoch are needed.")
 

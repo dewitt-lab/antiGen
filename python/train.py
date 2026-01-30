@@ -302,22 +302,20 @@ class Tree(object):
 
 
 # Transformer for fitness
-# Input: tensor of dimension batch_size x (N/3) x E, 1-hot encoded AA sequence
+# Input: tensor of dimension batch_size x (N/3) - integer AA indices
+#        OR batch_size x (N/3) x E - one-hot encoded (backward compatible)
 # Output: tensor of dimension batch_size x (N/3) x E, fitness change
 
 class FitnessPredictor(nn.Module):
     def __init__(self, vocab_size, seq_len, d_model=128, nhead=4, dim_feedforward=512, dropout=0.1):
         super().__init__()
-        
-        # ADD: Learnable amino acid embedding
+
+        # Learnable amino acid embedding
         self.aa_embedding = nn.Embedding(vocab_size, d_model)
-        
-        # Remove the linear embedding layer - not needed anymore
-        # self.embedding = nn.Linear(vocab_size, d_model)
-        
+
         # Positional encoding
         self.pos_encoding = nn.Parameter(torch.randn(1, seq_len, d_model) * 0.02)
-        
+
         # Transformer
         self.transformer = nn.TransformerEncoderLayer(
             d_model=d_model,
@@ -326,28 +324,28 @@ class FitnessPredictor(nn.Module):
             dropout=dropout,
             batch_first=True
         )
-        
+
         # Output projection
         self.output_proj = nn.Linear(d_model, vocab_size)
-    
+
     def forward(self, x):
-        # x: (batch, seq_len, vocab_size) - one-hot
-        
-        # Convert one-hot to indices
-        aa_indices = torch.argmax(x, dim=-1)  # (batch, seq_len)
-        
-        # Embed amino acids with learned representations
-        x = self.aa_embedding(aa_indices)  # (batch, seq_len, d_model)
-        
+        # Handle both index input (batch, seq_len) and one-hot input (batch, seq_len, vocab_size)
+        if x.dim() == 3:
+            # One-hot input (backward compatible)
+            x = torch.argmax(x, dim=-1)
+
+        # x: (batch, seq_len) - integer AA indices
+        x = self.aa_embedding(x)  # (batch, seq_len, d_model)
+
         # Add positional encoding
         x = x + self.pos_encoding
-        
+
         # Transformer
         x = self.transformer(x)
-        
+
         # Project to fitness space
         x = self.output_proj(x)
-        
+
         return x
     
     
@@ -403,8 +401,12 @@ def main():
         print("Please specify a tree_file and root_seq_file.")
         return
 
-    # Set seed
+    # Set seeds for reproducibility
     np.random.seed(42)
+    random.seed(42)
+    torch.manual_seed(42)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(42)
 
     # Define alphabet
     allowed_nucleotides = "ACGT-"
@@ -459,15 +461,15 @@ def main():
     # Helper dictionary
     codon_mutation_dict = tree.get_codon_mutation_dict()
 
+    # Build codon->AA lookup table for vectorized mutation mapping
+    codon_to_aa = build_codon_to_aa_table(allowed_nucleotides, allowed_aas, device)
 
-    nuc_sequence_to_tensor, aa_sequence_to_tensor, nuc_sequence_to_aa_idx = make_maps(training_examples, codon_mutation_dict, N, D, E, allowed_nucleotides, allowed_aas, device)
-    
-    
-
-
-    print(f"Number of unique AA sequences on tree: {len(aa_sequence_to_tensor)}")
-    print(f"Number of unique nucleotide sequences on tree: {len(nuc_sequence_to_tensor)}")
-    print(f"Number of fitnesses modeled (approx.): {len(aa_sequence_to_tensor) * E * (N // 3)}")
+    # Count unique sequences (for info only)
+    unique_nuc = set(ex[0] for ex in training_examples)
+    unique_aa = set(ex[2] for ex in training_examples if ex[2] is not None)
+    print(f"Number of unique AA sequences on tree: {len(unique_aa)}")
+    print(f"Number of unique nucleotide sequences on tree: {len(unique_nuc)}")
+    print(f"Number of fitnesses modeled (approx.): {len(unique_aa) * E * (N // 3)}")
         
 
 
@@ -566,7 +568,7 @@ def main():
 
             # Fitness tensor for ancestral sequences
             # Dimension BATCH_SIZE x (N/3) x E
-            ancestral_fitness = get_fitnesses(fitness_model, ancestral_aa_sequences_in_batch, nuc_sequence_to_tensor, aa_sequence_to_tensor, N, D, E, allowed_aas, device)
+            ancestral_fitness = get_fitnesses(fitness_model, ancestral_aa_sequences_in_batch, allowed_aas, device)
 
             # For each level, get the fitness of the mutation that actually happened
             fitness_of_G = f0.expand(actual_batch_size).clone()
@@ -596,7 +598,7 @@ def main():
             
             # Fitness tensor for present AA sequences
             # Dimension: actual_batch_size x (N/3) x E
-            fitness = get_fitnesses(fitness_model, aa_sequences_in_batch, nuc_sequence_to_tensor, aa_sequence_to_tensor, N, D, E, allowed_aas, device)
+            fitness = get_fitnesses(fitness_model, aa_sequences_in_batch, allowed_aas, device)
 
             
 
@@ -610,18 +612,19 @@ def main():
             # This is the default layer (index E). Concatenate to get tensor of dim actual_batch_size x N x (E+1)
             fitness_by_mutation = torch.cat([fitness, default_fitness.unsqueeze(2)], dim=2)
 
-            # Stack the nuc sequence to aa idx maps
-            # Dimension actual_batch_size x N x D, 
+            # Compute aa_idx on-the-fly using vectorized codon lookup
+            # Dimension actual_batch_size x N x D,
             # entry [i,j,k] is index of AA (or no change) that gets subbed into sequence i at AA position floor(j/3) when nuc position j is swapped to allowed_nucleotides[k]
-            aa_idxs_in_batch = [nuc_sequence_to_aa_idx[nuc_seq] for nuc_seq in nuc_sequences_in_batch]
-            aa_idx = torch.stack(aa_idxs_in_batch, dim=0)
+            nuc_indices_batch = torch.stack([nuc_seq_to_indices(seq, allowed_nucleotides, device) for seq in nuc_sequences_in_batch], dim=0)
+            aa_indices_batch = tokenize_aa_batch(aa_sequences_in_batch, allowed_aas, device)
+            aa_idx = get_aa_idx_vectorized_batched(nuc_indices_batch, aa_indices_batch, codon_to_aa, E, device)
 
             fitness_by_mutation = torch.gather(fitness_by_mutation, dim=2, index=aa_idx)
 
-
-            # 1-hot tensor encoding of nucleotide sequences
-            # actual_batch_size x N x D
-            nuc_stack = make_stack(nuc_sequences_in_batch, False, nuc_sequence_to_tensor, aa_sequence_to_tensor, N, D, E, device)
+            # Compute mutation mask from nucleotide indices (replaces one-hot nuc_stack)
+            # is_mutation[b, pos, d] = 1 if d != current nucleotide at pos in sequence b
+            all_nucs = torch.arange(D, device=device)
+            is_mutation = (all_nucs.view(1, 1, D) != nuc_indices_batch.unsqueeze(-1)).float()
 
             # Get p, q at each grid point
             q_before = None
@@ -637,7 +640,7 @@ def main():
                 q_after = update_q_RK4(q_before, lam[interval], fitness_by_mutation, gam, psi, DT)
 
                 p_before = p_after
-                p_after = update_p_RK4(p_before, lam[interval], fitness_of_G, gam, psi, mu, q_before, q_after, 1.0 - nuc_stack, N, D, DT)
+                p_after = update_p_RK4(p_before, lam[interval], fitness_of_G, gam, psi, mu, q_before, q_after, is_mutation, N, D, DT)
 
                 for i in range(len(idxs_in_batch)):
                     idx = idxs_in_batch[i]

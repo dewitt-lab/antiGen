@@ -93,15 +93,15 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
 
-    # Create torch tensor for this one sequence
-    aa_tensor = create_one_hot_tensor(aa_seq, len(aa_seq), E, allowed_aas, device).unsqueeze(0)
+    # Tokenize sequence to indices
+    aa_indices = aa_seq_to_indices(aa_seq, allowed_aas, device).unsqueeze(0)  # (1, seq_len)
 
     # Run inference
     fitness_model, params, checkpoint = load_trained_model(model_file, device)
 
     with torch.no_grad():
-        # Apply transformer
-        fitness = fitness_model(aa_tensor)
+        # Apply transformer (accepts indices directly)
+        fitness = fitness_model(aa_indices)
         fitness = torch.sigmoid(fitness)
         fitness = -torch.log(1.0 - fitness)
 

@@ -13,6 +13,8 @@ import math
 from helpers import *
 from config import ModelConfig, ModelType, ESM2Config, TransformerConfig, ExperimentConfig, TrainingConfig, DataConfig
 from models.factory import create_model, save_checkpoint
+from dataset import FitnessTrainingDataset, collate_fn
+from torch.utils.data import DataLoader
 
 class Tree(object):
     """
@@ -549,8 +551,65 @@ def main():
     print(f"Number of unique AA sequences on tree: {len(unique_aa)}")
     print(f"Number of unique nucleotide sequences on tree: {len(unique_nuc)}")
     print(f"Number of fitnesses modeled (approx.): {len(unique_aa) * E * (N // 3)}")
-        
 
+    # --- Precomputation Phase: Convert all training examples to tensors ---
+    print("Precomputing tokenized tensors...")
+    num_examples = len(training_examples)
+    seq_len_aa = N // 3
+
+    # Preallocate tensors on CPU (will be moved to GPU in batches)
+    all_nuc_indices = torch.zeros(num_examples, N, dtype=torch.long)
+    all_aa_indices = torch.zeros(num_examples, seq_len_aa, dtype=torch.long)
+    all_ancestral_aa_indices = torch.zeros(num_examples, seq_len_aa, dtype=torch.long)
+    all_has_ancestral = torch.zeros(num_examples, dtype=torch.bool)
+    all_start_times = torch.zeros(num_examples, dtype=torch.float32)
+    all_end_times = torch.zeros(num_examples, dtype=torch.float32)
+    all_event_types = torch.zeros(num_examples, dtype=torch.long)
+
+    for i, example in enumerate(training_examples):
+        nuc_seq, ancestral_nuc_seq, aa_seq, ancestral_aa_seq, start_time, end_time, event_type = example
+
+        # Tokenize nucleotide sequence
+        all_nuc_indices[i] = torch.tensor(
+            [allowed_nucleotides.index(c) for c in nuc_seq], dtype=torch.long
+        )
+
+        # Tokenize AA sequence
+        all_aa_indices[i] = torch.tensor(
+            [allowed_aas.index(c) for c in aa_seq], dtype=torch.long
+        )
+
+        # Tokenize ancestral AA sequence (or zeros if None)
+        if ancestral_aa_seq is not None:
+            all_ancestral_aa_indices[i] = torch.tensor(
+                [allowed_aas.index(c) for c in ancestral_aa_seq], dtype=torch.long
+            )
+            all_has_ancestral[i] = True
+        else:
+            all_has_ancestral[i] = False
+
+        # Pre-round times to match original behavior
+        all_start_times[i] = round(start_time, 3)
+        all_end_times[i] = round(end_time, 3)
+
+        # Encode event type
+        all_event_types[i] = encode_event_type(event_type)
+
+    print(f"Precomputation complete. Tensor shapes:")
+    print(f"  nuc_indices: {all_nuc_indices.shape}")
+    print(f"  aa_indices: {all_aa_indices.shape}")
+    print(f"  has_ancestral: {all_has_ancestral.sum().item()} / {num_examples} examples")
+
+    # Create dataset
+    dataset = FitnessTrainingDataset(
+        nuc_indices=all_nuc_indices,
+        aa_indices=all_aa_indices,
+        ancestral_aa_indices=all_ancestral_aa_indices,
+        has_ancestral=all_has_ancestral,
+        start_times=all_start_times,
+        end_times=all_end_times,
+        event_types=all_event_types,
+    )
 
     # Parameters of model: both pop gen and deep learning!
 
@@ -623,17 +682,43 @@ def main():
     print("Entering training loop...")
     for epoch in range(N_EPOCHS):
 
-        # Shuffle order of training examples
-        random.shuffle(training_examples)
-
-        # Index of first training example in batch (gets incremented by BATCH_SIZE)
-        start_idx = 0
+        # Create DataLoader with shuffling for this epoch
+        dataloader = DataLoader(
+            dataset,
+            batch_size=BATCH_SIZE,
+            shuffle=True,
+            num_workers=4,
+            pin_memory=True,
+            collate_fn=collate_fn,
+            drop_last=False,
+        )
 
         # Track total loss
         total_loss = 0.0
 
-        # SGD loop
-        while start_idx < len(training_examples):
+        # SGD loop using DataLoader
+        for batch_num, batch_data in enumerate(dataloader):
+            # Unpack batch data
+            (
+                nuc_indices_batch,
+                aa_indices_batch,
+                ancestral_aa_indices_batch,
+                has_ancestral_batch,
+                start_times_batch,
+                end_times_batch,
+                event_types_batch,
+            ) = batch_data
+
+            # Move to device
+            nuc_indices_batch = nuc_indices_batch.to(device)
+            aa_indices_batch = aa_indices_batch.to(device)
+            ancestral_aa_indices_batch = ancestral_aa_indices_batch.to(device)
+            has_ancestral_batch = has_ancestral_batch.to(device)
+            start_times_batch = start_times_batch.to(device)
+            end_times_batch = end_times_batch.to(device)
+            event_types_batch = event_types_batch.to(device)
+
+            actual_batch_size = nuc_indices_batch.shape[0]
 
             # Transform parameters to positive values
             lam = torch.exp(log_lam)
@@ -647,62 +732,41 @@ def main():
             print(f"   psi: {psi}")
             print(f"   R0: {r0}")
 
-            # Here we could compile mutation rate matrix
-            # Not necessary if assuming JC69 model, which is what we're doing for now
-
-            # Obtain BATCH_SIZE sequence embeddings
-            idxs_in_batch = range(start_idx, min(start_idx + BATCH_SIZE, len(training_examples)))
-            actual_batch_size = len(idxs_in_batch)
-
-            ### ---- Extract relevant sequences in batch ---- ###
-
-            # Nucleotide sequences
-            nuc_sequences_in_batch = [training_examples[idx][0] for idx in idxs_in_batch]
-
-            # Ancestral nucleotide sequences
-            # ancestral_nuc_sequences_in_batch = [training_examples[idx][1] for idx in idxs_in_batch]
-
-            # AA sequences
-            aa_sequences_in_batch = [training_examples[idx][2] for idx in idxs_in_batch]
-
-            # Ancestral AA sequences
-            ancestral_aa_sequences_in_batch = [training_examples[idx][3] for idx in idxs_in_batch]
-
-            # Fitness tensor for ancestral sequences
+            # Fitness tensor for ancestral sequences using pre-tokenized indices
             # Dimension BATCH_SIZE x (N/3) x E
-            ancestral_fitness = get_fitnesses(fitness_model, ancestral_aa_sequences_in_batch, allowed_aas, device)
+            ancestral_fitness = get_fitnesses_from_indices(
+                fitness_model, ancestral_aa_indices_batch, allowed_aas, device
+            )
+
+            # Vectorized mutation position finding
+            mutated_positions = find_mutation_positions_batched(
+                aa_indices_batch, ancestral_aa_indices_batch, has_ancestral_batch
+            )
 
             # For each level, get the fitness of the mutation that actually happened
+            # Start with f0 for all, then update those with ancestral sequences
             fitness_of_G = f0.expand(actual_batch_size).clone()
 
-            
-            for i in range(actual_batch_size):
-                # If there's no ancestral sequence, default to fitness of f0, hence no need to consider else case
-                if ancestral_aa_sequences_in_batch[i] is not None:
-                    found = False
-                    mutated_pos = None
+            # Vectorized gathering of fitness values at mutation positions
+            # Get the AA at the mutated position for each sequence
+            # mutated_aa_indices: (batch,) - the AA index at the mutated position
+            batch_indices = torch.arange(actual_batch_size, device=device)
+            mutated_aa_indices = aa_indices_batch[batch_indices, mutated_positions]
 
-                    # Search for position with AA substitution
-                    for pos in range(int(N/3)):
-                        if ancestral_aa_sequences_in_batch[i][pos] != aa_sequences_in_batch[i][pos]:
-                            if found:
-                                print(ancestral_aa_sequences_in_batch[i])
-                                print(aa_sequences_in_batch[i])
-                                raise ValueError("Found multiple positions with AA substitutions")
-                            mutated_pos = pos
-                            found = True
-                    
-                    if mutated_pos is None:
-                        raise ValueError("Could not find position with mutation")
-                    fitness_of_G[i] = ancestral_fitness[i, mutated_pos, char_to_index(aa_sequences_in_batch[i][mutated_pos], allowed_aas)]
+            # Gather fitness values: ancestral_fitness[b, mutated_pos, mutated_aa]
+            # For sequences with ancestral, get the fitness of the new AA at the mutated position
+            fitness_at_mutation = ancestral_fitness[
+                batch_indices, mutated_positions, mutated_aa_indices
+            ]
 
+            # Only update fitness_of_G for sequences that have ancestral
+            fitness_of_G = torch.where(has_ancestral_batch, fitness_at_mutation, fitness_of_G)
 
-            
-            # Fitness tensor for present AA sequences
+            # Fitness tensor for present AA sequences using pre-tokenized indices
             # Dimension: actual_batch_size x (N/3) x E
-            fitness = get_fitnesses(fitness_model, aa_sequences_in_batch, allowed_aas, device)
-
-            
+            fitness = get_fitnesses_from_indices(
+                fitness_model, aa_indices_batch, allowed_aas, device
+            )
 
             # Broadcast to actual_batch_size x N x E by repeating each dim 1 slice 3x
             fitness = fitness.repeat_interleave(3, dim=1)
@@ -714,12 +778,10 @@ def main():
             # This is the default layer (index E). Concatenate to get tensor of dim actual_batch_size x N x (E+1)
             fitness_by_mutation = torch.cat([fitness, default_fitness.unsqueeze(2)], dim=2)
 
-            # Compute aa_idx on-the-fly using vectorized codon lookup
-            # Dimension actual_batch_size x N x D,
-            # entry [i,j,k] is index of AA (or no change) that gets subbed into sequence i at AA position floor(j/3) when nuc position j is swapped to allowed_nucleotides[k]
-            nuc_indices_batch = torch.stack([nuc_seq_to_indices(seq, allowed_nucleotides, device) for seq in nuc_sequences_in_batch], dim=0)
-            aa_indices_batch = tokenize_aa_batch(aa_sequences_in_batch, allowed_aas, device)
-            aa_idx = get_aa_idx_vectorized_batched(nuc_indices_batch, aa_indices_batch, codon_to_aa, E, device)
+            # Compute aa_idx using pre-tokenized indices (no per-batch tokenization!)
+            aa_idx = get_aa_idx_vectorized_batched(
+                nuc_indices_batch, aa_indices_batch, codon_to_aa, E, device
+            )
 
             fitness_by_mutation = torch.gather(fitness_by_mutation, dim=2, index=aa_idx)
 
@@ -744,51 +806,59 @@ def main():
                 p_before = p_after
                 p_after = update_p_RK4(p_before, lam[interval], fitness_of_G, gam, psi, mu, q_before, q_after, is_mutation, N, D, DT)
 
-                for i in range(len(idxs_in_batch)):
-                    idx = idxs_in_batch[i]
-                    # Check that start and end times of training example are in interval
-                    start_time = round(training_examples[idx][4], 3)
-                    end_time = round(training_examples[idx][5], 3)
+                # Vectorized interval matching
+                # Apply fudge factor for non-zero-length intervals
+                start_times_fudged = start_times_batch.clone()
+                end_times_fudged = end_times_batch.clone()
+                non_zero_mask = (start_times_batch != end_times_batch)
+                start_times_fudged = torch.where(non_zero_mask, start_times_batch + 0.00000001, start_times_batch)
+                end_times_fudged = torch.where(non_zero_mask, end_times_batch - 0.00000001, end_times_batch)
 
-                    # Fudge this to make sure it fits into the right interval
-                    if start_time != end_time:
-                        start_time += 0.00000001
-                        end_time -= 0.00000001
+                # Find examples in this interval
+                in_interval = ((start_times_fudged / DT).long() == interval)
 
-                    if int(start_time / DT) == interval:
-                        
-                        if int(end_time / DT) != interval:
-                            print(start_time)
-                            print(end_time)
-                            raise ValueError("Start and end times should be in the same interval")
+                if in_interval.any():
+                    # Get indices of examples in this interval
+                    interval_indices = torch.where(in_interval)[0]
 
-                        # Approximate average value of p
-                        approx_p_at_start = p_before[i] + (start_time - interval*DT) * (p_after[i] - p_before[i]) / DT
-                        approx_p_at_end = p_before[i] + (end_time - interval*DT) * (p_after[i] - p_before[i]) / DT
+                    # Extract values for examples in this interval
+                    start_t = start_times_fudged[interval_indices]
+                    end_t = end_times_fudged[interval_indices]
+                    p_before_interval = p_before[interval_indices]
+                    p_after_interval = p_after[interval_indices]
+                    fitness_of_G_interval = fitness_of_G[interval_indices]
+                    event_types_interval = event_types_batch[interval_indices]
 
-                        approx_avg_p = (approx_p_at_start + approx_p_at_end) / 2.0
+                    # Approximate average value of p
+                    approx_p_at_start = p_before_interval + (start_t - interval * DT) * (p_after_interval - p_before_interval) / DT
+                    approx_p_at_end = p_before_interval + (end_t - interval * DT) * (p_after_interval - p_before_interval) / DT
 
-                        delta_t = end_time - start_time
+                    approx_avg_p = (approx_p_at_start + approx_p_at_end) / 2.0
 
-                        loss += delta_t * ((mu * N) + (lam[interval] * fitness_of_G[i] * (1.0 - 2.0*approx_avg_p)) + gam + psi)
+                    delta_t = end_t - start_t
 
-                        event_type = training_examples[idx][6]
+                    # Main loss term (vectorized over examples in interval)
+                    loss_contrib = delta_t * ((mu * N) + (lam[interval] * fitness_of_G_interval * (1.0 - 2.0 * approx_avg_p)) + gam + psi)
+                    loss = loss + loss_contrib.sum()
 
-                        if event_type == "Mutation":
-                            loss -= torch.log(mu / (D-1))
-                        elif event_type == "Birth":
-                            loss -= torch.log(2.0 * lam[interval] * fitness_of_G[i])
-                        elif event_type == "Sample":
-                            loss -= torch.log(psi)
-                        else:
-                            if event_type != "Nothing":
-                                raise ValueError("Unknown event type")
-                            
-                            
+                    # Event-type specific loss terms (vectorized)
+                    # Mutation: event_type == 1
+                    mutation_mask = (event_types_interval == 1)
+                    if mutation_mask.any():
+                        loss = loss - mutation_mask.sum() * torch.log(mu / (D - 1))
+
+                    # Birth: event_type == 2
+                    birth_mask = (event_types_interval == 2)
+                    if birth_mask.any():
+                        loss = loss - torch.log(2.0 * lam[interval] * fitness_of_G_interval[birth_mask]).sum()
+
+                    # Sample: event_type == 3
+                    sample_mask = (event_types_interval == 3)
+                    if sample_mask.any():
+                        loss = loss - sample_mask.sum() * torch.log(psi)
+
             # Backpropagation
-            #print("   Starting backprop...")
             loss.backward()
-            #print("   Done with backprop")
 
             # Step
             optimizer.step()
@@ -799,7 +869,6 @@ def main():
             optimizer.zero_grad()
 
             # Print batch loss
-            batch_num = start_idx // BATCH_SIZE
             print(f"   Loss for batch {batch_num}: {loss.item()}")
             # Update total loss on epoch
             total_loss += loss.item()
@@ -829,8 +898,6 @@ def main():
                 )
                 print(f"   Saved checkpoint to {ckpt_path}")
 
-            start_idx += BATCH_SIZE
-        
         print(f"Loss for epoch {epoch}: {total_loss}")
 
     # After training completes:

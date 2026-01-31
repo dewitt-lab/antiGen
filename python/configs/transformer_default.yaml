@@ -11,7 +11,7 @@ model:
 training:
   batch_size: 64
   epochs: 1
-  learning_rate: 0.001
+  learning_rate: 0.0001
   warmup_steps: 100
   save_every: 100  # Save checkpoint every N batches (0 = only at end)
   seed: 42

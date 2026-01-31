@@ -229,3 +229,66 @@ def get_fitnesses(fitness_model, aa_sequences_in_batch, allowed_aas, device):
     fitness[:, :, char_to_index('*', allowed_aas)] = 0.0
 
     return fitness
+
+
+def get_fitnesses_from_indices(fitness_model, aa_indices, allowed_aas, device):
+    """
+    Compute fitness scores for a batch of AA sequences given pre-tokenized indices.
+
+    This avoids redundant tokenization when indices are already available.
+
+    Args:
+        fitness_model: the FitnessPredictor model
+        aa_indices: (batch, seq_len) tensor of AA indices (pre-tokenized)
+        allowed_aas: alphabet string
+        device: torch device
+
+    Returns:
+        (batch, seq_len, vocab_size) fitness tensor
+    """
+    # Apply transformer (now accepts indices directly)
+    fitness = fitness_model(aa_indices)
+    fitness = torch.sigmoid(fitness)
+    fitness = -torch.log(1.0 - fitness)
+
+    # Zero out fitness for stop codon
+    fitness[:, :, char_to_index('*', allowed_aas)] = 0.0
+
+    return fitness
+
+
+def find_mutation_positions_batched(aa_indices, ancestral_aa_indices, has_ancestral):
+    """
+    Vectorized mutation position finding.
+
+    For sequences with an ancestral sequence, finds the position where AA differs.
+    Assumes exactly one mutation per sequence (as enforced by training data generation).
+
+    Args:
+        aa_indices: (batch, seq_len) tensor of current AA indices
+        ancestral_aa_indices: (batch, seq_len) tensor of ancestral AA indices
+        has_ancestral: (batch,) boolean tensor indicating which examples have ancestral sequences
+
+    Returns:
+        mutated_positions: (batch,) tensor of mutation positions (0 for sequences without ancestral)
+    """
+    # Find positions where AA differs: (batch, seq_len)
+    differs = (aa_indices != ancestral_aa_indices)
+
+    # argmax returns first True position; for all-False rows, returns 0
+    # This is fine since sequences without ancestral use f0 anyway
+    mutated_positions = differs.float().argmax(dim=1)
+
+    return mutated_positions
+
+
+def encode_event_type(event_type_str):
+    """Encode event type string to integer."""
+    event_map = {"Nothing": 0, "Mutation": 1, "Birth": 2, "Sample": 3}
+    return event_map.get(event_type_str, 0)
+
+
+def decode_event_type(event_type_int):
+    """Decode event type integer to string."""
+    event_map = {0: "Nothing", 1: "Mutation", 2: "Birth", 3: "Sample"}
+    return event_map.get(event_type_int, "Nothing")

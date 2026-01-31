@@ -2,44 +2,24 @@ import sys
 import csv
 import torch
 import torch.nn as nn
-from train import FitnessPredictor  # Import your model class
+from models.factory import load_model
 from helpers import *
+
 
 def load_trained_model(checkpoint_path, device='cuda'):
     """
-    Load a trained fitness prediction model
-    
+    Load a trained fitness prediction model using the factory.
+
     Args:
         checkpoint_path: Path to saved .pt file
         device: 'cuda' or 'cpu'
-    
+
     Returns:
-        model, parameters dict
+        model, parameters dict, checkpoint
     """
-    # Load checkpoint
-    checkpoint = torch.load(checkpoint_path, map_location=device)
-    
-    # Extract hyperparameters
-    d_model = checkpoint['d_model']
-    N = checkpoint['N']
-    E = checkpoint['E']
-    seq_len = N // 3
-    
-    # Recreate model architecture
-    model = FitnessPredictor(
-        vocab_size=E,
-        seq_len=seq_len,
-        d_model=d_model,
-        nhead=4,
-        dim_feedforward=4*d_model,
-        dropout=0.1
-    )
-    
-    # Load trained weights
-    model.load_state_dict(checkpoint['model_state_dict'])
-    model = model.to(device)
-    model.eval()  # Set to evaluation mode
-    
+    # Use factory to load model (handles both legacy and new checkpoints)
+    model, checkpoint = load_model(checkpoint_path, device)
+
     # Extract population genetics parameters
     params = {
         'lam': torch.exp(checkpoint['log_lam']).to(device),
@@ -48,8 +28,9 @@ def load_trained_model(checkpoint_path, device='cuda'):
         'mu': torch.exp(checkpoint['log_mu']).to(device),
         'f0': torch.exp(checkpoint['log_f0']).to(device),
     }
-    
+
     print(f"Model loaded from {checkpoint_path}")
+    print(f"Model type: {model.config.model_type.value}")
     print(f"Trained for {checkpoint['epoch']} epochs")
     print(f"Final loss: {checkpoint['loss']:.2f}")
     print(f"Parameters:")
@@ -57,7 +38,7 @@ def load_trained_model(checkpoint_path, device='cuda'):
     print(f"  psi: {params['psi'].item():.3f}")
     print(f"  f0: {params['f0'].item():.3f}")
     print(f"  R0: {(params['f0'] * params['lam'][-1] / params['gam']).item():.2f}")
-    
+
     return model, params, checkpoint
 
 

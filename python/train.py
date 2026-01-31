@@ -11,6 +11,8 @@ import torch.optim as optim
 import csv
 import math
 from helpers import *
+from config import ModelConfig, ModelType, ESM2Config, TransformerConfig, ExperimentConfig, TrainingConfig, DataConfig
+from models.factory import create_model, save_checkpoint
 
 class Tree(object):
     """
@@ -301,52 +303,7 @@ class Tree(object):
         return self.total_samples
 
 
-# Transformer for fitness
-# Input: tensor of dimension batch_size x (N/3) - integer AA indices
-#        OR batch_size x (N/3) x E - one-hot encoded (backward compatible)
-# Output: tensor of dimension batch_size x (N/3) x E, fitness change
-
-class FitnessPredictor(nn.Module):
-    def __init__(self, vocab_size, seq_len, d_model=128, nhead=4, dim_feedforward=512, dropout=0.1):
-        super().__init__()
-
-        # Learnable amino acid embedding
-        self.aa_embedding = nn.Embedding(vocab_size, d_model)
-
-        # Positional encoding
-        self.pos_encoding = nn.Parameter(torch.randn(1, seq_len, d_model) * 0.02)
-
-        # Transformer
-        self.transformer = nn.TransformerEncoderLayer(
-            d_model=d_model,
-            nhead=nhead,
-            dim_feedforward=dim_feedforward,
-            dropout=dropout,
-            batch_first=True
-        )
-
-        # Output projection
-        self.output_proj = nn.Linear(d_model, vocab_size)
-
-    def forward(self, x):
-        # Handle both index input (batch, seq_len) and one-hot input (batch, seq_len, vocab_size)
-        if x.dim() == 3:
-            # One-hot input (backward compatible)
-            x = torch.argmax(x, dim=-1)
-
-        # x: (batch, seq_len) - integer AA indices
-        x = self.aa_embedding(x)  # (batch, seq_len, d_model)
-
-        # Add positional encoding
-        x = x + self.pos_encoding
-
-        # Transformer
-        x = self.transformer(x)
-
-        # Project to fitness space
-        x = self.output_proj(x)
-
-        return x
+# FitnessPredictor moved to models/fitness_predictor.py
     
     
 # q: BATCH_SIZE x N x D
@@ -390,27 +347,138 @@ def update_p_RK4(p_i, lam_i, f, gam, psi, mu, q_i, q_i_plus_one, is_mutation, N,
     return p_i + (k1 + (2*k2) + (2*k3) + k4) * dt / 6
 
 
+def parse_args():
+    """Parse command line arguments."""
+    import argparse
+    parser = argparse.ArgumentParser(description='Train fitness prediction model')
+    parser.add_argument('tree_file', help='Path to Nextstrain JSON tree file')
+    parser.add_argument('root_seq_file', help='Path to root sequence FASTA file')
+    parser.add_argument('--config', type=str, default=None,
+                        help='Path to YAML config file (overrides other args)')
+    parser.add_argument('--model', choices=['transformer', 'esm2'], default=None,
+                        help='Model type: transformer (from scratch) or esm2 (pretrained)')
+    parser.add_argument('--lr', type=float, default=None,
+                        help='Learning rate')
+    parser.add_argument('--epochs', type=int, default=None,
+                        help='Number of training epochs')
+    parser.add_argument('--batch-size', type=int, default=None,
+                        help='Batch size')
+    parser.add_argument('--d-model', type=int, default=None,
+                        help='Model dimension (transformer only)')
+    parser.add_argument('--output', type=str, default=None,
+                        help='Output model path (default: auto-generated)')
+    parser.add_argument('--output-dir', type=str, default=None,
+                        help='Output directory for checkpoints')
+    parser.add_argument('--freeze-esm', action='store_true', default=None,
+                        help='Freeze ESM-2 backbone')
+    parser.add_argument('--no-freeze-esm', action='store_true',
+                        help='Fine-tune ESM-2 backbone')
+    parser.add_argument('--warmup-steps', type=int, default=None,
+                        help='Number of warmup steps for learning rate')
+    parser.add_argument('--save-every', type=int, default=None,
+                        help='Save checkpoint every N batches (0 = only at end)')
+    parser.add_argument('--seed', type=int, default=None,
+                        help='Random seed for reproducibility')
+    return parser.parse_args()
+
+
+def generate_model_name(config: ExperimentConfig):
+    """Generate descriptive model filename from config."""
+    from datetime import datetime
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    model_type = "esm2" if config.model.model_type == ModelType.ESM2_FITNESS_PREDICTOR else "transformer"
+    d_model = config.model.transformer.d_model
+    lr = config.training.learning_rate
+    bs = config.training.batch_size
+    name = f"fitness_{model_type}_d{d_model}_lr{lr}_bs{bs}_{timestamp}.pt"
+    return name
+
+
+def load_or_create_config(args) -> ExperimentConfig:
+    """Load config from YAML or create from CLI args."""
+    if args.config:
+        print(f"Loading config from {args.config}")
+        config = ExperimentConfig.from_yaml(args.config)
+    else:
+        # Create default config
+        model_type_str = args.model or 'transformer'
+        if model_type_str == 'esm2':
+            freeze = not args.no_freeze_esm if args.freeze_esm is None else args.freeze_esm
+            model_config = ModelConfig(
+                model_type=ModelType.ESM2_FITNESS_PREDICTOR,
+                esm2=ESM2Config(freeze_backbone=freeze),
+            )
+        else:
+            d_model = args.d_model or 128
+            model_config = ModelConfig(
+                model_type=ModelType.FITNESS_PREDICTOR,
+                transformer=TransformerConfig(
+                    d_model=d_model,
+                    dim_feedforward=4 * d_model,
+                ),
+            )
+
+        config = ExperimentConfig(
+            model=model_config,
+            training=TrainingConfig(
+                batch_size=args.batch_size or 64,
+                epochs=args.epochs or 1,
+                learning_rate=args.lr or 0.005,
+                warmup_steps=args.warmup_steps or 0,
+                save_every=args.save_every or 0,
+                seed=args.seed or 42,
+            ),
+            output_dir=args.output_dir or "/large_storage/hielab/gbrixi/fitness",
+        )
+
+    # CLI overrides (if provided)
+    if args.lr is not None:
+        config = ExperimentConfig(
+            model=config.model,
+            training=TrainingConfig(
+                batch_size=config.training.batch_size,
+                epochs=config.training.epochs,
+                learning_rate=args.lr,
+                warmup_steps=config.training.warmup_steps,
+                save_every=config.training.save_every,
+                seed=config.training.seed,
+            ),
+            data=config.data,
+            output_dir=config.output_dir,
+        )
+    if args.output_dir is not None:
+        config = ExperimentConfig(
+            model=config.model,
+            training=config.training,
+            data=config.data,
+            output_dir=args.output_dir,
+        )
+
+    return config
+
+
 def main():
-    
+
     """
     Main runner function
     """
 
-    # Check that the file is being properly used
-    if (len(sys.argv) !=3):
-        print("Please specify a tree_file and root_seq_file.")
-        return
+    args = parse_args()
+
+    # Load or create experiment config
+    config = load_or_create_config(args)
 
     # Set seeds for reproducibility
-    np.random.seed(42)
-    random.seed(42)
-    torch.manual_seed(42)
+    seed = config.training.seed
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.manual_seed(seed)
     if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(42)
+        torch.cuda.manual_seed_all(seed)
 
     # Define alphabet
     allowed_nucleotides = "ACGT-"
-    D = len(allowed_nucleotides) # Alphabet size = embedding dimension for now. TO BE IMPROVED
+    D = len(allowed_nucleotides)
 
     allowed_aas = "ACDEFGHIKLMNPQRSTVWY*-"
     E = len(allowed_aas)
@@ -419,9 +487,20 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
 
-    # Input files
-    tree_file = sys.argv[1]
-    root_seq_file = sys.argv[2]
+    # Input files from args
+    tree_file = args.tree_file
+    root_seq_file = args.root_seq_file
+
+    # Extract config values
+    learning_rate = config.training.learning_rate
+    model_type_str = "esm2" if config.model.model_type == ModelType.ESM2_FITNESS_PREDICTOR else "transformer"
+    freeze_esm = config.model.esm2.freeze_backbone
+
+    print(f"Model type: {model_type_str}")
+    print(f"Learning rate: {learning_rate}")
+    print(f"Output dir: {config.output_dir}")
+    if model_type_str == 'esm2':
+        print(f"Freeze ESM backbone: {freeze_esm}")
 
     # Loss logger
     csv_filename = "training_loss.csv"
@@ -429,8 +508,8 @@ def main():
         writer = csv.writer(f)
         writer.writerow(['iter', 'loss', 'mu', 'psi', 'R0'])  # Header
 
-    # Set time discretization value
-    DT = 0.01
+    # Set time discretization value from config
+    DT = config.data.dt
 
     # Create training examples
     tree = Tree()
@@ -439,11 +518,11 @@ def main():
     tree.set_dt(DT)
     tree.read_root_seq(root_seq_file)
 
-    # RBD
-    start_pos = 21562
-    end_pos = 25381
+    # Region from config
+    start_pos = config.data.start_pos
+    end_pos = config.data.end_pos
 
-    N = end_pos - start_pos # Number of tokens in sequence
+    N = end_pos - start_pos  # Number of nucleotides in sequence
 
     tree.set_region(start_pos, end_pos) 
     tree.load_tree(tree_file)
@@ -478,17 +557,19 @@ def main():
     GAMMA = 73.0
     
    
-    # Fitness transformer
-    d_model = 128
-    fitness_model = FitnessPredictor(
-        vocab_size=E,
-        seq_len=N//3,
-        d_model=d_model,
-        nhead=4,  # Use more heads with larger d_model
-        dim_feedforward=4*d_model,
-        dropout=0.1
+    # Update model config with computed seq_len
+    model_config = ModelConfig(
+        model_type=config.model.model_type,
+        seq_len=N // 3,
+        alphabet=config.model.alphabet,
+        transformer=config.model.transformer,
+        esm2=config.model.esm2,
     )
-    fitness_model = fitness_model.to(device)
+
+    fitness_model = create_model(model_config, device)
+    d_model = model_config.transformer.d_model  # For compatibility with checkpoint saving
+
+    print(f"Model created: {fitness_model.get_num_parameters(trainable_only=True):,} trainable params")
 
     est_mu = tree.get_total_nucleotide_mutations() / tree.get_total_evolutionary_time() / N
     est_psi = tree.get_total_samples() / tree.get_total_evolutionary_time()
@@ -507,16 +588,37 @@ def main():
     # Setting this to 1 as default (log(1) = 0)
     log_f0 = torch.tensor(0.0, requires_grad=True, device=device)
 
-    BATCH_SIZE = 64
-    N_EPOCHS = 1
+    BATCH_SIZE = config.training.batch_size
+    N_EPOCHS = config.training.epochs
+    SAVE_EVERY = config.training.save_every
 
     print(f"Using batch size {BATCH_SIZE}. {math.ceil(len(training_examples) / BATCH_SIZE)} batches per epoch are needed.")
+    print(f"Training for {N_EPOCHS} epoch(s)")
+    if SAVE_EVERY > 0:
+        print(f"Saving checkpoint every {SAVE_EVERY} batches")
+
+    # Create output directory
+    os.makedirs(config.output_dir, exist_ok=True)
 
     optimizer = optim.Adam([
         {'params': fitness_model.parameters()},
         {'params': [log_psi, log_mu, log_f0]} # Could also include lam here if we want that to be unknown. Fixing for now.
-    ], lr=0.005)
-    
+    ], lr=learning_rate)
+
+    # Learning rate warmup scheduler
+    warmup_steps = config.training.warmup_steps
+    if warmup_steps > 0:
+        def warmup_fn(step):
+            if step < warmup_steps:
+                return float(step) / float(max(1, warmup_steps))
+            return 1.0
+        scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=warmup_fn)
+        print(f"Using linear warmup over {warmup_steps} steps")
+    else:
+        scheduler = None
+
+    # Track global step for checkpointing
+    global_step = 0
 
     print("Entering training loop...")
     for epoch in range(N_EPOCHS):
@@ -690,45 +792,83 @@ def main():
 
             # Step
             optimizer.step()
+            if scheduler is not None:
+                scheduler.step()
 
             # Zero out gradient
             optimizer.zero_grad()
 
             # Print batch loss
-            print(f"   Loss for batch {int(start_idx / BATCH_SIZE)}: {loss.item()}")
+            batch_num = start_idx // BATCH_SIZE
+            print(f"   Loss for batch {batch_num}: {loss.item()}")
             # Update total loss on epoch
             total_loss += loss.item()
 
             with open(csv_filename, 'a', newline='') as f:
                 writer = csv.writer(f)
-                writer.writerow([int(start_idx / BATCH_SIZE), loss.item(), mu.item(), psi.item(), r0.item()])
+                writer.writerow([batch_num, loss.item(), mu.item(), psi.item(), r0.item()])
+
+            # Periodic checkpoint saving
+            global_step += 1
+            if SAVE_EVERY > 0 and global_step % SAVE_EVERY == 0:
+                ckpt_path = os.path.join(config.output_dir, f"checkpoint_step_{global_step}.pt")
+                save_checkpoint(
+                    path=ckpt_path,
+                    model=fitness_model,
+                    model_config=model_config,
+                    optimizer=optimizer,
+                    epoch=epoch,
+                    global_step=global_step,
+                    loss=loss.item(),
+                    log_lam=log_lam,
+                    log_gam=log_gam,
+                    log_psi=log_psi,
+                    log_mu=log_mu,
+                    log_f0=log_f0,
+                    experiment_config=config,
+                )
+                print(f"   Saved checkpoint to {ckpt_path}")
 
             start_idx += BATCH_SIZE
         
         print(f"Loss for epoch {epoch}: {total_loss}")
 
     # After training completes:
-    print("Saving trained model...")
-    torch.save({
-        'epoch': N_EPOCHS,
-        'model_state_dict': fitness_model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict(),
-        'log_lam': log_lam,
-        'log_gam': log_gam,
-        'log_psi': log_psi,
-        'log_mu': log_mu,
-        'log_f0': log_f0,
-        'loss': total_loss,
-        # Save hyperparameters for reconstruction
-        'd_model': d_model,
-        'N': N,
-        'E': E,
-        'D': D,
-        'N_GRID': N_GRID,
-        'DT': DT,
-    }, 'trained_fitness_model.pt')
+    # Determine output filename
+    if args.output:
+        output_path = args.output
+    else:
+        output_path = os.path.join(config.output_dir, generate_model_name(config))
 
-    print("Model saved to trained_fitness_model.pt")
+    print(f"Saving final model to {output_path}...")
+    save_checkpoint(
+        path=output_path,
+        model=fitness_model,
+        model_config=model_config,
+        optimizer=optimizer,
+        epoch=N_EPOCHS,
+        global_step=global_step,
+        loss=total_loss,
+        log_lam=log_lam,
+        log_gam=log_gam,
+        log_psi=log_psi,
+        log_mu=log_mu,
+        log_f0=log_f0,
+        experiment_config=config,
+        # Legacy keys for backward compatibility
+        N=N,
+        E=E,
+        D=D,
+        N_GRID=N_GRID,
+        DT=DT,
+    )
+
+    # Also save the config as YAML for reference
+    config_path = output_path.replace('.pt', '_config.yaml')
+    config.save_yaml(config_path)
+
+    print(f"Model saved to {output_path}")
+    print(f"Config saved to {config_path}")
     print("Done")
 
 if __name__=="__main__":

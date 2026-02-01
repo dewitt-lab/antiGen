@@ -44,8 +44,17 @@ class ESM2FitnessPredictor(BaseFitnessPredictor):
             )
 
         # Load full pretrained ESM-2 with LM head using Auto classes
+        # Suppress position_ids warning (checkpoint format mismatch with transformers 5.x,
+        # but values are correct and model works fine)
+        import logging
+        _logger = logging.getLogger("transformers.modeling_utils")
+        _prev_level = _logger.level
+        _logger.setLevel(logging.ERROR)
+
         self.tokenizer = AutoTokenizer.from_pretrained(esm_config.model_name)
         self.esm = AutoModelForMaskedLM.from_pretrained(esm_config.model_name)
+
+        _logger.setLevel(_prev_level)
 
         # Build alphabet mappings (both directions)
         self._build_alphabet_mapping()

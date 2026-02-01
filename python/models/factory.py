@@ -1,11 +1,12 @@
 """Model factory functions for creating and loading fitness predictors."""
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Optional, Union
 
 import torch
 
-from config import ModelConfig, ModelType, AlphabetConfig, TransformerConfig
+from config import ExperimentConfig, ModelConfig, ModelType, AlphabetConfig, TransformerConfig
 from models.base import BaseFitnessPredictor
 
 
@@ -41,10 +42,39 @@ def create_model(
     elif config.model_type == ModelType.ESM2_FITNESS_PREDICTOR:
         from models.esm2_fitness_predictor import ESM2FitnessPredictor
         model = ESM2FitnessPredictor(config)
+    elif config.model_type == ModelType.ESM2_POTTS_FITNESS:
+        from models.esm2_potts_fitness import ESM2PottsFitnessPredictor
+        model = ESM2PottsFitnessPredictor(config)
+    elif config.model_type == ModelType.VESPAG_FITNESS:
+        from models.vespag_fitness_predictor import VespaGFitnessPredictor
+        model = VespaGFitnessPredictor(config)
     else:
         raise ValueError(f"Unknown model type: {config.model_type}")
 
     return model.to(device)
+
+
+def create_model_from_yaml(
+    config_path: str,
+    device: Optional[Union[str, torch.device]] = None,
+) -> BaseFitnessPredictor:
+    """Create a model from a YAML config file.
+
+    This is useful for models with pretrained weights (e.g., VespaG)
+    that don't need a training checkpoint.
+
+    Args:
+        config_path: Path to YAML config file.
+        device: Target device for the model.
+
+    Returns:
+        Initialized model instance.
+
+    Example:
+        >>> model = create_model_from_yaml("configs/vespag_fitness.yaml")
+    """
+    exp_config = ExperimentConfig.from_yaml(config_path)
+    return create_model(exp_config.model, device)
 
 
 def load_model(
@@ -52,12 +82,15 @@ def load_model(
     device: Optional[Union[str, torch.device]] = None,
     strict: bool = True,
 ) -> tuple[BaseFitnessPredictor, dict[str, Any]]:
-    """Load a model from checkpoint.
+    """Load a model from checkpoint or YAML config.
 
-    Handles both legacy and new checkpoint formats for backward compatibility.
+    Handles:
+    - .pt/.pth checkpoint files (loads trained weights)
+    - .yaml/.yml config files (creates model with pretrained weights if available)
+    - Legacy checkpoint formats for backward compatibility
 
     Args:
-        checkpoint_path: Path to the .pt checkpoint file.
+        checkpoint_path: Path to checkpoint (.pt) or config (.yaml) file.
         device: Target device for the model.
         strict: Whether to strictly enforce state_dict key matching.
 
@@ -68,12 +101,25 @@ def load_model(
     Example:
         >>> model, ckpt = load_model("trained_model.pt")
         >>> mu = torch.exp(ckpt["log_mu"])
+
+        >>> # Or load from config (for pretrained models like VespaG)
+        >>> model, ckpt = load_model("configs/vespag_fitness.yaml")
     """
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     elif isinstance(device, str):
         device = torch.device(device)
 
+    path = Path(checkpoint_path)
+
+    # Handle YAML config files (for pretrained models)
+    if path.suffix in ('.yaml', '.yml'):
+        model = create_model_from_yaml(checkpoint_path, device)
+        model.eval()
+        # Return empty checkpoint dict for compatibility
+        return model, {"config": model._config.to_dict()}
+
+    # Handle checkpoint files
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
 
     # Handle legacy checkpoint format

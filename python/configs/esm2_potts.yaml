@@ -1,0 +1,21 @@
+# ESM-2 with frozen backbone - default config
+model:
+  type: esm2_potts_fitness
+  esm2:
+    model_name: facebook/esm2_t12_35M_UR50D
+    freeze_backbone: true
+
+training:
+  batch_size: 4
+  epochs: 8
+  learning_rate: 0.00001
+  warmup_steps: 200
+  save_every: 50  # More frequent saves
+  seed: 42
+
+data:
+  start_pos: 21562
+  end_pos: 25381
+  dt: 0.01
+
+output_dir: /large_storage/hielab/gbrixi/fitness

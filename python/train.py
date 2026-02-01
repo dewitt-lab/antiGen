@@ -11,7 +11,7 @@ import torch.optim as optim
 import csv
 import math
 from helpers import *
-from config import ModelConfig, ModelType, ESM2Config, TransformerConfig, ExperimentConfig, TrainingConfig, DataConfig
+from config import ModelConfig, ModelType, ESM2Config, TransformerConfig, VespaGConfig, ExperimentConfig, TrainingConfig, DataConfig
 from models.factory import create_model, save_checkpoint
 from dataset import FitnessTrainingDataset, collate_fn
 from torch.utils.data import DataLoader
@@ -357,8 +357,8 @@ def parse_args():
     parser.add_argument('root_seq_file', help='Path to root sequence FASTA file')
     parser.add_argument('--config', type=str, default=None,
                         help='Path to YAML config file (overrides other args)')
-    parser.add_argument('--model', choices=['transformer', 'esm2'], default=None,
-                        help='Model type: transformer (from scratch) or esm2 (pretrained)')
+    parser.add_argument('--model', choices=['transformer', 'esm2', 'potts', 'vespag'], default=None,
+                        help='Model type: transformer (from scratch), esm2 (pretrained), potts (ESM2 + Potts couplings), or vespag (ESM2-3B + FNN)')
     parser.add_argument('--lr', type=float, default=None,
                         help='Learning rate')
     parser.add_argument('--epochs', type=int, default=None,
@@ -381,6 +381,8 @@ def parse_args():
                         help='Save checkpoint every N batches (0 = only at end)')
     parser.add_argument('--seed', type=int, default=None,
                         help='Random seed for reproducibility')
+    parser.add_argument('--dms-eval-dir', type=str, default=None,
+                        help='Directory with DMS TSV files for evaluation at end of each epoch')
     return parser.parse_args()
 
 
@@ -409,6 +411,18 @@ def load_or_create_config(args) -> ExperimentConfig:
             model_config = ModelConfig(
                 model_type=ModelType.ESM2_FITNESS_PREDICTOR,
                 esm2=ESM2Config(freeze_backbone=freeze),
+            )
+        elif model_type_str == 'potts':
+            freeze = not args.no_freeze_esm if args.freeze_esm is None else args.freeze_esm
+            model_config = ModelConfig(
+                model_type=ModelType.ESM2_POTTS_FITNESS,
+                esm2=ESM2Config(freeze_backbone=freeze),
+            )
+        elif model_type_str == 'vespag':
+            freeze = not args.no_freeze_esm if args.freeze_esm is None else args.freeze_esm
+            model_config = ModelConfig(
+                model_type=ModelType.VESPAG_FITNESS,
+                vespag=VespaGConfig(freeze_backbone=freeze),
             )
         else:
             d_model = args.d_model or 128
@@ -503,6 +517,8 @@ def main():
     print(f"Output dir: {config.output_dir}")
     if model_type_str == 'esm2':
         print(f"Freeze ESM backbone: {freeze_esm}")
+    if config.training.mutation_fitness_loss:
+        print(f"Mutation fitness loss: ENABLED (weight={config.training.mutation_fitness_weight})")
 
     # Loss logger
     csv_filename = "training_loss.csv"
@@ -847,6 +863,41 @@ def main():
                     if mutation_mask.any():
                         loss = loss - mutation_mask.sum() * torch.log(mu / (D - 1))
 
+                    # Optional: Fitness-weighted mutation loss
+                    # Treats observed mutations as "selected" from alternatives based on fitness
+                    if config.training.mutation_fitness_loss and mutation_mask.any():
+                        # Get batch indices of mutation events in this interval
+                        mutation_batch_indices = interval_indices[mutation_mask]
+
+                        # Only consider nonsynonymous mutations (where AA actually changed)
+                        # has_ancestral indicates an AA-level change occurred
+                        has_anc_for_mutations = has_ancestral_batch[mutation_batch_indices]
+
+                        if has_anc_for_mutations.any():
+                            # Filter to nonsynonymous mutations only
+                            nonsyn_batch_indices = mutation_batch_indices[has_anc_for_mutations]
+                            n_nonsyn = len(nonsyn_batch_indices)
+
+                            # Get ancestral fitness landscape for these mutations
+                            # ancestral_fitness is (batch, seq_len_aa, E)
+                            ancestral_fitness_nonsyn = ancestral_fitness[nonsyn_batch_indices]
+
+                            # Get the mutated position and new AA for each
+                            mut_positions_nonsyn = mutated_positions[nonsyn_batch_indices]
+                            mut_aa_nonsyn = mutated_aa_indices[nonsyn_batch_indices]
+
+                            # Gather fitness at mutated positions for all possible AAs
+                            nonsyn_idx = torch.arange(n_nonsyn, device=device)
+                            all_aa_fitness = ancestral_fitness_nonsyn[nonsyn_idx, mut_positions_nonsyn, :]  # (n_nonsyn, E)
+
+                            # Log-softmax: P(observed AA | position) = softmax(fitness)[observed_aa]
+                            log_probs = torch.log_softmax(all_aa_fitness, dim=-1)
+                            log_prob_observed = log_probs[nonsyn_idx, mut_aa_nonsyn]
+
+                            # Add negative log likelihood (minimize = maximize P(observed))
+                            mutation_fitness_loss_term = -log_prob_observed.sum()
+                            loss = loss + config.training.mutation_fitness_weight * mutation_fitness_loss_term
+
                     # Birth: event_type == 2
                     birth_mask = (event_types_interval == 2)
                     if birth_mask.any():
@@ -899,6 +950,19 @@ def main():
                 print(f"   Saved checkpoint to {ckpt_path}")
 
         print(f"Loss for epoch {epoch}: {total_loss}")
+
+        # DMS evaluation at end of epoch (if configured)
+        if args.dms_eval_dir:
+            from eval.evaluate_dms import evaluate_model_on_dms_datasets
+            import pandas as pd
+            dms_results = evaluate_model_on_dms_datasets(
+                fitness_model, args.dms_eval_dir, device, verbose=False
+            )
+            if dms_results:
+                valid_scores = [s for s in dms_results.values() if not pd.isna(s)]
+                if valid_scores:
+                    mean_spearman = sum(valid_scores) / len(valid_scores)
+                    print(f"   DMS eval: mean Spearman = {mean_spearman:.3f} ({len(valid_scores)} datasets)")
 
     # After training completes:
     # Determine output filename

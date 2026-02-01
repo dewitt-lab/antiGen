@@ -29,3 +29,13 @@ scratch/
 # Misc
 .DS_Store
 *.log
+
+# Visualizations
+*.pdf
+*.png
+
+# External repos
+vespag/
+
+# Scratch/temp files
+plan_optimizations.md

@@ -94,38 +94,135 @@ def create_codon_mutation_dict(allowed_nucleotides):
 ### Torch helpers
 
 
-# Create device tensor from sequence
-# Using one-hot encoding for now
-def create_one_hot_tensor(seq, dim_1, dim_2, allowed_characters, device):
-    tensor = torch.zeros(dim_1, dim_2, device=device)
-    for pos in range(len(seq)):
-        idx = char_to_index(seq[pos], allowed_characters)
-        tensor[pos, idx] = 1.0
-    return tensor
+def build_codon_to_aa_table(allowed_nucleotides, allowed_aas, device):
+    """
+    Build a lookup table: codon_id -> aa_id
+    Codon ID = nuc0 * 25 + nuc1 * 5 + nuc2 (base-5 encoding)
+    Returns tensor of shape (125,) mapping codon_id to aa_index (or E if untranslatable)
+    """
+    num_codons = len(allowed_nucleotides) ** 3  # 125
+    E = len(allowed_aas)
+    table = torch.full((num_codons,), E, dtype=torch.long, device=device)
+
+    for i, n0 in enumerate(allowed_nucleotides):
+        for j, n1 in enumerate(allowed_nucleotides):
+            for k, n2 in enumerate(allowed_nucleotides):
+                codon = n0 + n1 + n2
+                codon_id = i * 25 + j * 5 + k
+                is_valid, aa = translate_codon(codon)
+                if is_valid:
+                    table[codon_id] = char_to_index(aa, allowed_aas)
+
+    return table
 
 
-def make_stack(sequences_in_batch, is_aa, nuc_sequence_to_tensor, aa_sequence_to_tensor, N, D, E, device):
-        tensors_in_batch = []
-        for seq in sequences_in_batch:
-            if seq is not None:
-                if is_aa:
-                    tensors_in_batch.append(aa_sequence_to_tensor[seq])
-                else:
-                    tensors_in_batch.append(nuc_sequence_to_tensor[seq])
-            else:
-                if is_aa:
-                    tensors_in_batch.append(torch.zeros(int(N/3), E, device=device))
-                else:
-                    tensors_in_batch.append(torch.zeros(N, D, device=device))
-        stack = torch.stack(tensors_in_batch, dim=0)
-        return stack
+def nuc_seq_to_indices(nuc_seq, allowed_nucleotides, device):
+    """Convert nucleotide sequence string to tensor of indices."""
+    return torch.tensor([allowed_nucleotides.index(c) for c in nuc_seq], dtype=torch.long, device=device)
 
-def get_fitnesses(fitness_model, aa_sequences_in_batch, nuc_sequence_to_tensor, aa_sequence_to_tensor, N, D, E, allowed_aas, device):
-    # Stack to get a BATCH_SIZE x (N/3) x E tensor, N = length of AA seq, E = AA alphabet size
-    stack = make_stack(aa_sequences_in_batch, True, nuc_sequence_to_tensor, aa_sequence_to_tensor, N, D, E, device)
 
-    # Apply transformer
-    fitness = fitness_model(stack)
+def aa_seq_to_indices(aa_seq, allowed_aas, device):
+    """Convert amino acid sequence string to tensor of indices."""
+    return torch.tensor([allowed_aas.index(c) for c in aa_seq], dtype=torch.long, device=device)
+
+
+def tokenize_aa_batch(aa_sequences, allowed_aas, device):
+    """
+    Tokenize a batch of AA sequences to indices.
+    Handles None sequences by returning zeros.
+
+    Args:
+        aa_sequences: list of AA sequence strings (or None)
+        allowed_aas: alphabet string
+        device: torch device
+
+    Returns:
+        (batch, seq_len) tensor of integer indices
+    """
+    batch_size = len(aa_sequences)
+    # Find a non-None sequence to get length
+    seq_len = None
+    for seq in aa_sequences:
+        if seq is not None:
+            seq_len = len(seq)
+            break
+
+    if seq_len is None:
+        raise ValueError("All sequences are None")
+
+    result = torch.zeros(batch_size, seq_len, dtype=torch.long, device=device)
+    for i, seq in enumerate(aa_sequences):
+        if seq is not None:
+            result[i] = aa_seq_to_indices(seq, allowed_aas, device)
+
+    return result
+
+
+def get_aa_idx_vectorized_batched(nuc_indices_batch, aa_indices_batch, codon_to_aa, E, device):
+    """
+    Batched vectorized computation of AA indices for all possible single-nucleotide mutations.
+
+    Args:
+        nuc_indices_batch: (batch, N) tensor of nucleotide indices
+        aa_indices_batch: (batch, N//3) tensor of current amino acid indices
+        codon_to_aa: (125,) lookup table from codon_id to aa_id
+        E: default value for "no change" (len(allowed_aas))
+        device: torch device
+
+    Returns:
+        (batch, N, D) tensor where entry [b, pos, nuc_idx] is the AA index you get
+        by mutating position pos in sequence b to nucleotide nuc_idx.
+        Value is E if synonymous or untranslatable.
+    """
+    batch, N = nuc_indices_batch.shape
+    D = 5  # number of nucleotides
+    num_codons = N // 3
+
+    # Reshape to codons: (batch, num_codons, 3)
+    codons = nuc_indices_batch.view(batch, num_codons, 3)
+
+    # Use provided AA indices (handles gap codons correctly)
+    current_aas = aa_indices_batch  # (batch, num_codons)
+
+    # Expand for mutations: (batch, num_codons, 3, D, 3)
+    codons_expanded = codons.unsqueeze(2).unsqueeze(3).expand(batch, num_codons, 3, D, 3).clone()
+
+    mutations = torch.arange(D, device=device)
+    for pos in range(3):
+        codons_expanded[:, :, pos, :, pos] = mutations.view(1, 1, D).expand(batch, num_codons, D)
+
+    # Codon IDs: (batch, num_codons, 3, D)
+    mutated_codon_ids = (codons_expanded[:, :, :, :, 0] * 25 +
+                        codons_expanded[:, :, :, :, 1] * 5 +
+                        codons_expanded[:, :, :, :, 2])
+
+    new_aas = codon_to_aa[mutated_codon_ids]  # (batch, num_codons, 3, D)
+
+    current_aas_expanded = current_aas.view(batch, num_codons, 1, 1)
+    mask = (new_aas != current_aas_expanded) & (new_aas != E)
+    result = torch.where(mask, new_aas, torch.full_like(new_aas, E))
+
+    return result.view(batch, N, D)
+
+
+def get_fitnesses(fitness_model, aa_sequences_in_batch, allowed_aas, device):
+    """
+    Compute fitness scores for a batch of AA sequences.
+
+    Args:
+        fitness_model: the FitnessPredictor model
+        aa_sequences_in_batch: list of AA sequence strings (or None)
+        allowed_aas: alphabet string
+        device: torch device
+
+    Returns:
+        (batch, seq_len, vocab_size) fitness tensor
+    """
+    # Tokenize sequences to indices: (batch, seq_len)
+    aa_indices = tokenize_aa_batch(aa_sequences_in_batch, allowed_aas, device)
+
+    # Apply transformer (now accepts indices directly)
+    fitness = fitness_model(aa_indices)
     fitness = torch.sigmoid(fitness)
     fitness = -torch.log(1.0 - fitness)
 
@@ -134,26 +231,24 @@ def get_fitnesses(fitness_model, aa_sequences_in_batch, nuc_sequence_to_tensor, 
 
     return fitness
 
-def get_fitness_additive(additive_fitness_mtx, aa_sequences_in_batch, nuc_sequence_to_tensor, aa_sequence_to_tensor, N, D, E, allowed_aas, device):
-    # Stack to get a BATCH_SIZE x (N/3) x E tensor, N = length of AA seq, E = AA alphabet size
-    stack = make_stack(aa_sequences_in_batch, True, nuc_sequence_to_tensor, aa_sequence_to_tensor, N, D, E, device)
 
-    # Fitness at each position
-    # B x (N/3)
-    fitness_by_position = (stack * additive_fitness_mtx.unsqueeze(0)).sum(dim = 2)
+def get_fitnesses_from_indices(fitness_model, aa_indices, allowed_aas, device):
+    """
+    Compute fitness scores for a batch of AA sequences given pre-tokenized indices.
 
-    # Current fitness of each sequence in the stack
-    # B
-    wt_fitness = fitness_by_position.sum(dim = 1)
+    This avoids redundant tokenization when indices are already available.
 
+    Args:
+        fitness_model: the FitnessPredictor model
+        aa_indices: (batch, seq_len) tensor of AA indices (pre-tokenized)
+        allowed_aas: alphabet string
+        device: torch device
 
-    # Difference in fitness for each mutation as compared to wt
-    # Makes a (1 x (N/3) x E) - (B x (N/3) x 1), so becomes properly broadcastable
-    mut_fitness_diff = additive_fitness_mtx.unsqueeze(0) - fitness_by_position.unsqueeze(2)
-
-    # Add back in wild type fitness
-    fitness = wt_fitness.unsqueeze(1).unsqueeze(2) + mut_fitness_diff
-
+    Returns:
+        (batch, seq_len, vocab_size) fitness tensor
+    """
+    # Apply transformer (now accepts indices directly)
+    fitness = fitness_model(aa_indices)
     fitness = torch.sigmoid(fitness)
     fitness = -torch.log(1.0 - fitness)
 
@@ -162,97 +257,39 @@ def get_fitness_additive(additive_fitness_mtx, aa_sequences_in_batch, nuc_sequen
 
     return fitness
 
-def make_maps(training_examples, codon_mutation_dict, N, D, E, allowed_nucleotides, allowed_aas, device):
 
-    # Map from sequences observed on tree to 1-hot encodings
-    nuc_sequence_to_tensor = {}
-    aa_sequence_to_tensor = {}
+def find_mutation_positions_batched(aa_indices, ancestral_aa_indices, has_ancestral):
+    """
+    Vectorized mutation position finding.
 
-    # Dictionary that takes in a nucleotide sequence and outputs an N x D tensor, where entry [pos][idx] is the index of the new amino acid at codon floor(pos/3)
-    nuc_sequence_to_aa_idx = {}
+    For sequences with an ancestral sequence, finds the position where AA differs.
+    Assumes exactly one mutation per sequence (as enforced by training data generation).
 
-    # All observed AAs by position, and their counts
-    is_observed = torch.zeros(N//3, E, requires_grad = False, device = device)
+    Args:
+        aa_indices: (batch, seq_len) tensor of current AA indices
+        ancestral_aa_indices: (batch, seq_len) tensor of ancestral AA indices
+        has_ancestral: (batch,) boolean tensor indicating which examples have ancestral sequences
 
-    # All AAs by position that are 1 away from an observed sequence, and their counts
-    is_neighbor = torch.zeros(N//3, E, requires_grad = False, device = device)
+    Returns:
+        mutated_positions: (batch,) tensor of mutation positions (0 for sequences without ancestral)
+    """
+    # Find positions where AA differs: (batch, seq_len)
+    differs = (aa_indices != ancestral_aa_indices)
 
-    
+    # argmax returns first True position; for all-False rows, returns 0
+    # This is fine since sequences without ancestral use f0 anyway
+    mutated_positions = differs.float().argmax(dim=1)
 
-    print("Creating maps from sequences to 1-hot encoding (takes some time)...")
-    for i in range(len(training_examples)):
-
-        if i % 1000 == 0:
-            print(f"{i} of {len(training_examples)} training examples processed")
-
-        # Get nucleotide sequence
-        nuc_seq = training_examples[i][0]
-
-        # Map nucleotide sequence to its 1-hot encoding
-        if nuc_seq not in nuc_sequence_to_tensor:
-            nuc_tensor = create_one_hot_tensor(nuc_seq, N, D, allowed_nucleotides, device)
-            nuc_sequence_to_tensor[nuc_seq] = nuc_tensor
-
-        # Get AA seq 
-        aa_seq = training_examples[i][2]
-
-        # Map AA sequence to its 1-hot encoding
-        if aa_seq not in aa_sequence_to_tensor:
-            aa_tensor = create_one_hot_tensor(aa_seq, int(N/3), E, allowed_aas, device)
-            aa_sequence_to_tensor[aa_seq] = aa_tensor
-            is_observed = is_observed + aa_tensor
-
-        # Make mapping from each nuc sub to each new AA idx, as tensor
-        if nuc_seq not in nuc_sequence_to_aa_idx:
-            mut_tensor = torch.zeros((N, D), dtype=torch.long, device = device)
-            for codon_start_pos in range(0, N, 3):
-                # Index on AA sequence
-                aa_pos = int(codon_start_pos / 3)
-                # Current amino acid
-                curr_aa = aa_seq[aa_pos]
-
-                # Extract codon
-                codon = nuc_seq[codon_start_pos:(codon_start_pos + 3)]
-
-                # Apply each possible mutation to codon
-                for codon_idx in range(3):
-                    for nuc_idx in range(D):
-                        
-                        # Translate new codon, if possible
-                        is_translatable, new_aa = codon_mutation_dict[codon][codon_idx][allowed_nucleotides[nuc_idx]]
-
-                        # If not translatable, or if synonymous mutation, there's no fitness effect
-                        # This is already accounted for in the initialization of fitness_by_mutation
-                        # Otherwise, record fitness effect
-                        different = False
-                        if is_translatable:
-                            aa_idx = char_to_index(new_aa, allowed_aas)
-                            is_neighbor[aa_pos, aa_idx] = is_neighbor[aa_pos, aa_idx] + 1
-                            if new_aa != curr_aa:
-                                mut_tensor[codon_start_pos + codon_idx][nuc_idx] = aa_idx
-                                different = True
-                        if not different:
-                            # Default value for no change: E
-                            mut_tensor[codon_start_pos + codon_idx][nuc_idx] = E
-            nuc_sequence_to_aa_idx[nuc_seq] = mut_tensor
-
-    return nuc_sequence_to_tensor, aa_sequence_to_tensor, nuc_sequence_to_aa_idx, is_observed, is_neighbor
+    return mutated_positions
 
 
-def aa_tensor_to_csv(tensor, allowed_aas, N, output_filepath):
+def encode_event_type(event_type_str):
+    """Encode event type string to integer."""
+    event_map = {"Nothing": 0, "Mutation": 1, "Birth": 2, "Sample": 3}
+    return event_map.get(event_type_str, 0)
 
-    # Convert to numpy
-    np = tensor.detach().cpu().numpy()
 
-    with open(output_filepath, 'w', newline='') as f:
-        writer = csv.writer(f)
-        
-        # Header: Position, then all amino acids
-        header = ['Position'] + list(allowed_aas)
-        writer.writerow(header)
-        
-        # Write each position (row)
-        for pos in range(N//3):
-            row = [pos + 1]  # Position (1-indexed)
-            row.extend(np[pos, :].tolist())
-            writer.writerow(row)
+def decode_event_type(event_type_int):
+    """Decode event type integer to string."""
+    event_map = {0: "Nothing", 1: "Mutation", 2: "Birth", 3: "Sample"}
+    return event_map.get(event_type_int, "Nothing")

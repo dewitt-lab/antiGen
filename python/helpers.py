@@ -1,5 +1,6 @@
 from Bio.Seq import Seq
 import torch
+import csv
 
 def translate_codon(codon):
     if codon == "---":
@@ -133,6 +134,34 @@ def get_fitnesses(fitness_model, aa_sequences_in_batch, nuc_sequence_to_tensor, 
 
     return fitness
 
+def get_fitness_additive(additive_fitness_mtx, aa_sequences_in_batch, nuc_sequence_to_tensor, aa_sequence_to_tensor, N, D, E, allowed_aas, device):
+    # Stack to get a BATCH_SIZE x (N/3) x E tensor, N = length of AA seq, E = AA alphabet size
+    stack = make_stack(aa_sequences_in_batch, True, nuc_sequence_to_tensor, aa_sequence_to_tensor, N, D, E, device)
+
+    # Fitness at each position
+    # B x (N/3)
+    fitness_by_position = (stack * additive_fitness_mtx.unsqueeze(0)).sum(dim = 2)
+
+    # Current fitness of each sequence in the stack
+    # B
+    wt_fitness = fitness_by_position.sum(dim = 1)
+
+
+    # Difference in fitness for each mutation as compared to wt
+    # Makes a (1 x (N/3) x E) - (B x (N/3) x 1), so becomes properly broadcastable
+    mut_fitness_diff = additive_fitness_mtx.unsqueeze(0) - fitness_by_position.unsqueeze(2)
+
+    # Add back in wild type fitness
+    fitness = wt_fitness.unsqueeze(1).unsqueeze(2) + mut_fitness_diff
+
+    fitness = torch.sigmoid(fitness)
+    fitness = -torch.log(1.0 - fitness)
+
+    # Zero out fitness for stop codon
+    fitness[:, :, char_to_index('*', allowed_aas)] = 0.0
+
+    return fitness
+
 def make_maps(training_examples, codon_mutation_dict, N, D, E, allowed_nucleotides, allowed_aas, device):
 
     # Map from sequences observed on tree to 1-hot encodings
@@ -142,10 +171,19 @@ def make_maps(training_examples, codon_mutation_dict, N, D, E, allowed_nucleotid
     # Dictionary that takes in a nucleotide sequence and outputs an N x D tensor, where entry [pos][idx] is the index of the new amino acid at codon floor(pos/3)
     nuc_sequence_to_aa_idx = {}
 
+    # All observed AAs by position, and their counts
+    is_observed = torch.zeros(N//3, E, requires_grad = False, device = device)
+
+    # All AAs by position that are 1 away from an observed sequence, and their counts
+    is_neighbor = torch.zeros(N//3, E, requires_grad = False, device = device)
+
     
 
     print("Creating maps from sequences to 1-hot encoding (takes some time)...")
     for i in range(len(training_examples)):
+
+        if i % 1000 == 0:
+            print(f"{i} of {len(training_examples)} training examples processed")
 
         # Get nucleotide sequence
         nuc_seq = training_examples[i][0]
@@ -162,6 +200,7 @@ def make_maps(training_examples, codon_mutation_dict, N, D, E, allowed_nucleotid
         if aa_seq not in aa_sequence_to_tensor:
             aa_tensor = create_one_hot_tensor(aa_seq, int(N/3), E, allowed_aas, device)
             aa_sequence_to_tensor[aa_seq] = aa_tensor
+            is_observed = is_observed + aa_tensor
 
         # Make mapping from each nuc sub to each new AA idx, as tensor
         if nuc_seq not in nuc_sequence_to_aa_idx:
@@ -187,12 +226,33 @@ def make_maps(training_examples, codon_mutation_dict, N, D, E, allowed_nucleotid
                         # Otherwise, record fitness effect
                         different = False
                         if is_translatable:
+                            aa_idx = char_to_index(new_aa, allowed_aas)
+                            is_neighbor[aa_pos, aa_idx] = is_neighbor[aa_pos, aa_idx] + 1
                             if new_aa != curr_aa:
-                                mut_tensor[codon_start_pos + codon_idx][nuc_idx] = char_to_index(new_aa, allowed_aas)
+                                mut_tensor[codon_start_pos + codon_idx][nuc_idx] = aa_idx
                                 different = True
                         if not different:
                             # Default value for no change: E
                             mut_tensor[codon_start_pos + codon_idx][nuc_idx] = E
             nuc_sequence_to_aa_idx[nuc_seq] = mut_tensor
 
-    return nuc_sequence_to_tensor, aa_sequence_to_tensor, nuc_sequence_to_aa_idx
+    return nuc_sequence_to_tensor, aa_sequence_to_tensor, nuc_sequence_to_aa_idx, is_observed, is_neighbor
+
+
+def aa_tensor_to_csv(tensor, allowed_aas, N, output_filepath):
+
+    # Convert to numpy
+    np = tensor.detach().cpu().numpy()
+
+    with open(output_filepath, 'w', newline='') as f:
+        writer = csv.writer(f)
+        
+        # Header: Position, then all amino acids
+        header = ['Position'] + list(allowed_aas)
+        writer.writerow(header)
+        
+        # Write each position (row)
+        for pos in range(N//3):
+            row = [pos + 1]  # Position (1-indexed)
+            row.extend(np[pos, :].tolist())
+            writer.writerow(row)

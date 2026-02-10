@@ -1,4 +1,5 @@
 import sys
+import csv
 import os
 import random
 import pandas as pd
@@ -460,7 +461,19 @@ def main():
     codon_mutation_dict = tree.get_codon_mutation_dict()
 
 
-    nuc_sequence_to_tensor, aa_sequence_to_tensor, nuc_sequence_to_aa_idx = make_maps(training_examples, codon_mutation_dict, N, D, E, allowed_nucleotides, allowed_aas, device)
+    nuc_sequence_to_tensor, aa_sequence_to_tensor, nuc_sequence_to_aa_idx, is_observed, is_neighbor = make_maps(
+        training_examples, 
+        codon_mutation_dict, 
+        N, 
+        D, 
+        E, 
+        allowed_nucleotides, 
+        allowed_aas, 
+        device
+    )
+
+    aa_tensor_to_csv(is_observed, allowed_aas, N, "is_observed.csv")
+    aa_tensor_to_csv(is_neighbor, allowed_aas, N, "is_neighbor.csv")
     
     
 
@@ -505,14 +518,18 @@ def main():
     # Setting this to 1 as default (log(1) = 0)
     log_f0 = torch.tensor(0.0, requires_grad=True, device=device)
 
+    # Site-specific additive model for fitness
+    # additive_fitness_mtx = torch.randn(N//3, E, device=device) * 0.01
+    # additive_fitness_mtx.requires_grad = True   
+
     BATCH_SIZE = 64
-    N_EPOCHS = 1
+    N_EPOCHS = 4
 
     print(f"Using batch size {BATCH_SIZE}. {math.ceil(len(training_examples) / BATCH_SIZE)} batches per epoch are needed.")
 
     optimizer = optim.Adam([
         {'params': fitness_model.parameters()},
-        {'params': [log_psi, log_mu, log_f0]} # Could also include lam here if we want that to be unknown. Fixing for now.
+        {'params': [log_psi, log_mu, log_f0]}
     ], lr=0.005)
     
 
@@ -567,6 +584,7 @@ def main():
             # Fitness tensor for ancestral sequences
             # Dimension BATCH_SIZE x (N/3) x E
             ancestral_fitness = get_fitnesses(fitness_model, ancestral_aa_sequences_in_batch, nuc_sequence_to_tensor, aa_sequence_to_tensor, N, D, E, allowed_aas, device)
+            # ancestral_fitness = get_fitness_additive(additive_fitness_mtx, ancestral_aa_sequences_in_batch, nuc_sequence_to_tensor, aa_sequence_to_tensor, N, D, E, allowed_aas, device)
 
             # For each level, get the fitness of the mutation that actually happened
             fitness_of_G = f0.expand(actual_batch_size).clone()
@@ -597,7 +615,7 @@ def main():
             # Fitness tensor for present AA sequences
             # Dimension: actual_batch_size x (N/3) x E
             fitness = get_fitnesses(fitness_model, aa_sequences_in_batch, nuc_sequence_to_tensor, aa_sequence_to_tensor, N, D, E, allowed_aas, device)
-
+            # fitness = get_fitness_additive(additive_fitness_mtx, aa_sequences_in_batch, nuc_sequence_to_tensor, aa_sequence_to_tensor, N, D, E, allowed_aas, device)
             
 
             # Broadcast to actual_batch_size x N x E by repeating each dim 1 slice 3x
@@ -726,6 +744,15 @@ def main():
     }, 'trained_fitness_model.pt')
 
     print("Model saved to trained_fitness_model.pt")
+
+    # At the end of main(), after training completes:
+    """
+    print("Saving additive fitness matrix to CSV...")
+
+    
+
+    print(f"Additive fitness matrix saved to {output_file}")
+    """
     print("Done")
 
 if __name__=="__main__":

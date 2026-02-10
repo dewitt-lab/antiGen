@@ -1,5 +1,6 @@
 from Bio.Seq import Seq
 import torch
+import csv
 
 def translate_codon(codon):
     if codon == "---":

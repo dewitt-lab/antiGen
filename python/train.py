@@ -16,294 +16,9 @@ from config import ModelConfig, ModelType, ESM2Config, TransformerConfig, VespaG
 from models.factory import create_model, save_checkpoint
 from dataset import FitnessTrainingDataset, collate_fn
 from torch.utils.data import DataLoader
+from parse_tree_nextstrain import generate_training_examples_nextstrain
+from parse_tree import *
 
-class Tree(object):
-    """
-    Sequence-to-fitness prediction model based on tree
-    """
-
-    def __init__(self):
-        """
-        Initializer for Tree
-
-        No inputs or outputs
-        """
-        self.dt = None # Max branch length for a training example (also, used as discreization timestep for solving diff eqs later)
-        self.start_pos = None # Starting position for the portion of the sequence we wish to model. 0-indexed, inclusive
-        self.end_pos = None # Ending position for the portion of the sequence we wish to model. 0-indexed, exclusive
-        self.root_seq = None # Wild type sequence
-        self.tree = None # Tree, as read from Nextstrain JSON format
-        self.max_t = None # Maximum time of a node on the tree
-        self.n_grid = None # Number of grid intervals of width dt needed to cover the tree
-        self.codon_mutation_dict = None
-        self.total_samples = 0
-        self.total_evolutionary_time = 0.0
-        self.total_nucleotide_mutations = 0
-        self.training_examples = [] # Training examples to feed into ML model. Tuple of length 5: (sequence, ancestral_sequence, start_time, end_time, event_at_start_time)
-        # In a training example, time is measured in years ***SINCE*** max_t
-        
-    def set_codon_mutation_dict(self, allowed_nucleotides, allowed_aas):
-        self.codon_mutation_dict = create_codon_mutation_dict(allowed_nucleotides)
-
-    def get_codon_mutation_dict(self):
-        return self.codon_mutation_dict
-    
-    def set_dt(self, dt):
-        """
-        Set max branch length of a training example
-
-        Input: dt, the max branch length
-        """
-
-        self.dt = dt
-
-    # Read the root sequence
-    def read_root_seq(self, root_seq_file):
-        """
-        Read root sequence of tree
-
-        Input: root_seq_file, filepath to root seuqence in FASTA format
-        """
-        root_seq = SeqIO.read(root_seq_file, "fasta")
-        self.root_seq = str(root_seq.seq)
-        self.start_pos = 0
-        self.end_pos = len(self.root_seq)
-
-    # Set a subsequence region of the root sequence to analyze
-    def set_region(self, start_pos, end_pos):
-        """
-        Select region of genome sequence to analyze
-
-        Inputs: 
-        - start_pos: position to start reading genome (0-indexed, inclusive)
-        - end_pos: position to stop reading genome (0-indexed, exclusive)
-        """
-        self.start_pos = start_pos # Inclusive, 0-indexed
-        self.end_pos = end_pos # Exclusive, 0-indexed
-        self.root_seq = self.root_seq[start_pos:end_pos]
-
-    def load_tree(self, tree_file):
-        """
-        Load mutation-annotated tree from JSON file
-
-        Input: tree_file, filepath to Nextstrain JSON file
-        """
-        with open(tree_file, 'r') as f:
-            data = json.load(f)
-        self.tree = data['tree']
-
-
-    def compute_max_time(self):
-        """
-        Compute maximum time assigned to a leaf on the tree
-        """
-
-        max_t = float('-inf')
-
-        def search_tree(node):
-            nonlocal max_t
-            
-            # Extract time of node (num_date value)
-            num_date = node.get('node_attrs', {}).get('num_date', {})
-            node_time = num_date.get('value', None)
-
-            max_t = max(node_time, max_t)
-
-            # Process children
-            if 'children' in node:
-                for child in node['children']:
-                    search_tree(child)
-
-        search_tree(self.tree)  # You need to call it on the root
-        self.max_t = max_t
-
-        # Time of root, for computing number of grid intervals
-        min_t = self.tree.get('node_attrs', {}).get('num_date', {}).get('value', None)
-        self.n_grid = int((max_t - min_t) / self.dt) + 1
-
-
-    def get_n_grid(self):
-        """
-        Return number of grid intervals
-        """
-        return self.n_grid
-
-    def generate_training_examples(self):
-
-        
-        def traverse_tree(
-            node, 
-            parent_nuc_seq, 
-            parent_aa_seq, 
-            parent_ancestral_nuc_seq = None, 
-            parent_ancestral_aa_seq = None, 
-            parent_time = None
-        ):
-            """
-            Recursively traverse the tree and extract relevant information.
-            """
-                        
-            # Extract time of node (num_date value)
-            num_date = node.get('node_attrs', {}).get('num_date', {})
-            node_time = num_date.get('value', None)
-
-            is_leaf = True
-            if 'children' in node:
-                if len(node['children']) > 0:
-                    is_leaf = False
-
-            # Nuc sequence at the ancestral node
-            curr_nuc_seq = parent_nuc_seq
-
-            # Ancestral nuc sequence of parent_nuc_seq
-            curr_ancestral_nuc_seq = parent_ancestral_nuc_seq
-
-            # Same for AA sequences
-            curr_aa_seq = parent_aa_seq
-            curr_ancestral_aa_seq = parent_ancestral_aa_seq
-
-            if parent_time is not None:
-
-                # Ensure parent time is not after node_time
-                if parent_time > node_time:
-                    parent_time = node_time
-                
-                self.total_evolutionary_time += (node_time - parent_time)
-
-            
-                # Extract nucleotide mutations from branch_attrs
-                branch_attrs = node.get('branch_attrs', {})
-                mutations = branch_attrs.get('mutations', {})
-                nuc_mutations = mutations.get('nuc', [])
-
-                # Filter to those in the correct positional range
-
-                for i in range(len(nuc_mutations) - 1, -1, -1):
-                    mut = nuc_mutations[i]
-                    ref, alt, pos = parse_mutation(mut)
-                    if not (pos >= self.start_pos and pos < self.end_pos):
-                        del nuc_mutations[i]
-                        continue            
-
-                # Scramble the order
-                random.shuffle(nuc_mutations)
-
-                # Randomly assign times
-                mutation_times = np.random.uniform(
-                    low=parent_time,
-                    high=node_time,
-                    size=len(nuc_mutations)
-                )
-                # Sort to ensure increasing order
-                mutation_times = np.sort(mutation_times).tolist()
-
-                
-                
-                curr_time = parent_time
-                curr_mut_idx = 0
-                curr_grid_idx = int((self.max_t - curr_time) / self.dt)
-
-                # Create training examples
-                while True:
-                    next_grid_time = self.max_t - curr_grid_idx * self.dt
-                    if curr_mut_idx < len(mutation_times):
-                        next_mut_time = mutation_times[curr_mut_idx]
-                    else:
-                        next_mut_time = float('inf')
-
-                    if (next_grid_time > node_time) and (next_mut_time > node_time):
-                        if is_leaf:
-                            example = (curr_nuc_seq, curr_ancestral_nuc_seq, curr_aa_seq, curr_ancestral_aa_seq, self.max_t - node_time, self.max_t - curr_time, "Sample")
-                            self.total_samples += 1
-                        else:
-                            example = (curr_nuc_seq, curr_ancestral_nuc_seq, curr_aa_seq, curr_ancestral_aa_seq, self.max_t - node_time, self.max_t - curr_time, "Birth")
-                        self.training_examples.append(example)
-
-                        curr_time = node_time
-                        break
-
-                    # If we get here, either mutation or grid comes next
-                    if next_grid_time < next_mut_time:
-                        example = (curr_nuc_seq, curr_ancestral_nuc_seq, curr_aa_seq, curr_ancestral_aa_seq, self.max_t - next_grid_time, self.max_t - curr_time, "Nothing")
-                        self.training_examples.append(example)
-
-                        curr_time = next_grid_time
-
-                        curr_grid_idx -= 1
-                    else:
-                        example = (curr_nuc_seq, curr_ancestral_nuc_seq, curr_aa_seq, curr_ancestral_aa_seq, self.max_t - next_mut_time, self.max_t - curr_time, "Mutation")
-                        self.training_examples.append(example)
-                        self.total_nucleotide_mutations += 1
-
-                        # Obtain mutation
-                        mut = nuc_mutations[curr_mut_idx]
-                        
-                        # Update AA sequence, if nonsynonymous (and non garbage) mutation
-                        # If mutation introduces garbage codon, e.g. A-C, simply say AA seq stays the same, i.e. same fitness as synonymous mutation
-                        
-                        # Before, after, position for NUCLEOTIDE sub
-                        ref, alt, pos = parse_mutation(mut)
-                        pos -= self.start_pos # Shift coordinate space to subsequence being studied
-                        aa_pos = pos//3 # Amino acid coord
-                        codon_pos = pos % 3 # Position within codon
-                        curr_aa = curr_aa_seq[aa_pos] # Current AA
-                        curr_codon = curr_nuc_seq[(aa_pos*3):(aa_pos*3 + 3)] # Current codon
-
-                        if curr_codon[codon_pos] != ref:
-                            raise ValueError("nuc mismatch 1")
-                        
-                        # Check if the new codon is non-garbage; if so, get its translation
-                        is_translatable, new_aa = self.codon_mutation_dict[curr_codon][codon_pos][alt]
-
-                        
-                        if is_translatable:                            
-                            if new_aa != curr_aa:
-                                # If not garbage, and nonsynonymous, apply the mutation
-                                curr_ancestral_aa_seq = curr_aa_seq
-                                curr_aa_seq = list(curr_aa_seq)
-                                curr_aa_seq[aa_pos] = new_aa
-                                curr_aa_seq = ''.join(curr_aa_seq)
-
-
-                        curr_time = next_mut_time
-
-                        # Nucleotide sequence ALWAYS gets updated
-                        curr_ancestral_nuc_seq = curr_nuc_seq
-                        curr_nuc_seq = apply_nuc_mutation(curr_nuc_seq, mut, self.start_pos)
-
-                        curr_mut_idx += 1
-            
-                # Check we've made it up to node time
-                if curr_time != node_time:
-                    raise ValueError("curr time should equal node time")
-
-            # Process children
-            if 'children' in node:
-                for child in node['children']:
-                    traverse_tree(child, curr_nuc_seq, curr_aa_seq, curr_ancestral_nuc_seq, curr_ancestral_aa_seq, node_time)
-        
-        # Start traversal from root
-        root_is_translatable, root_aa_seq = translate(self.root_seq)
-
-        if not root_is_translatable:
-            raise ValueError("Root nucleotide sequence cannot be translated")
-        
-        print(root_aa_seq)
-
-
-        traverse_tree(self.tree, self.root_seq, root_aa_seq)
-
-    def get_training_examples(self):
-        return self.training_examples
-
-    def get_total_nucleotide_mutations(self):
-        return self.total_nucleotide_mutations
-    
-    def get_total_evolutionary_time(self):
-        return self.total_evolutionary_time
-
-    def get_total_samples(self):
-        return self.total_samples
 
 
 # FitnessPredictor moved to models/fitness_predictor.py
@@ -368,6 +83,8 @@ def parse_args():
                         help='Batch size')
     parser.add_argument('--d-model', type=int, default=None,
                         help='Model dimension (transformer only)')
+    parser.add_argument('--num-layers', type=int, default=None,
+                        help='Number of layers (transformer only)')
     parser.add_argument('--output', type=str, default=None,
                         help='Output model path (default: auto-generated)')
     parser.add_argument('--output-dir', type=str, default=None,
@@ -393,9 +110,10 @@ def generate_model_name(config: ExperimentConfig):
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     model_type = "esm2" if config.model.model_type == ModelType.ESM2_FITNESS_PREDICTOR else "transformer"
     d_model = config.model.transformer.d_model
+    num_layers = config.model.transformer.num_layers
     lr = config.training.learning_rate
     bs = config.training.batch_size
-    name = f"fitness_{model_type}_d{d_model}_lr{lr}_bs{bs}_{timestamp}.pt"
+    name = f"fitness_{model_type}_d{d_model}_n{num_layers}_lr{lr}_bs{bs}_{timestamp}.pt"
     return name
 
 
@@ -427,11 +145,13 @@ def load_or_create_config(args) -> ExperimentConfig:
             )
         else:
             d_model = args.d_model or 128
+            num_layers = args.num_layers or 1
             model_config = ModelConfig(
                 model_type=ModelType.FITNESS_PREDICTOR,
                 transformer=TransformerConfig(
                     d_model=d_model,
                     dim_feedforward=4 * d_model,
+                    num_layers = num_layers
                 ),
             )
 
@@ -531,33 +251,48 @@ def main():
     DT = config.data.dt
 
     # Create training examples
-    tree = Tree()
-    tree.set_codon_mutation_dict(allowed_nucleotides, allowed_aas)
-
-    tree.set_dt(DT)
-    tree.read_root_seq(root_seq_file)
-
-    # Region from config
     start_pos = config.data.start_pos
     end_pos = config.data.end_pos
-
     N = end_pos - start_pos  # Number of nucleotides in sequence
 
-    tree.set_region(start_pos, end_pos) 
-    tree.load_tree(tree_file)
-    tree.compute_max_time()
 
-    print("Generating training examples...")
-    tree.generate_training_examples()
-    training_examples = tree.get_training_examples()
+    USE_NEXTSTRAIN_TREE = False
+    nt_seqs = None
+    aa_seqs = None
+
+    if USE_NEXTSTRAIN_TREE:
+        training_examples, N_GRID, est_mu, est_psi = generate_training_examples_nextstrain(
+            allowed_nucleotides, 
+            allowed_aas,
+            DT,
+            root_seq_file,
+            start_pos,
+            end_pos,
+            tree_file
+        )
+    else:
+        all_training_examples, N_GRID, nt_seqs, aa_seqs = parse_big_tree(
+            "/home/ivan.specht/fitness-inference-data/covid.jsonl",
+            "/home/ivan.specht/fitness-inference-data/covid-chron-dates.tsv",
+            "/home/ivan.specht/fitness-inference/data/mutation-annotated-trees/NC_045512.2.fasta",
+            start_pos + 1, # 1-indexed
+            end_pos, # 1-indexed but inclusive
+            DT
+        )
+
+        est_mu = 0.001
+        est_psi = 1.0
+
+        cutoff = N_GRID * DT - 2 # 2 years of data
+        training_examples = []
+        for e in all_training_examples:
+            if (e[4] is not None) and (e[5] is not None):
+                if e[4] > cutoff:
+                    training_examples.append(e)
 
     print(f"Generated {len(training_examples)} training examples from tree")
-
-    # Get number of grid steps
-    N_GRID = tree.get_n_grid()
-
-    # Helper dictionary
-    codon_mutation_dict = tree.get_codon_mutation_dict()
+    
+    
 
     # Build codon->AA lookup table for vectorized mutation mapping
     codon_to_aa = build_codon_to_aa_table(allowed_nucleotides, allowed_aas, device)
@@ -583,8 +318,29 @@ def main():
     all_end_times = torch.zeros(num_examples, dtype=torch.float32)
     all_event_types = torch.zeros(num_examples, dtype=torch.long)
 
+    n_neg_length = 0
     for i, example in enumerate(training_examples):
-        nuc_seq, ancestral_nuc_seq, aa_seq, ancestral_aa_seq, start_time, end_time, event_type = example
+        if USE_NEXTSTRAIN_TREE:
+            nuc_seq, ancestral_nuc_seq, aa_seq, ancestral_aa_seq, start_time, end_time, event_type = example
+        else:
+            child_nuc_seq_id, parent_nuc_seq_id, child_aa_seq_id, parent_aa_seq_id, start_time, end_time, event_type = example
+
+            nuc_seq = nt_seqs.get_seq(child_nuc_seq_id).decode()
+            if parent_nuc_seq_id is None:
+                ancestral_nuc_seq = None
+            else:
+                ancestral_nuc_seq = nt_seqs.get_seq(parent_nuc_seq_id).decode()
+
+            aa_seq = aa_seqs.get_seq(child_aa_seq_id).decode()
+            if parent_aa_seq_id is None:
+                ancestral_aa_seq = None
+            else:
+                ancestral_aa_seq = aa_seqs.get_seq(parent_aa_seq_id).decode()
+
+            if end_time < start_time:
+                n_neg_length += 1
+                end_time = start_time
+
 
         # Tokenize nucleotide sequence
         all_nuc_indices[i] = torch.tensor(
@@ -611,6 +367,11 @@ def main():
 
         # Encode event type
         all_event_types[i] = encode_event_type(event_type)
+
+        if i % 10000 == 0:
+            print(f"Assembled {i} training examples")
+
+    print(f"Warning: {n_neg_length} training examples with negative branch length (corrected to 0)")
 
     print(f"Precomputation complete. Tensor shapes:")
     print(f"  nuc_indices: {all_nuc_indices.shape}")
@@ -647,8 +408,8 @@ def main():
 
     print(f"Model created: {fitness_model.get_num_parameters(trainable_only=True):,} trainable params")
 
-    est_mu = tree.get_total_nucleotide_mutations() / tree.get_total_evolutionary_time() / N
-    est_psi = tree.get_total_samples() / tree.get_total_evolutionary_time()
+    #est_mu = tree.get_total_nucleotide_mutations() / tree.get_total_evolutionary_time() / N
+    #est_psi = tree.get_total_samples() / tree.get_total_evolutionary_time()
     #est_mu = 0.0025
     #est_psi = 0.22
     print(f"Estimate of mutation rate: {est_mu}")
@@ -955,7 +716,6 @@ def main():
         # DMS evaluation at end of epoch (if configured)
         if args.dms_eval_dir:
             from eval.evaluate_dms import evaluate_model_on_dms_datasets
-            import pandas as pd
             dms_results = evaluate_model_on_dms_datasets(
                 fitness_model, args.dms_eval_dir, device, verbose=False
             )

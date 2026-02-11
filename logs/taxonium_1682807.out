@@ -1,0 +1,224 @@
+Job started at: Mon Feb  9 11:57:50 PM PST 2026
+Running on node: GPU71E4
+Job ID: 1682807
+Loading metadata file..
+Metadata loaded
+Reading condensed nodes dict |████████████████████████████████████████| 1026539/1026539 [100%] in 3.5s (290978.31/s) 
+Loading tree, this may take a while...
+Annotating nuc muts |████████████████████████████████████████| 5915511/5915511 [100%] in 35.8s (165288.61/s) 
+Expanding condensed nodes |████████████████████████████████████████| 4107378/4107378 [100%] in 29.7s (138392.74/s) 
+Loaded initial tree with 8442223 tips
+Ending early
+Getting root sequence |████████████████████████████████████████| 10250356/10250356 [100%] in 14.7s (695206.75/s) 
+Tree to use now has 8442223 tips
+Setting branch length |████████████████████████████████████████| 10250356/10250356 [100%] in 10.7s (960134.29/s) 
+Annotating amino acids |████████████████████████████████████████| 10250356/10250356 [100%] in 1:15.8 (135302.79/s) 
+Chronumental 0.0.65
+Platform: cpu
+Reading /home/ivan.specht/fitness-inference-data/covid.tsv
+Using strain as the name column. This must be the name of the taxa in the tree.
+Using ['date', 'strain'] as the fields to parse.
+Reading metadata
+Reading /home/ivan.specht/fitness-inference-data/covid.tsv
+Reading tree
+Processing dates
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Warning: could not parse date nan, it will not feature in calculation.
+Using USA/MI-MDHHS-SC45544/2024|PQ484025.1|1905-07-16, with date: 1905-07-16 00:00:00 and distance from root 157.0 as an arbitrary reference point
+Creating target date array |████████████████████████████████████████| 8442223 in 38.7s (217867.15/s) 
+Found 8440563 terminals with usable date metadata
+finding initial branch_lengths |████████████████████████████████████████| 10250356 in 32.0s (320009.09/s) 
+Counting tree for sparse matrix creation |████████████████████████████████████████| 8442223 in 30.0s (281421.91/s) 
+Populating sparse matrix rows, cols |████████████████████████████████████████| 8442223 in 1:31.7 (92061.65/s) 
+Rows array created
+Cols array created
+No clock rate specified, performing root-to-tip regression to estimate starting value
+Root to tip regression: got rate of: 40.5167520592241
+Performing SVI:
+step:0	loss:87663134369644544.0000	date_cor:0.9403	date_error:43362.8516	date_error_med:43360.3125	max_date_error:44373.8750	length_cor:0.9939	root_date:-1414.3232	mutation_rate:39.3193
+step:10	loss:86817326460043264.0000	date_cor:0.9402	date_error:43145.7773	date_error_med:43167.0586	max_date_error:44345.0781	length_cor:0.9939	root_date:-1414.0229	mutation_rate:29.1259
+step:20	loss:85623385681297408.0000	date_cor:0.9402	date_error:42835.5000	date_error_med:42912.0195	max_date_error:44304.0039	length_cor:0.9939	root_date:-1413.7234	mutation_rate:21.5343
+step:30	loss:83859348123549696.0000	date_cor:0.9402	date_error:42369.8398	date_error_med:42572.0938	max_date_error:44242.3906	length_cor:0.9939	root_date:-1413.4244	mutation_rate:15.7921
+step:40	loss:81155649030848512.0000	date_cor:0.9404	date_error:41641.2891	date_error_med:42025.9180	max_date_error:44145.5625	length_cor:0.9939	root_date:-1413.1271	mutation_rate:11.3813
+step:50	loss:76912453270634496.0000	date_cor:0.9409	date_error:40461.0117	date_error_med:41106.8008	max_date_error:44096.9609	length_cor:0.9939	root_date:-1412.8324	mutation_rate:7.9988
+step:60	loss:70107266568683520.0000	date_cor:0.9413	date_error:38469.6875	date_error_med:39528.7656	max_date_error:44075.9297	length_cor:0.9939	root_date:-1412.5424	mutation_rate:5.4601
+step:70	loss:59273623881383936.0000	date_cor:0.9411	date_error:35005.4219	date_error_med:36746.3008	max_date_error:44039.3633	length_cor:0.9938	root_date:-1412.2611	mutation_rate:3.6179
+step:80	loss:43166671887663104.0000	date_cor:0.9399	date_error:28922.6973	date_error_med:31715.3047	max_date_error:43973.3359	length_cor:0.9929	root_date:-1411.9961	mutation_rate:2.3312
+step:90	loss:23784657006886912.0000	date_cor:0.9331	date_error:19402.3125	date_error_med:22516.8867	max_date_error:49489.3047	length_cor:0.9845	root_date:-1411.7632	mutation_rate:1.4684
+step:100	loss:9304257446543360.0000	date_cor:0.9117	date_error:11245.5352	date_error_med:11267.4570	max_date_error:59587.6172	length_cor:0.9255	root_date:-1411.5885	mutation_rate:0.9178
+step:110	loss:2721420396199936.0000	date_cor:0.6368	date_error:5219.5366	date_error_med:3901.1445	max_date_error:53161.7812	length_cor:0.8036	root_date:-1411.4951	mutation_rate:0.5898
+step:120	loss:1539245277708288.0000	date_cor:0.0751	date_error:3783.3948	date_error_med:2892.7500	max_date_error:45063.0703	length_cor:0.6685	root_date:-1411.4703	mutation_rate:0.4114
+step:130	loss:683893682339840.0000	date_cor:0.1492	date_error:2488.3040	date_error_med:1792.2344	max_date_error:43023.8477	length_cor:0.5326	root_date:-1411.4658	mutation_rate:0.3290
+step:140	loss:336236078170112.0000	date_cor:0.4281	date_error:1653.3911	date_error_med:1204.2070	max_date_error:44429.2773	length_cor:0.4205	root_date:-1411.4562	mutation_rate:0.2963
+step:150	loss:154553928384512.0000	date_cor:0.4711	date_error:1222.3057	date_error_med:1009.7773	max_date_error:45031.5508	length_cor:0.3267	root_date:-1411.4491	mutation_rate:0.2810
+step:160	loss:68080281583616.0000	date_cor:0.3921	date_error:872.0507	date_error_med:745.1992	max_date_error:44215.7930	length_cor:0.2389	root_date:-1411.4490	mutation_rate:0.2671
+step:170	loss:33656382947328.0000	date_cor:0.4424	date_error:642.4611	date_error_med:527.4766	max_date_error:43700.9727	length_cor:0.1695	root_date:-1411.4500	mutation_rate:0.2508
+step:180	loss:20599887888384.0000	date_cor:0.5673	date_error:509.5417	date_error_med:424.2344	max_date_error:43651.8086	length_cor:0.1611	root_date:-1411.4495	mutation_rate:0.2337
+step:190	loss:15090106499072.0000	date_cor:0.5355	date_error:422.7122	date_error_med:327.0352	max_date_error:43538.1133	length_cor:0.1604	root_date:-1411.4495	mutation_rate:0.2200
+step:200	loss:11194627784704.0000	date_cor:0.5623	date_error:361.2451	date_error_med:273.8594	max_date_error:43441.9453	length_cor:0.1502	root_date:-1411.4495	mutation_rate:0.2117
+step:210	loss:9060232462336.0000	date_cor:0.6348	date_error:318.1678	date_error_med:226.5156	max_date_error:43439.7656	length_cor:0.1401	root_date:-1411.4495	mutation_rate:0.2074
+step:220	loss:7463867252736.0000	date_cor:0.6616	date_error:279.5871	date_error_med:188.1953	max_date_error:43404.7812	length_cor:0.1352	root_date:-1411.4495	mutation_rate:0.2050
+step:230	loss:6317998604288.0000	date_cor:0.6712	date_error:251.8760	date_error_med:162.6484	max_date_error:43346.6406	length_cor:0.1311	root_date:-1411.4495	mutation_rate:0.2032
+step:240	loss:5420107169792.0000	date_cor:0.6961	date_error:227.4844	date_error_med:139.4297	max_date_error:43318.4375	length_cor:0.1266	root_date:-1411.4495	mutation_rate:0.2016
+step:250	loss:4714748968960.0000	date_cor:0.7174	date_error:207.6715	date_error_med:119.4844	max_date_error:43296.3477	length_cor:0.1231	root_date:-1411.4495	mutation_rate:0.2001
+step:260	loss:4138267836416.0000	date_cor:0.7333	date_error:191.2749	date_error_med:105.4492	max_date_error:43270.6094	length_cor:0.1203	root_date:-1411.4495	mutation_rate:0.1987
+step:270	loss:3658805936128.0000	date_cor:0.7499	date_error:176.7680	date_error_med:93.1484	max_date_error:43252.6484	length_cor:0.1175	root_date:-1411.4495	mutation_rate:0.1973
+step:280	loss:3259813593088.0000	date_cor:0.7656	date_error:164.0386	date_error_med:82.5312	max_date_error:43238.6562	length_cor:0.1151	root_date:-1411.4495	mutation_rate:0.1961
+step:290	loss:2925416153088.0000	date_cor:0.7795	date_error:153.2679	date_error_med:73.5156	max_date_error:43226.1289	length_cor:0.1131	root_date:-1411.4495	mutation_rate:0.1951
+step:300	loss:2638125727744.0000	date_cor:0.7928	date_error:143.4586	date_error_med:65.5898	max_date_error:43217.0039	length_cor:0.1112	root_date:-1411.4495	mutation_rate:0.1942
+step:310	loss:2388738965504.0000	date_cor:0.8055	date_error:134.6108	date_error_med:58.2266	max_date_error:43210.1641	length_cor:0.1095	root_date:-1411.4495	mutation_rate:0.1934
+step:320	loss:2171707588608.0000	date_cor:0.8173	date_error:126.7248	date_error_med:51.9609	max_date_error:43204.8594	length_cor:0.1080	root_date:-1411.4495	mutation_rate:0.1928
+step:330	loss:1981694476288.0000	date_cor:0.8284	date_error:119.5156	date_error_med:46.3516	max_date_error:43201.0469	length_cor:0.1066	root_date:-1411.4495	mutation_rate:0.1921
+step:340	loss:1814048014336.0000	date_cor:0.8387	date_error:112.9849	date_error_med:41.3789	max_date_error:43198.0664	length_cor:0.1053	root_date:-1411.4495	mutation_rate:0.1916
+step:350	loss:1664892928000.0000	date_cor:0.8484	date_error:106.9893	date_error_med:36.9414	max_date_error:43195.8320	length_cor:0.1041	root_date:-1411.4495	mutation_rate:0.1910
+step:360	loss:1531063173120.0000	date_cor:0.8575	date_error:101.4589	date_error_med:33.0312	max_date_error:43194.2188	length_cor:0.1030	root_date:-1411.4495	mutation_rate:0.1906
+step:370	loss:1410517565440.0000	date_cor:0.8661	date_error:96.3609	date_error_med:29.5625	max_date_error:43192.9883	length_cor:0.1020	root_date:-1411.4495	mutation_rate:0.1901
+step:380	loss:1302033858560.0000	date_cor:0.8741	date_error:91.6184	date_error_med:26.5039	max_date_error:43192.0273	length_cor:0.1011	root_date:-1411.4495	mutation_rate:0.1897
+step:390	loss:1204507246592.0000	date_cor:0.8815	date_error:87.2347	date_error_med:23.8008	max_date_error:43191.1914	length_cor:0.1002	root_date:-1411.4495	mutation_rate:0.1893
+step:400	loss:1116310863872.0000	date_cor:0.8884	date_error:83.1622	date_error_med:21.4062	max_date_error:43190.4805	length_cor:0.0994	root_date:-1411.4495	mutation_rate:0.1890
+step:410	loss:1036000624640.0000	date_cor:0.8949	date_error:79.3542	date_error_med:19.2930	max_date_error:43189.8398	length_cor:0.0986	root_date:-1411.4495	mutation_rate:0.1886
+step:420	loss:962889383936.0000	date_cor:0.9009	date_error:75.7718	date_error_med:17.3672	max_date_error:43189.2539	length_cor:0.0979	root_date:-1411.4495	mutation_rate:0.1883
+step:430	loss:896433979392.0000	date_cor:0.9066	date_error:72.4392	date_error_med:15.6562	max_date_error:43188.6406	length_cor:0.0973	root_date:-1411.4495	mutation_rate:0.1880
+step:440	loss:835929702400.0000	date_cor:0.9118	date_error:69.2999	date_error_med:14.1367	max_date_error:43188.0117	length_cor:0.0966	root_date:-1411.4495	mutation_rate:0.1877
+step:450	loss:780593463296.0000	date_cor:0.9168	date_error:66.3804	date_error_med:12.8320	max_date_error:43187.3320	length_cor:0.0960	root_date:-1411.4495	mutation_rate:0.1875
+step:460	loss:729735495680.0000	date_cor:0.9214	date_error:63.6242	date_error_med:11.6602	max_date_error:43186.6406	length_cor:0.0955	root_date:-1411.4495	mutation_rate:0.1872
+step:470	loss:682836688896.0000	date_cor:0.9257	date_error:61.0272	date_error_med:10.5898	max_date_error:43185.8555	length_cor:0.0950	root_date:-1411.4495	mutation_rate:0.1870
+step:480	loss:639517720576.0000	date_cor:0.9298	date_error:58.5696	date_error_med:9.6289	max_date_error:43185.0156	length_cor:0.0945	root_date:-1411.4495	mutation_rate:0.1868
+step:490	loss:599462772736.0000	date_cor:0.9336	date_error:56.2667	date_error_med:8.8008	max_date_error:43184.0625	length_cor:0.0940	root_date:-1411.4495	mutation_rate:0.1866
+step:500	loss:562394759168.0000	date_cor:0.9372	date_error:54.0616	date_error_med:8.0391	max_date_error:43182.9570	length_cor:0.0935	root_date:-1411.4495	mutation_rate:0.1864
+step:510	loss:528069951488.0000	date_cor:0.9406	date_error:51.9871	date_error_med:7.3789	max_date_error:43181.7383	length_cor:0.0931	root_date:-1411.4495	mutation_rate:0.1862
+step:520	loss:496301244416.0000	date_cor:0.9437	date_error:50.0076	date_error_med:6.7734	max_date_error:43180.3867	length_cor:0.0927	root_date:-1411.4495	mutation_rate:0.1860
+step:530	loss:466930270208.0000	date_cor:0.9467	date_error:48.1501	date_error_med:6.2500	max_date_error:43178.8672	length_cor:0.0923	root_date:-1411.4495	mutation_rate:0.1858
+step:540	loss:439767695360.0000	date_cor:0.9495	date_error:46.3758	date_error_med:5.7500	max_date_error:43177.2031	length_cor:0.0920	root_date:-1411.4495	mutation_rate:0.1856
+step:550	loss:414567038976.0000	date_cor:0.9521	date_error:44.7030	date_error_med:5.3086	max_date_error:43175.4453	length_cor:0.0916	root_date:-1411.4495	mutation_rate:0.1855
+step:560	loss:391105740800.0000	date_cor:0.9545	date_error:43.1105	date_error_med:4.9180	max_date_error:43173.6133	length_cor:0.0913	root_date:-1411.4495	mutation_rate:0.1853
+step:570	loss:369251385344.0000	date_cor:0.9568	date_error:41.5845	date_error_med:4.5547	max_date_error:43171.7344	length_cor:0.0910	root_date:-1411.4495	mutation_rate:0.1852
+step:580	loss:348927361024.0000	date_cor:0.9590	date_error:40.1387	date_error_med:4.2383	max_date_error:43169.8164	length_cor:0.0907	root_date:-1411.4495	mutation_rate:0.1850
+step:590	loss:330057154560.0000	date_cor:0.9610	date_error:38.7630	date_error_med:3.9531	max_date_error:43167.8438	length_cor:0.0904	root_date:-1411.4495	mutation_rate:0.1849
+step:600	loss:312544231424.0000	date_cor:0.9629	date_error:37.4544	date_error_med:3.7070	max_date_error:43165.8438	length_cor:0.0901	root_date:-1411.4495	mutation_rate:0.1848
+step:610	loss:296280555520.0000	date_cor:0.9647	date_error:36.2003	date_error_med:3.4609	max_date_error:43163.8164	length_cor:0.0898	root_date:-1411.4495	mutation_rate:0.1847
+step:620	loss:281149079552.0000	date_cor:0.9663	date_error:35.0092	date_error_med:3.2383	max_date_error:43161.7852	length_cor:0.0896	root_date:-1411.4495	mutation_rate:0.1845
+step:630	loss:267042144256.0000	date_cor:0.9679	date_error:33.8725	date_error_med:3.0352	max_date_error:43159.8008	length_cor:0.0893	root_date:-1411.4495	mutation_rate:0.1844
+step:640	loss:253869359104.0000	date_cor:0.9694	date_error:32.7908	date_error_med:2.8477	max_date_error:43157.8867	length_cor:0.0891	root_date:-1411.4495	mutation_rate:0.1843
+step:650	loss:241557356544.0000	date_cor:0.9707	date_error:31.7641	date_error_med:2.6797	max_date_error:43156.0547	length_cor:0.0889	root_date:-1411.4495	mutation_rate:0.1842
+step:660	loss:230046679040.0000	date_cor:0.9720	date_error:30.7700	date_error_med:2.5117	max_date_error:43154.3164	length_cor:0.0887	root_date:-1411.4495	mutation_rate:0.1841
+step:670	loss:219281391616.0000	date_cor:0.9733	date_error:29.8238	date_error_med:2.3594	max_date_error:43152.6484	length_cor:0.0885	root_date:-1411.4495	mutation_rate:0.1840
+step:680	loss:209206837248.0000	date_cor:0.9744	date_error:28.9235	date_error_med:2.2227	max_date_error:43151.0547	length_cor:0.0883	root_date:-1411.4495	mutation_rate:0.1839
+step:690	loss:199769309184.0000	date_cor:0.9755	date_error:28.0641	date_error_med:2.1016	max_date_error:43149.5703	length_cor:0.0881	root_date:-1411.4495	mutation_rate:0.1839
+step:700	loss:190917443584.0000	date_cor:0.9765	date_error:27.2310	date_error_med:1.9805	max_date_error:43148.1797	length_cor:0.0879	root_date:-1411.4495	mutation_rate:0.1838
+step:710	loss:182603694080.0000	date_cor:0.9775	date_error:26.4509	date_error_med:1.8906	max_date_error:43146.8594	length_cor:0.0877	root_date:-1411.4495	mutation_rate:0.1837
+step:720	loss:174785413120.0000	date_cor:0.9784	date_error:25.6838	date_error_med:1.7773	max_date_error:43145.6602	length_cor:0.0876	root_date:-1411.4495	mutation_rate:0.1836
+step:730	loss:167424442368.0000	date_cor:0.9792	date_error:24.9535	date_error_med:1.6758	max_date_error:43144.5547	length_cor:0.0874	root_date:-1411.4495	mutation_rate:0.1835
+step:740	loss:160486555648.0000	date_cor:0.9800	date_error:24.2672	date_error_med:1.6055	max_date_error:43143.5117	length_cor:0.0872	root_date:-1411.4495	mutation_rate:0.1835
+step:750	loss:153939804160.0000	date_cor:0.9808	date_error:23.5904	date_error_med:1.5156	max_date_error:43142.5742	length_cor:0.0871	root_date:-1411.4495	mutation_rate:0.1834
+step:760	loss:147756531712.0000	date_cor:0.9815	date_error:22.9487	date_error_med:1.4414	max_date_error:43141.7383	length_cor:0.0870	root_date:-1411.4495	mutation_rate:0.1833
+step:770	loss:141911293952.0000	date_cor:0.9822	date_error:22.3291	date_error_med:1.3672	max_date_error:43140.9805	length_cor:0.0868	root_date:-1411.4495	mutation_rate:0.1833
+step:780	loss:136380276736.0000	date_cor:0.9829	date_error:21.7297	date_error_med:1.2969	max_date_error:43140.3086	length_cor:0.0867	root_date:-1411.4495	mutation_rate:0.1832
+step:790	loss:131141574656.0000	date_cor:0.9835	date_error:21.1557	date_error_med:1.2344	max_date_error:43139.6953	length_cor:0.0866	root_date:-1411.4495	mutation_rate:0.1831
+step:800	loss:126175780864.0000	date_cor:0.9841	date_error:20.6081	date_error_med:1.1797	max_date_error:43139.1328	length_cor:0.0864	root_date:-1411.4495	mutation_rate:0.1831
+step:810	loss:121464037376.0000	date_cor:0.9847	date_error:20.0751	date_error_med:1.1250	max_date_error:43138.6602	length_cor:0.0863	root_date:-1411.4495	mutation_rate:0.1830
+step:820	loss:116990803968.0000	date_cor:0.9852	date_error:19.5653	date_error_med:1.0781	max_date_error:43138.2188	length_cor:0.0862	root_date:-1411.4495	mutation_rate:0.1830
+step:830	loss:112740032512.0000	date_cor:0.9858	date_error:19.0640	date_error_med:1.0234	max_date_error:43137.8555	length_cor:0.0861	root_date:-1411.4495	mutation_rate:0.1829
+step:840	loss:108697886720.0000	date_cor:0.9863	date_error:18.5915	date_error_med:0.9844	max_date_error:43137.5000	length_cor:0.0860	root_date:-1411.4495	mutation_rate:0.1829
+step:850	loss:104851775488.0000	date_cor:0.9867	date_error:18.1272	date_error_med:0.9336	max_date_error:43137.2070	length_cor:0.0859	root_date:-1411.4495	mutation_rate:0.1828
+step:860	loss:101189296128.0000	date_cor:0.9872	date_error:17.6820	date_error_med:0.8945	max_date_error:43136.9297	length_cor:0.0858	root_date:-1411.4495	mutation_rate:0.1828
+step:870	loss:97700085760.0000	date_cor:0.9876	date_error:17.2526	date_error_med:0.8594	max_date_error:43136.6836	length_cor:0.0857	root_date:-1411.4495	mutation_rate:0.1827
+step:880	loss:94374068224.0000	date_cor:0.9880	date_error:16.8352	date_error_med:0.8203	max_date_error:43136.4844	length_cor:0.0856	root_date:-1411.4495	mutation_rate:0.1827
+step:890	loss:91201388544.0000	date_cor:0.9884	date_error:16.4354	date_error_med:0.7930	max_date_error:43136.2891	length_cor:0.0855	root_date:-1411.4495	mutation_rate:0.1826
+step:900	loss:88173592576.0000	date_cor:0.9888	date_error:16.0439	date_error_med:0.7578	max_date_error:43136.1211	length_cor:0.0854	root_date:-1411.4495	mutation_rate:0.1826
+step:910	loss:85282275328.0000	date_cor:0.9891	date_error:15.6572	date_error_med:0.7148	max_date_error:43135.9805	length_cor:0.0853	root_date:-1411.4495	mutation_rate:0.1826
+step:920	loss:82520047616.0000	date_cor:0.9895	date_error:15.2961	date_error_med:0.6953	max_date_error:43135.8516	length_cor:0.0852	root_date:-1411.4495	mutation_rate:0.1825
+step:930	loss:79880093696.0000	date_cor:0.9898	date_error:14.9479	date_error_med:0.6719	max_date_error:43135.7070	length_cor:0.0851	root_date:-1411.4495	mutation_rate:0.1825
+step:940	loss:77355376640.0000	date_cor:0.9901	date_error:14.5998	date_error_med:0.6406	max_date_error:43135.6016	length_cor:0.0850	root_date:-1411.4495	mutation_rate:0.1824
+step:950	loss:74940194816.0000	date_cor:0.9904	date_error:14.2676	date_error_med:0.6211	max_date_error:43135.4805	length_cor:0.0849	root_date:-1411.4495	mutation_rate:0.1824
+step:960	loss:72628568064.0000	date_cor:0.9907	date_error:13.9522	date_error_med:0.6055	max_date_error:43135.3672	length_cor:0.0849	root_date:-1411.4495	mutation_rate:0.1824
+step:970	loss:70415777792.0000	date_cor:0.9910	date_error:13.6324	date_error_med:0.5742	max_date_error:43135.2656	length_cor:0.0848	root_date:-1411.4495	mutation_rate:0.1823
+step:980	loss:68296814592.0000	date_cor:0.9912	date_error:13.3328	date_error_med:0.5586	max_date_error:43135.1367	length_cor:0.0847	root_date:-1411.4495	mutation_rate:0.1823
+step:990	loss:66267418624.0000	date_cor:0.9915	date_error:13.0376	date_error_med:0.5352	max_date_error:43135.0195	length_cor:0.0847	root_date:-1411.4495	mutation_rate:0.1823
+step:999	loss:64513789952.0000	date_cor:0.9917	date_error:12.7724	date_error_med:0.5117	max_date_error:43134.9258	length_cor:0.0846	root_date:-1411.4495	mutation_rate:0.1822
+Fit completed. Extracting parameters.
+Writing tree to file
+
+Wrote tree to /tmp/tmpbnm868pa/timetree.nwk
+Launching chronumental
+#####  Chronumental failed.  #####
+#####  Exiting.  #####
+Job finished at: Tue Feb 10 01:01:32 AM PST 2026

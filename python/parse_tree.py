@@ -16,6 +16,7 @@ Usage:
 """
 
 import json
+from copy import copy
 import hashlib
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -119,8 +120,7 @@ def load_chron_dates(tsv_path):
 
     return dates, dates_by_name
 
-
-# ── Main loader ───────────────────────────────────────────────────────────────
+### Main loader
 
 def load_tree(jsonl_path, dates_path):
     """
@@ -128,7 +128,7 @@ def load_tree(jsonl_path, dates_path):
     Returns a Tree object with nodes, edges, mutations, and times.
     """
     # Step 1: Load Chronumental dates
-    chron_dates, chron_dates_by_name = load_chron_dates(dates_path)
+    # chron_dates, chron_dates_by_name = load_chron_dates(dates_path)
 
     # Step 2: Parse JSONL header for nucleotide mutation lookup
     print("Reading JSONL header...")
@@ -152,36 +152,20 @@ def load_tree(jsonl_path, dates_path):
     nodes = {}
     node_count = 0
 
+    parse_errors = 0
     with open(jsonl_path, 'r') as f:
         f.readline()  # skip header
         for line in f:
             raw = json.loads(line)
             nid = raw['node_id']
             name = raw['name']
-
-            # Match to Chronumental dates
-            time = None
-            if raw.get('is_tip', False):
-                acc = raw.get('meta_genbank_accession', '')
-                date_str = raw.get('meta_date', '')
-                candidates = [name]
-                if acc:
-                    candidates.insert(0, f"{name}|{acc}|{date_str}")
-                    candidates.append(f"{name}|{acc}")
-                for key in candidates:
-                    if key in chron_dates:
-                        time = chron_dates[key]
-                        break
-                if time is None:
-                    time = chron_dates_by_name.get(name)
-            else:
-                time = chron_dates.get(name)
+            time = raw['x_time'] * 2.609522 / 365.25
 
             # Extract nt mutations on the edge from parent to this node
             edge_muts = []
             for mid in raw.get('mutations', []):
                 if mid in mut_lookup:
-                    edge_muts.append(mut_lookup[mid])
+                    edge_muts.append(copy(mut_lookup[mid]))
 
             node = Node(
                 node_id=nid,
@@ -257,13 +241,14 @@ def load_tree(jsonl_path, dates_path):
     # Step 7: Convert times to years before present (most recent tip = 0)
     print("Converting times to years before present...")
     timed_tips = [n for n in nodes.values() if n.is_tip and n.time is not None]
+    root_ybp = None
     if timed_tips:
         max_time = max(n.time for n in timed_tips)
-        print(f"  Most recent tip: {max_time:%Y-%m-%d %H:%M}")
+        print(f"  Most recent tip: {max_time}")
         for n in nodes.values():
             if n.time is not None:
                 delta = max_time - n.time
-                n.years_before_present = delta.total_seconds() / (365.25 * 24 * 3600)
+                n.years_before_present = delta
             else:
                 n.years_before_present = None
         root_ybp = nodes[root_id].years_before_present
@@ -274,13 +259,33 @@ def load_tree(jsonl_path, dates_path):
         for n in nodes.values():
             n.years_before_present = None
 
+    # Step 8: Check for time inversions (child older than parent)
+    print("Checking for time inversions...")
+    n_inversions = 0
+    n_both_timed = 0
+    max_inversion = 0.0
+    for nid, node in nodes.items():
+        if node.parent_edge is None:
+            continue
+        pid = node.parent_edge.parent_id
+        parent = nodes[pid]
+        if node.years_before_present is not None and parent.years_before_present is not None:
+            n_both_timed += 1
+            if node.years_before_present > parent.years_before_present:
+                n_inversions += 1
+                inv = node.years_before_present - parent.years_before_present
+                max_inversion = max(max_inversion, inv)
+    print(f"  {n_both_timed} branches with both endpoints timed")
+    print(f"  {n_inversions} time inversions ({100*n_inversions/max(n_both_timed,1):.2f}%)")
+    if n_inversions > 0:
+        print(f"  Max inversion: {max_inversion:.6f} years ({max_inversion*365.25:.2f} days)")
+
     tree = Tree(nodes=nodes, root_id=root_id)
 
     tips = sum(1 for n in nodes.values() if n.is_tip)
     internal = len(nodes) - tips
     print(f"\nDone! {tips} tips, {internal} internal nodes")
-    return tree
-
+    return tree, root_ybp
 
 # ── Spike sequence extraction ─────────────────────────────────────────────────
 
@@ -533,6 +538,9 @@ def generate_training_examples(tree):
         parent_ybp = parent.years_before_present
         child_ybp = node.years_before_present
 
+        #if (parent_ybp is None) or (child_ybp is None):
+        #   continue
+
         # Spike mutations on this branch, ordered forward in time
         spike_muts = [m for m in node.parent_edge.mutations if m.seq_before is not None]
 
@@ -542,10 +550,19 @@ def generate_training_examples(tree):
             boundaries.append(m.time_ybp)
         boundaries.append(child_ybp)
 
+        if len(boundaries) < 2:
+            raise ValueError("should have at least 2 boundaries")
+        
+        if len(boundaries) != len(spike_muts) + 2:
+            raise ValueError("should have 2 more boundaries than mutations")
+
         # Segments
         for i in range(len(boundaries) - 1):
             upper_ybp = boundaries[i]
             lower_ybp = boundaries[i + 1]
+
+            #if (upper_ybp is None) or (lower_ybp is None):
+            #    raise ValueError("None time")
 
             # Sequence on this segment
             if i != 0:
@@ -577,6 +594,13 @@ def generate_training_examples(tree):
                     child_nuc_seq_id = 0
                     child_aa_seq_id = 0
 
+                if len(spike_muts) > 0:
+                    if child_nuc_seq_id != spike_muts[0].seq_before:
+                        raise ValueError("nuc seq mismatch")
+                    if child_aa_seq_id != spike_muts[0].aa_before:
+                        raise ValueError("aa seq mismatch")
+            
+
             # Event at the end of the segment (later in real time = smaller ybp)
             if i == len(boundaries) - 2:
                 event_type = "Sample" if node.is_tip else "Birth"
@@ -600,18 +624,20 @@ def generate_training_examples(tree):
 
 
 
-# ── Example usage ─────────────────────────────────────────────────────────────
+# ── Full pipeline ─────────────────────────────────────────────────────────────
 
-if __name__ == "__main__":
-    import sys
+def parse_big_tree(
+    jsonl_path,
+    dates_path,
+    ref_fasta,
+    spike_start, # 1-INDEXED, INCLUSIVE
+    spike_end, # 1-INDEXED, INCLUSIVE!
+    DT
+):
 
-    jsonl_path = sys.argv[1] if len(sys.argv) > 1 else "latest_public.jsonl"
-    dates_path = sys.argv[2] if len(sys.argv) > 2 else "chron_dates.tsv"
-    ref_fasta = sys.argv[3] if len(sys.argv) > 3 else "reference.fasta"
-    spike_start = int(sys.argv[4]) if len(sys.argv) > 4 else 21563
-    spike_end = int(sys.argv[5]) if len(sys.argv) > 5 else 25384
 
-    tree = load_tree(jsonl_path, dates_path)
+    tree, root_ybp = load_tree(jsonl_path, dates_path)
+    N_GRID = int(root_ybp / DT) + 1
 
     nt_seqs, aa_seqs = extract_spike_sequences(tree, ref_fasta, spike_start, spike_end)
     print(f"\n{nt_seqs}")
@@ -635,7 +661,10 @@ if __name__ == "__main__":
     print(f"Generated {len(training_examples)} training examples")
     print("NOTE: Multifurcations and bifurcations are currently treated the same in training examples. If this leads to weird birth rate estimates, try accounting for multifurcations.")
 
+    return training_examples, N_GRID, nt_seqs, aa_seqs
+
     # Demo: show mutations with before/after sequences
+    """
     for node in tree.nodes.values():
         if node.parent_edge:
             spike_muts = [m for m in node.parent_edge.mutations
@@ -651,3 +680,4 @@ if __name__ == "__main__":
                           f"nt_before={m.seq_before}, nt_after={m.seq_after}, "
                           f"aa_before={m.aa_before}, aa_after={m.aa_after}")
                 break
+    """

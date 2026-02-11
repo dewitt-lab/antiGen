@@ -283,7 +283,7 @@ def main():
         est_mu = 0.001
         est_psi = 1.0
 
-        cutoff = N_GRID * DT - 2 # 2 years of data
+        cutoff = N_GRID * DT - 1 # 2 years of data
         training_examples = []
         for e in all_training_examples:
             if (e[4] is not None) and (e[5] is not None):

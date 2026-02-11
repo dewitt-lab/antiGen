@@ -1,0 +1,1 @@
+WARNING:2026-02-10 17:40:33,100:jax._src.xla_bridge:794: An NVIDIA GPU may be present on this machine, but a CUDA-enabled jaxlib is not installed. Falling back to cpu.

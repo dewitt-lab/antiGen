@@ -159,7 +159,7 @@ def load_tree(jsonl_path, dates_path):
             raw = json.loads(line)
             nid = raw['node_id']
             name = raw['name']
-            time = raw['x_time'] * 2.609522 / 365.25
+            time = raw['x_time'] * 2.25994 / 365.25
 
             # Extract nt mutations on the edge from parent to this node
             edge_muts = []

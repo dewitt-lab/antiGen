@@ -309,11 +309,13 @@ def main():
     num_examples = len(training_examples)
     seq_len_aa = N // 3
 
+
     # Preallocate tensors on CPU (will be moved to GPU in batches)
     all_nuc_indices = torch.zeros(num_examples, N, dtype=torch.long)
     all_aa_indices = torch.zeros(num_examples, seq_len_aa, dtype=torch.long)
     all_ancestral_aa_indices = torch.zeros(num_examples, seq_len_aa, dtype=torch.long)
     all_has_ancestral = torch.zeros(num_examples, dtype=torch.bool)
+
     all_start_times = torch.zeros(num_examples, dtype=torch.float32)
     all_end_times = torch.zeros(num_examples, dtype=torch.float32)
     all_event_types = torch.zeros(num_examples, dtype=torch.long)

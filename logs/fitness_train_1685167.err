@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/home/ivan.specht/fitness-inference/python/train.py", line 774, in <module>
+    main()
+  File "/home/ivan.specht/fitness-inference/python/train.py", line 312, in main
+    max_idx = max(set(e))
+              ^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'str' and 'int'

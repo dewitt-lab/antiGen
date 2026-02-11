@@ -524,7 +524,7 @@ def extract_spike_sequences(tree, ref_fasta_path, spike_start, spike_end):
 
 # –– Training example generation –––––––––––––––––––––––––––––––––––––––––––––––
 
-def generate_training_examples(tree):
+def generate_training_examples(tree, DT):
 
     training_examples = []
     n_branches = sum(1 for n in tree.nodes.values() if n.parent_edge is not None)
@@ -538,8 +538,8 @@ def generate_training_examples(tree):
         parent_ybp = parent.years_before_present
         child_ybp = node.years_before_present
 
-        #if (parent_ybp is None) or (child_ybp is None):
-        #   continue
+        if (parent_ybp is None) or (child_ybp is None):
+            continue
 
         # Spike mutations on this branch, ordered forward in time
         spike_muts = [m for m in node.parent_edge.mutations if m.seq_before is not None]
@@ -607,10 +607,21 @@ def generate_training_examples(tree):
             else:
                 event_type = "Mutation"
 
-            example = (child_nuc_seq_id, parent_nuc_seq_id,
+            start_grid_time = int(lower_ybp / DT) * DT
+
+            while start_grid_time <= upper_ybp:
+                big_time = min(start_grid_time + DT, upper_ybp)
+                if(start_grid_time <= lower_ybp):
+                    example = (child_nuc_seq_id, parent_nuc_seq_id,
                        child_aa_seq_id, parent_aa_seq_id,
-                       lower_ybp, upper_ybp, event_type)
-            training_examples.append(example)
+                       lower_ybp, big_time, event_type)
+                else:
+                    example = (child_nuc_seq_id, parent_nuc_seq_id,
+                       child_aa_seq_id, parent_aa_seq_id,
+                       start_grid_time, big_time, "Nothing")
+                    
+                training_examples.append(example)
+                start_grid_time += DT
 
         processed += 1
         if processed % 500000 == 0:
@@ -656,7 +667,7 @@ def parse_big_tree(
     print(f"Nt seqs / spike muts: {nt_seqs.next_id / total_spike_muts:.3f}")
     print(f"Aa seqs / spike muts: {aa_seqs.next_id / total_spike_muts:.3f}")
 
-    training_examples = generate_training_examples(tree)
+    training_examples = generate_training_examples(tree, DT)
 
     print(f"Generated {len(training_examples)} training examples")
     print("NOTE: Multifurcations and bifurcations are currently treated the same in training examples. If this leads to weird birth rate estimates, try accounting for multifurcations.")

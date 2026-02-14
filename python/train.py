@@ -65,6 +65,16 @@ def update_p_RK4(p_i, lam_i, f, gam, psi, mu, q_i, q_i_plus_one, is_mutation, N,
     return p_i + (k1 + (2*k2) + (2*k3) + k4) * dt / 6
 
 
+# Debug helper — defined at module level to avoid closure-based retention
+def check_tensor(name, t):
+    has_nan = torch.isnan(t.float()).any().item()
+    has_inf = torch.isinf(t.float()).any().item()
+    if has_nan or has_inf:
+        print(f"   DEBUG {name}: nan={has_nan} inf={has_inf} shape={t.shape} dtype={t.dtype}")
+        return True
+    return False
+
+
 def parse_args():
     """Parse command line arguments."""
     import argparse
@@ -194,6 +204,239 @@ def load_or_create_config(args) -> ExperimentConfig:
     return config
 
 
+def train_one_batch(
+    batch_data, fitness_model, unique_nuc_indices, unique_aa_indices,
+    log_lam, log_gam, log_psi, log_mu, log_f0,
+    codon_to_aa, allowed_aas, config,
+    N, D, E, N_GRID, DT, seq_len_aa, device,
+):
+    """Run forward pass and backward for a single batch.
+
+    Returns (loss_val, mu_val, psi_val, r0_val) or (None, ...) if batch should be skipped.
+    All local tensors go out of scope when this function returns, freeing the graph.
+    """
+    (
+        nuc_uid_batch,
+        aa_uid_batch,
+        ancestral_aa_uid_batch,
+        has_ancestral_batch,
+        start_times_batch,
+        end_times_batch,
+        event_types_batch,
+    ) = batch_data
+
+    # Move to device
+    nuc_uid_batch = nuc_uid_batch.to(device)
+    aa_uid_batch = aa_uid_batch.to(device)
+    ancestral_aa_uid_batch = ancestral_aa_uid_batch.to(device)
+    has_ancestral_batch = has_ancestral_batch.to(device)
+    start_times_batch = start_times_batch.to(device)
+    end_times_batch = end_times_batch.to(device)
+    event_types_batch = event_types_batch.to(device)
+
+    # Dereference UIDs
+    nuc_indices_batch = unique_nuc_indices[nuc_uid_batch]
+    aa_indices_batch = unique_aa_indices[aa_uid_batch]
+    ancestral_aa_indices_batch = unique_aa_indices[ancestral_aa_uid_batch]
+    ancestral_aa_indices_batch[~has_ancestral_batch] = 0
+
+    actual_batch_size = nuc_indices_batch.shape[0]
+
+    # Count event types in this batch
+    n_mutation = (event_types_batch == 1).sum().item()
+    n_birth = (event_types_batch == 2).sum().item()
+    n_sample = (event_types_batch == 3).sum().item()
+    n_nothing = actual_batch_size - n_mutation - n_birth - n_sample
+    event_counts = (n_birth, n_mutation, n_sample, n_nothing)
+
+    # Transform parameters
+    lam = torch.exp(log_lam)
+    gam = torch.exp(log_gam)
+    psi = torch.exp(log_psi)
+    mu = torch.exp(log_mu)
+    f0 = torch.exp(log_f0)
+    r0 = f0 * lam[len(lam) - 1] / gam
+
+    print(f"   mu: {mu}")
+    print(f"   psi: {psi}")
+    print(f"   R0: {r0}")
+
+    # Fitness tensor for ancestral sequences
+    ancestral_fitness = get_fitnesses_from_indices(
+        fitness_model, ancestral_aa_indices_batch, allowed_aas, device
+    )
+    assert (ancestral_fitness >= 0).all(), \
+        f"Negative ancestral fitness detected! min={ancestral_fitness.min().item():.6f}"
+
+    # Mutation position finding
+    mutated_positions = find_mutation_positions_batched(
+        aa_indices_batch, ancestral_aa_indices_batch, has_ancestral_batch
+    )
+
+    # Fitness of genotype on tree
+    fitness_of_G = f0.expand(actual_batch_size).clone()
+
+    batch_indices = torch.arange(actual_batch_size, device=device)
+    mutated_aa_indices = aa_indices_batch[batch_indices, mutated_positions]
+
+    fitness_at_mutation = ancestral_fitness[
+        batch_indices, mutated_positions, mutated_aa_indices
+    ]
+    fitness_of_G = torch.where(has_ancestral_batch, fitness_at_mutation, fitness_of_G)
+
+    # Fitness tensor for present AA sequences
+    fitness = get_fitnesses_from_indices(
+        fitness_model, aa_indices_batch, allowed_aas, device
+    )
+    assert (fitness >= 0).all(), \
+        f"Negative child fitness detected! min={fitness.min().item():.6f}"
+
+    fitness = fitness.repeat_interleave(3, dim=1)
+
+    default_fitness = fitness_of_G.unsqueeze(1).expand(actual_batch_size, N)
+    fitness_by_mutation = torch.cat([fitness, default_fitness.unsqueeze(2)], dim=2)
+
+    aa_idx = get_aa_idx_vectorized_batched(
+        nuc_indices_batch, aa_indices_batch, codon_to_aa, E, device
+    )
+    fitness_by_mutation = torch.gather(fitness_by_mutation, dim=2, index=aa_idx)
+
+    all_nucs = torch.arange(D, device=device)
+    is_mutation = (all_nucs.view(1, 1, D) != nuc_indices_batch.unsqueeze(-1)).float()
+
+    # ODE integration
+    q_after = torch.ones(actual_batch_size, N, D, device=device)
+    p_after = torch.ones(actual_batch_size, device=device)
+
+    loss = torch.tensor(0.0, device=device)
+
+    for interval in range(N_GRID):
+        q_before = q_after
+        q_after = update_q_RK4(q_before, lam[interval], fitness_by_mutation, gam, psi, DT)
+
+        p_before = p_after
+        p_after = update_p_RK4(p_before, lam[interval], fitness_of_G, gam, psi, mu, q_before, q_after, is_mutation, N, D, DT)
+
+        # Warn and bail if ODE diverges
+        if torch.isinf(q_after).any() or torch.isinf(p_after).any() or torch.isnan(q_after).any() or torch.isnan(p_after).any():
+            q_fin = q_after[torch.isfinite(q_after)]
+            p_fin = p_after[torch.isfinite(p_after)]
+            print(f"   WARNING: ODE diverged at interval {interval}/{N_GRID} (nan/inf detected), skipping batch")
+            print(f"     q_after: nan={torch.isnan(q_after).sum().item()}, inf={torch.isinf(q_after).sum().item()}, "
+                  f"finite range=[{q_fin.min().item():.6f}, {q_fin.max().item():.6f}]" if len(q_fin) > 0 else "all bad")
+            print(f"     p_after: nan={torch.isnan(p_after).sum().item()}, inf={torch.isinf(p_after).sum().item()}, "
+                  f"finite range=[{p_fin.min().item():.6f}, {p_fin.max().item():.6f}]" if len(p_fin) > 0 else "all bad")
+            print(f"     q_before range: [{q_before.min().item():.6f}, {q_before.max().item():.6f}]")
+            print(f"     p_before range: [{p_before.min().item():.6f}, {p_before.max().item():.6f}]")
+            print(f"     lam[{interval}]={lam[interval].item():.6f}, gam={gam.item():.6f}, psi={psi.item():.6f}, mu={mu.item():.6f}")
+            print(f"     fitness_by_mutation range: [{fitness_by_mutation.min().item():.6f}, {fitness_by_mutation.max().item():.6f}]")
+            print(f"     fitness_of_G range: [{fitness_of_G.min().item():.6f}, {fitness_of_G.max().item():.6f}]")
+            # Check RK4 intermediates to see where blowup starts
+            k1_q = dq_dt(q_before, lam[interval], fitness_by_mutation, gam, psi)
+            k1_p = dp_dt(p_before, lam[interval], fitness_of_G, gam, psi, mu, q_before, is_mutation, N, D)
+            print(f"     RK4 k1_q range: [{k1_q.min().item():.6f}, {k1_q.max().item():.6f}]")
+            print(f"     RK4 k1_p range: [{k1_p.min().item():.6f}, {k1_p.max().item():.6f}]")
+            q_mid = q_before + DT * k1_q / 2
+            p_mid = p_before + DT * k1_p / 2
+            print(f"     After k1 half-step: q range=[{q_mid.min().item():.6f}, {q_mid.max().item():.6f}], "
+                  f"p range=[{p_mid.min().item():.6f}, {p_mid.max().item():.6f}]")
+            if torch.isinf(q_mid).any() or torch.isinf(p_mid).any():
+                print(f"     >>> Blowup occurs at k1 half-step already!")
+            else:
+                q_midpoint_interp = (q_before + q_after) / 2  # will contain inf, use q_mid instead
+                k2_q = dq_dt(q_mid, lam[interval], fitness_by_mutation, gam, psi)
+                print(f"     RK4 k2_q range: [{k2_q.min().item():.6f}, {k2_q.max().item():.6f}]")
+                q_mid2 = q_before + DT * k2_q / 2
+                print(f"     After k2 half-step: q range=[{q_mid2.min().item():.6f}, {q_mid2.max().item():.6f}]")
+                if torch.isinf(q_mid2).any():
+                    print(f"     >>> Blowup occurs at k2 half-step!")
+                else:
+                    k3_q = dq_dt(q_mid2, lam[interval], fitness_by_mutation, gam, psi)
+                    print(f"     RK4 k3_q range: [{k3_q.min().item():.6f}, {k3_q.max().item():.6f}]")
+                    q_full = q_before + DT * k3_q
+                    print(f"     After k3 full-step: q range=[{q_full.min().item():.6f}, {q_full.max().item():.6f}]")
+                    if torch.isinf(q_full).any():
+                        print(f"     >>> Blowup occurs at k3 full-step!")
+            return None, mu.item(), psi.item(), r0.item(), event_counts
+
+        # Interval matching
+        start_times_fudged = start_times_batch.clone()
+        end_times_fudged = end_times_batch.clone()
+        non_zero_mask = (start_times_batch != end_times_batch)
+        start_times_fudged = torch.where(non_zero_mask, start_times_batch + 0.00000001, start_times_batch)
+        end_times_fudged = torch.where(non_zero_mask, end_times_batch - 0.00000001, end_times_batch)
+
+        in_interval = ((start_times_fudged / DT).long() == interval)
+
+        if in_interval.any():
+            interval_indices = torch.where(in_interval)[0]
+
+            start_t = start_times_fudged[interval_indices]
+            end_t = end_times_fudged[interval_indices]
+            p_before_interval = p_before[interval_indices]
+            p_after_interval = p_after[interval_indices]
+            fitness_of_G_interval = fitness_of_G[interval_indices]
+            event_types_interval = event_types_batch[interval_indices]
+
+            approx_p_at_start = p_before_interval + (start_t - interval * DT) * (p_after_interval - p_before_interval) / DT
+            approx_p_at_end = p_before_interval + (end_t - interval * DT) * (p_after_interval - p_before_interval) / DT
+            approx_avg_p = (approx_p_at_start + approx_p_at_end) / 2.0
+
+            delta_t = end_t - start_t
+
+            loss_contrib = delta_t * ((mu * N) + (lam[interval] * fitness_of_G_interval * (1.0 - 2.0 * approx_avg_p)) + gam + psi)
+            loss = loss + loss_contrib.sum()
+
+            mutation_mask = (event_types_interval == 1)
+            if mutation_mask.any():
+                loss = loss - mutation_mask.sum() * torch.log(mu / (D - 1))
+
+            if config.training.mutation_fitness_loss and mutation_mask.any():
+                mutation_batch_indices = interval_indices[mutation_mask]
+                has_anc_for_mutations = has_ancestral_batch[mutation_batch_indices]
+
+                if has_anc_for_mutations.any():
+                    nonsyn_batch_indices = mutation_batch_indices[has_anc_for_mutations]
+                    n_nonsyn = len(nonsyn_batch_indices)
+
+                    ancestral_fitness_nonsyn = ancestral_fitness[nonsyn_batch_indices]
+                    mut_positions_nonsyn = mutated_positions[nonsyn_batch_indices]
+                    mut_aa_nonsyn = mutated_aa_indices[nonsyn_batch_indices]
+
+                    nonsyn_idx = torch.arange(n_nonsyn, device=device)
+                    all_aa_fitness = ancestral_fitness_nonsyn[nonsyn_idx, mut_positions_nonsyn, :]
+
+                    log_probs = torch.log_softmax(all_aa_fitness, dim=-1)
+                    log_prob_observed = log_probs[nonsyn_idx, mut_aa_nonsyn]
+
+                    mutation_fitness_loss_term = -log_prob_observed.sum()
+                    loss = loss + config.training.mutation_fitness_weight * mutation_fitness_loss_term
+
+            birth_mask = (event_types_interval == 2)
+            if birth_mask.any():
+                loss = loss - torch.log(2.0 * lam[interval] * fitness_of_G_interval[birth_mask]).sum()
+
+            sample_mask = (event_types_interval == 3)
+            if sample_mask.any():
+                loss = loss - sample_mask.sum() * torch.log(psi)
+
+    # Extract scalars before backward
+    loss_val = loss.item()
+    mu_val = mu.item()
+    psi_val = psi.item()
+    r0_val = r0.item()
+
+    if math.isnan(loss_val) or math.isinf(loss_val):
+        print(f"   DEBUG FINAL LOSS is nan/inf! loss={loss_val}")
+        print(f"   DEBUG Skipping backward pass for this batch.")
+        return None, mu_val, psi_val, r0_val, event_counts
+
+    # Backpropagation
+    loss.backward()
+
+    return loss_val, mu_val, psi_val, r0_val, event_counts
+
+
 def main():
 
     """
@@ -245,7 +488,7 @@ def main():
     csv_filename = "training_loss.csv"
     with open(csv_filename, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['iter', 'loss', 'mu', 'psi', 'R0'])  # Header
+        writer.writerow(['iter', 'loss', 'mu', 'psi', 'R0', 'n_birth', 'n_mutation', 'n_sample', 'n_nothing'])  # Header
 
     # Set time discretization value from config
     DT = config.data.dt
@@ -304,87 +547,189 @@ def main():
     print(f"Number of unique nucleotide sequences on tree: {len(unique_nuc)}")
     print(f"Number of fitnesses modeled (approx.): {len(unique_aa) * E * (N // 3)}")
 
-    # --- Precomputation Phase: Convert all training examples to tensors ---
-    print("Precomputing tokenized tensors...")
+    # --- Precomputation Phase: Deduplicated sequence storage ---
+    # Instead of storing one tensor per training example, we store only
+    # UNIQUE sequences and have each example reference them by index.
+    # This dramatically reduces memory when millions of examples share sequences.
+    print("Precomputing deduplicated tokenized tensors...")
     num_examples = len(training_examples)
     seq_len_aa = N // 3
 
+    # Step 1: Collect unique sequences and build lookup maps
+    # For the non-nextstrain path, we already have integer IDs from parse_big_tree.
+    # For the nextstrain path, we need to deduplicate by sequence content.
 
-    # Preallocate tensors on CPU (will be moved to GPU in batches)
-    all_nuc_indices = torch.zeros(num_examples, N, dtype=torch.long)
-    all_aa_indices = torch.zeros(num_examples, seq_len_aa, dtype=torch.long)
-    all_ancestral_aa_indices = torch.zeros(num_examples, seq_len_aa, dtype=torch.long)
-    all_has_ancestral = torch.zeros(num_examples, dtype=torch.bool)
+    if USE_NEXTSTRAIN_TREE:
+        # Deduplicate by actual sequence strings
+        nuc_seq_to_uid = {}  # sequence string -> unique index
+        aa_seq_to_uid = {}
 
-    all_start_times = torch.zeros(num_examples, dtype=torch.float32)
-    all_end_times = torch.zeros(num_examples, dtype=torch.float32)
-    all_event_types = torch.zeros(num_examples, dtype=torch.long)
+        unique_nuc_seqs = []  # list of unique nuc sequence strings
+        unique_aa_seqs = []   # list of unique AA sequence strings
 
-    n_neg_length = 0
-    for i, example in enumerate(training_examples):
-        if USE_NEXTSTRAIN_TREE:
+        for example in training_examples:
+            nuc_seq, ancestral_nuc_seq, aa_seq, ancestral_aa_seq, _, _, _ = example
+
+            if nuc_seq not in nuc_seq_to_uid:
+                nuc_seq_to_uid[nuc_seq] = len(unique_nuc_seqs)
+                unique_nuc_seqs.append(nuc_seq)
+
+            if aa_seq not in aa_seq_to_uid:
+                aa_seq_to_uid[aa_seq] = len(unique_aa_seqs)
+                unique_aa_seqs.append(aa_seq)
+
+            if ancestral_nuc_seq is not None and ancestral_nuc_seq not in nuc_seq_to_uid:
+                nuc_seq_to_uid[ancestral_nuc_seq] = len(unique_nuc_seqs)
+                unique_nuc_seqs.append(ancestral_nuc_seq)
+
+            if ancestral_aa_seq is not None and ancestral_aa_seq not in aa_seq_to_uid:
+                aa_seq_to_uid[ancestral_aa_seq] = len(unique_aa_seqs)
+                unique_aa_seqs.append(ancestral_aa_seq)
+
+        n_unique_nuc = len(unique_nuc_seqs)
+        n_unique_aa = len(unique_aa_seqs)
+
+        print(f"Unique nucleotide sequences: {n_unique_nuc}")
+        print(f"Unique AA sequences: {n_unique_aa}")
+
+        # Step 2: Tokenize unique sequences into tensors
+        unique_nuc_indices = torch.zeros(n_unique_nuc, N, dtype=torch.long)
+        for uid, seq in enumerate(unique_nuc_seqs):
+            unique_nuc_indices[uid] = torch.tensor(
+                [allowed_nucleotides.index(c) for c in seq], dtype=torch.long
+            )
+
+        unique_aa_indices = torch.zeros(n_unique_aa, seq_len_aa, dtype=torch.long)
+        for uid, seq in enumerate(unique_aa_seqs):
+            unique_aa_indices[uid] = torch.tensor(
+                [allowed_aas.index(c) for c in seq], dtype=torch.long
+            )
+
+        # Step 3: Build per-example index arrays (just integers, very cheap)
+        example_nuc_uid = torch.zeros(num_examples, dtype=torch.long)
+        example_aa_uid = torch.zeros(num_examples, dtype=torch.long)
+        example_ancestral_aa_uid = torch.zeros(num_examples, dtype=torch.long)
+        all_has_ancestral = torch.zeros(num_examples, dtype=torch.bool)
+        all_start_times = torch.zeros(num_examples, dtype=torch.float32)
+        all_end_times = torch.zeros(num_examples, dtype=torch.float32)
+        all_event_types = torch.zeros(num_examples, dtype=torch.long)
+
+        for i, example in enumerate(training_examples):
             nuc_seq, ancestral_nuc_seq, aa_seq, ancestral_aa_seq, start_time, end_time, event_type = example
-        else:
-            child_nuc_seq_id, parent_nuc_seq_id, child_aa_seq_id, parent_aa_seq_id, start_time, end_time, event_type = example
 
-            nuc_seq = nt_seqs.get_seq(child_nuc_seq_id).decode()
-            if parent_nuc_seq_id is None:
-                ancestral_nuc_seq = None
-            else:
-                ancestral_nuc_seq = nt_seqs.get_seq(parent_nuc_seq_id).decode()
+            example_nuc_uid[i] = nuc_seq_to_uid[nuc_seq]
+            example_aa_uid[i] = aa_seq_to_uid[aa_seq]
 
-            aa_seq = aa_seqs.get_seq(child_aa_seq_id).decode()
-            if parent_aa_seq_id is None:
-                ancestral_aa_seq = None
+            if ancestral_aa_seq is not None:
+                example_ancestral_aa_uid[i] = aa_seq_to_uid[ancestral_aa_seq]
+                all_has_ancestral[i] = True
             else:
-                ancestral_aa_seq = aa_seqs.get_seq(parent_aa_seq_id).decode()
+                all_has_ancestral[i] = False
+
+            all_start_times[i] = round(start_time, 3)
+            all_end_times[i] = round(end_time, 3)
+            all_event_types[i] = encode_event_type(event_type)
+
+            if i % 10000 == 0:
+                print(f"Indexed {i} training examples")
+
+    else:
+        # Non-nextstrain path: examples already use integer sequence IDs
+        # The nt_seqs and aa_seqs objects provide get_seq() by ID.
+        # We collect the set of unique IDs actually used, tokenize each once,
+        # and remap to contiguous indices.
+
+        used_nuc_ids = set()
+        used_aa_ids = set()
+
+        for example in training_examples:
+            child_nuc_id, parent_nuc_id, child_aa_id, parent_aa_id, _, _, _ = example
+            used_nuc_ids.add(child_nuc_id)
+            used_aa_ids.add(child_aa_id)
+            if parent_nuc_id is not None:
+                used_nuc_ids.add(parent_nuc_id)
+            if parent_aa_id is not None:
+                used_aa_ids.add(parent_aa_id)
+
+        # Create contiguous mappings: original_id -> contiguous uid
+        nuc_id_to_uid = {orig_id: uid for uid, orig_id in enumerate(sorted(used_nuc_ids))}
+        aa_id_to_uid = {orig_id: uid for uid, orig_id in enumerate(sorted(used_aa_ids))}
+
+        n_unique_nuc = len(nuc_id_to_uid)
+        n_unique_aa = len(aa_id_to_uid)
+
+        print(f"Unique nucleotide sequences (used): {n_unique_nuc}")
+        print(f"Unique AA sequences (used): {n_unique_aa}")
+
+        # Tokenize unique sequences
+        unique_nuc_indices = torch.zeros(n_unique_nuc, N, dtype=torch.long)
+        for orig_id, uid in nuc_id_to_uid.items():
+            seq = nt_seqs.get_seq(orig_id).decode()
+            unique_nuc_indices[uid] = torch.tensor(
+                [allowed_nucleotides.index(c) for c in seq], dtype=torch.long
+            )
+            if uid % 10000 == 0:
+                print(f"Tokenized {uid} / {n_unique_nuc} unique nuc sequences")
+
+        unique_aa_indices = torch.zeros(n_unique_aa, seq_len_aa, dtype=torch.long)
+        for orig_id, uid in aa_id_to_uid.items():
+            seq = aa_seqs.get_seq(orig_id).decode()
+            unique_aa_indices[uid] = torch.tensor(
+                [allowed_aas.index(c) for c in seq], dtype=torch.long
+            )
+            if uid % 10000 == 0:
+                print(f"Tokenized {uid} / {n_unique_aa} unique AA sequences")
+
+        # Build per-example index arrays
+        example_nuc_uid = torch.zeros(num_examples, dtype=torch.long)
+        example_aa_uid = torch.zeros(num_examples, dtype=torch.long)
+        example_ancestral_aa_uid = torch.zeros(num_examples, dtype=torch.long)
+        all_has_ancestral = torch.zeros(num_examples, dtype=torch.bool)
+        all_start_times = torch.zeros(num_examples, dtype=torch.float32)
+        all_end_times = torch.zeros(num_examples, dtype=torch.float32)
+        all_event_types = torch.zeros(num_examples, dtype=torch.long)
+
+        n_neg_length = 0
+        for i, example in enumerate(training_examples):
+            child_nuc_id, parent_nuc_id, child_aa_id, parent_aa_id, start_time, end_time, event_type = example
 
             if end_time < start_time:
                 n_neg_length += 1
                 end_time = start_time
 
+            example_nuc_uid[i] = nuc_id_to_uid[child_nuc_id]
+            example_aa_uid[i] = aa_id_to_uid[child_aa_id]
 
-        # Tokenize nucleotide sequence
-        all_nuc_indices[i] = torch.tensor(
-            [allowed_nucleotides.index(c) for c in nuc_seq], dtype=torch.long
-        )
+            if parent_aa_id is not None:
+                example_ancestral_aa_uid[i] = aa_id_to_uid[parent_aa_id]
+                all_has_ancestral[i] = True
+            else:
+                all_has_ancestral[i] = False
 
-        # Tokenize AA sequence
-        all_aa_indices[i] = torch.tensor(
-            [allowed_aas.index(c) for c in aa_seq], dtype=torch.long
-        )
+            all_start_times[i] = round(start_time, 3)
+            all_end_times[i] = round(end_time, 3)
+            all_event_types[i] = encode_event_type(event_type)
 
-        # Tokenize ancestral AA sequence (or zeros if None)
-        if ancestral_aa_seq is not None:
-            all_ancestral_aa_indices[i] = torch.tensor(
-                [allowed_aas.index(c) for c in ancestral_aa_seq], dtype=torch.long
-            )
-            all_has_ancestral[i] = True
-        else:
-            all_has_ancestral[i] = False
+            if i % 10000 == 0:
+                print(f"Indexed {i} training examples")
 
-        # Pre-round times to match original behavior
-        all_start_times[i] = round(start_time, 3)
-        all_end_times[i] = round(end_time, 3)
+        print(f"Warning: {n_neg_length} training examples with negative branch length (corrected to 0)")
 
-        # Encode event type
-        all_event_types[i] = encode_event_type(event_type)
-
-        if i % 10000 == 0:
-            print(f"Assembled {i} training examples")
-
-    print(f"Warning: {n_neg_length} training examples with negative branch length (corrected to 0)")
-
-    print(f"Precomputation complete. Tensor shapes:")
-    print(f"  nuc_indices: {all_nuc_indices.shape}")
-    print(f"  aa_indices: {all_aa_indices.shape}")
+    print(f"Precomputation complete.")
+    print(f"  Unique nuc tensor: {unique_nuc_indices.shape} ({unique_nuc_indices.nelement() * unique_nuc_indices.element_size() / 1e6:.1f} MB)")
+    print(f"  Unique AA tensor:  {unique_aa_indices.shape} ({unique_aa_indices.nelement() * unique_aa_indices.element_size() / 1e6:.1f} MB)")
+    print(f"  Per-example indices: {num_examples} x 3 ints ({num_examples * 3 * 8 / 1e6:.1f} MB)")
     print(f"  has_ancestral: {all_has_ancestral.sum().item()} / {num_examples} examples")
 
-    # Create dataset
+    # Move unique sequence tables to device (they stay resident)
+    unique_nuc_indices = unique_nuc_indices.to(device)
+    unique_aa_indices = unique_aa_indices.to(device)
+
+    # Create dataset using the deduplicated references
     dataset = FitnessTrainingDataset(
-        nuc_indices=all_nuc_indices,
-        aa_indices=all_aa_indices,
-        ancestral_aa_indices=all_ancestral_aa_indices,
+        nuc_indices=example_nuc_uid,          # just indices into unique tables
+        aa_indices=example_aa_uid,            # just indices into unique tables
+        ancestral_aa_indices=example_ancestral_aa_uid,  # just indices into unique tables
         has_ancestral=all_has_ancestral,
         start_times=all_start_times,
         end_times=all_end_times,
@@ -440,8 +785,8 @@ def main():
     os.makedirs(config.output_dir, exist_ok=True)
 
     optimizer = optim.Adam([
-        {'params': fitness_model.parameters()},
-        {'params': [log_psi, log_mu, log_f0]} # Could also include lam here if we want that to be unknown. Fixing for now.
+        {'params': fitness_model.parameters(), 'lr': learning_rate},
+        {'params': [log_psi, log_mu, log_f0], 'lr': learning_rate * 0.1},
     ], lr=learning_rate)
 
     # Learning rate warmup scheduler
@@ -478,219 +823,51 @@ def main():
 
         # SGD loop using DataLoader
         for batch_num, batch_data in enumerate(dataloader):
-            # Unpack batch data
-            (
-                nuc_indices_batch,
-                aa_indices_batch,
-                ancestral_aa_indices_batch,
-                has_ancestral_batch,
-                start_times_batch,
-                end_times_batch,
-                event_types_batch,
-            ) = batch_data
 
-            # Move to device
-            nuc_indices_batch = nuc_indices_batch.to(device)
-            aa_indices_batch = aa_indices_batch.to(device)
-            ancestral_aa_indices_batch = ancestral_aa_indices_batch.to(device)
-            has_ancestral_batch = has_ancestral_batch.to(device)
-            start_times_batch = start_times_batch.to(device)
-            end_times_batch = end_times_batch.to(device)
-            event_types_batch = event_types_batch.to(device)
+            # Zero gradients FIRST — ensures no stale graph references from prior batch
+            optimizer.zero_grad()
 
-            actual_batch_size = nuc_indices_batch.shape[0]
+            try:
+                loss_val, mu_val, psi_val, r0_val, event_counts = train_one_batch(
+                    batch_data, fitness_model, unique_nuc_indices, unique_aa_indices,
+                    log_lam, log_gam, log_psi, log_mu, log_f0,
+                    codon_to_aa, allowed_aas, config,
+                    N, D, E, N_GRID, DT, seq_len_aa, device,
+                )
+            except (RuntimeError, torch.cuda.OutOfMemoryError) as e:
+                print(f"   ERROR on batch {batch_num}: {e}")
+                print(f"   Clearing cache and skipping batch.")
+                optimizer.zero_grad()
+                torch.cuda.empty_cache()
+                global_step += 1
+                continue
 
-            # Transform parameters to positive values
-            lam = torch.exp(log_lam)
-            gam = torch.exp(log_gam)
-            psi = torch.exp(log_psi)
-            mu = torch.exp(log_mu)
-            f0 = torch.exp(log_f0)
-            r0 = f0 * lam[len(lam) - 1] / gam
+            if loss_val is None:
+                # Batch was skipped (inf/nan loss or ODE diverged)
+                global_step += 1
+                continue
 
-            print(f"   mu: {mu}")
-            print(f"   psi: {psi}")
-            print(f"   R0: {r0}")
+            # Unpack event counts
+            n_birth, n_mutation, n_sample, n_nothing = event_counts
 
-            # Fitness tensor for ancestral sequences using pre-tokenized indices
-            # Dimension BATCH_SIZE x (N/3) x E
-            ancestral_fitness = get_fitnesses_from_indices(
-                fitness_model, ancestral_aa_indices_batch, allowed_aas, device
+            # Gradient clipping
+            torch.nn.utils.clip_grad_norm_(
+                list(fitness_model.parameters()) + [log_psi, log_mu, log_f0, log_lam, log_gam],
+                max_norm=1.0
             )
-
-            # Vectorized mutation position finding
-            mutated_positions = find_mutation_positions_batched(
-                aa_indices_batch, ancestral_aa_indices_batch, has_ancestral_batch
-            )
-
-            # For each level, get the fitness of the mutation that actually happened
-            # Start with f0 for all, then update those with ancestral sequences
-            fitness_of_G = f0.expand(actual_batch_size).clone()
-
-            # Vectorized gathering of fitness values at mutation positions
-            # Get the AA at the mutated position for each sequence
-            # mutated_aa_indices: (batch,) - the AA index at the mutated position
-            batch_indices = torch.arange(actual_batch_size, device=device)
-            mutated_aa_indices = aa_indices_batch[batch_indices, mutated_positions]
-
-            # Gather fitness values: ancestral_fitness[b, mutated_pos, mutated_aa]
-            # For sequences with ancestral, get the fitness of the new AA at the mutated position
-            fitness_at_mutation = ancestral_fitness[
-                batch_indices, mutated_positions, mutated_aa_indices
-            ]
-
-            # Only update fitness_of_G for sequences that have ancestral
-            fitness_of_G = torch.where(has_ancestral_batch, fitness_at_mutation, fitness_of_G)
-
-            # Fitness tensor for present AA sequences using pre-tokenized indices
-            # Dimension: actual_batch_size x (N/3) x E
-            fitness = get_fitnesses_from_indices(
-                fitness_model, aa_indices_batch, allowed_aas, device
-            )
-
-            # Broadcast to actual_batch_size x N x E by repeating each dim 1 slice 3x
-            fitness = fitness.repeat_interleave(3, dim=1)
-
-            # Get the fitness associated with each nucleotide mutation away from present sequence
-            # Dimension: actual_batch_size x N
-            default_fitness = fitness_of_G.unsqueeze(1).expand(actual_batch_size, N)
-
-            # This is the default layer (index E). Concatenate to get tensor of dim actual_batch_size x N x (E+1)
-            fitness_by_mutation = torch.cat([fitness, default_fitness.unsqueeze(2)], dim=2)
-
-            # Compute aa_idx using pre-tokenized indices (no per-batch tokenization!)
-            aa_idx = get_aa_idx_vectorized_batched(
-                nuc_indices_batch, aa_indices_batch, codon_to_aa, E, device
-            )
-
-            fitness_by_mutation = torch.gather(fitness_by_mutation, dim=2, index=aa_idx)
-
-            # Compute mutation mask from nucleotide indices (replaces one-hot nuc_stack)
-            # is_mutation[b, pos, d] = 1 if d != current nucleotide at pos in sequence b
-            all_nucs = torch.arange(D, device=device)
-            is_mutation = (all_nucs.view(1, 1, D) != nuc_indices_batch.unsqueeze(-1)).float()
-
-            # Get p, q at each grid point
-            q_before = None
-            q_after = torch.ones(actual_batch_size, N, D, device=device)
-
-            p_before = None
-            p_after = torch.ones(actual_batch_size, device=device)
-
-            loss = torch.tensor(0.0, device=device)
-
-            for interval in range(N_GRID):
-                q_before = q_after
-                q_after = update_q_RK4(q_before, lam[interval], fitness_by_mutation, gam, psi, DT)
-
-                p_before = p_after
-                p_after = update_p_RK4(p_before, lam[interval], fitness_of_G, gam, psi, mu, q_before, q_after, is_mutation, N, D, DT)
-
-                # Vectorized interval matching
-                # Apply fudge factor for non-zero-length intervals
-                start_times_fudged = start_times_batch.clone()
-                end_times_fudged = end_times_batch.clone()
-                non_zero_mask = (start_times_batch != end_times_batch)
-                start_times_fudged = torch.where(non_zero_mask, start_times_batch + 0.00000001, start_times_batch)
-                end_times_fudged = torch.where(non_zero_mask, end_times_batch - 0.00000001, end_times_batch)
-
-                # Find examples in this interval
-                in_interval = ((start_times_fudged / DT).long() == interval)
-
-                if in_interval.any():
-                    # Get indices of examples in this interval
-                    interval_indices = torch.where(in_interval)[0]
-
-                    # Extract values for examples in this interval
-                    start_t = start_times_fudged[interval_indices]
-                    end_t = end_times_fudged[interval_indices]
-                    p_before_interval = p_before[interval_indices]
-                    p_after_interval = p_after[interval_indices]
-                    fitness_of_G_interval = fitness_of_G[interval_indices]
-                    event_types_interval = event_types_batch[interval_indices]
-
-                    # Approximate average value of p
-                    approx_p_at_start = p_before_interval + (start_t - interval * DT) * (p_after_interval - p_before_interval) / DT
-                    approx_p_at_end = p_before_interval + (end_t - interval * DT) * (p_after_interval - p_before_interval) / DT
-
-                    approx_avg_p = (approx_p_at_start + approx_p_at_end) / 2.0
-
-                    delta_t = end_t - start_t
-
-                    # Main loss term (vectorized over examples in interval)
-                    loss_contrib = delta_t * ((mu * N) + (lam[interval] * fitness_of_G_interval * (1.0 - 2.0 * approx_avg_p)) + gam + psi)
-                    loss = loss + loss_contrib.sum()
-
-                    # Event-type specific loss terms (vectorized)
-                    # Mutation: event_type == 1
-                    mutation_mask = (event_types_interval == 1)
-                    if mutation_mask.any():
-                        loss = loss - mutation_mask.sum() * torch.log(mu / (D - 1))
-
-                    # Optional: Fitness-weighted mutation loss
-                    # Treats observed mutations as "selected" from alternatives based on fitness
-                    if config.training.mutation_fitness_loss and mutation_mask.any():
-                        # Get batch indices of mutation events in this interval
-                        mutation_batch_indices = interval_indices[mutation_mask]
-
-                        # Only consider nonsynonymous mutations (where AA actually changed)
-                        # has_ancestral indicates an AA-level change occurred
-                        has_anc_for_mutations = has_ancestral_batch[mutation_batch_indices]
-
-                        if has_anc_for_mutations.any():
-                            # Filter to nonsynonymous mutations only
-                            nonsyn_batch_indices = mutation_batch_indices[has_anc_for_mutations]
-                            n_nonsyn = len(nonsyn_batch_indices)
-
-                            # Get ancestral fitness landscape for these mutations
-                            # ancestral_fitness is (batch, seq_len_aa, E)
-                            ancestral_fitness_nonsyn = ancestral_fitness[nonsyn_batch_indices]
-
-                            # Get the mutated position and new AA for each
-                            mut_positions_nonsyn = mutated_positions[nonsyn_batch_indices]
-                            mut_aa_nonsyn = mutated_aa_indices[nonsyn_batch_indices]
-
-                            # Gather fitness at mutated positions for all possible AAs
-                            nonsyn_idx = torch.arange(n_nonsyn, device=device)
-                            all_aa_fitness = ancestral_fitness_nonsyn[nonsyn_idx, mut_positions_nonsyn, :]  # (n_nonsyn, E)
-
-                            # Log-softmax: P(observed AA | position) = softmax(fitness)[observed_aa]
-                            log_probs = torch.log_softmax(all_aa_fitness, dim=-1)
-                            log_prob_observed = log_probs[nonsyn_idx, mut_aa_nonsyn]
-
-                            # Add negative log likelihood (minimize = maximize P(observed))
-                            mutation_fitness_loss_term = -log_prob_observed.sum()
-                            loss = loss + config.training.mutation_fitness_weight * mutation_fitness_loss_term
-
-                    # Birth: event_type == 2
-                    birth_mask = (event_types_interval == 2)
-                    if birth_mask.any():
-                        loss = loss - torch.log(2.0 * lam[interval] * fitness_of_G_interval[birth_mask]).sum()
-
-                    # Sample: event_type == 3
-                    sample_mask = (event_types_interval == 3)
-                    if sample_mask.any():
-                        loss = loss - sample_mask.sum() * torch.log(psi)
-
-            # Backpropagation
-            loss.backward()
 
             # Step
             optimizer.step()
             if scheduler is not None:
                 scheduler.step()
 
-            # Zero out gradient
-            optimizer.zero_grad()
-
             # Print batch loss
-            print(f"   Loss for batch {batch_num}: {loss.item()}")
-            # Update total loss on epoch
-            total_loss += loss.item()
+            print(f"   Loss for batch {batch_num}: {loss_val}")
+            total_loss += loss_val
 
             with open(csv_filename, 'a', newline='') as f:
                 writer = csv.writer(f)
-                writer.writerow([batch_num, loss.item(), mu.item(), psi.item(), r0.item()])
+                writer.writerow([batch_num, loss_val, mu_val, psi_val, r0_val, n_birth, n_mutation, n_sample, n_nothing])
 
             # Periodic checkpoint saving
             global_step += 1
@@ -703,7 +880,7 @@ def main():
                     optimizer=optimizer,
                     epoch=epoch,
                     global_step=global_step,
-                    loss=loss.item(),
+                    loss=loss_val,
                     log_lam=log_lam,
                     log_gam=log_gam,
                     log_psi=log_psi,
@@ -712,6 +889,10 @@ def main():
                     experiment_config=config,
                 )
                 print(f"   Saved checkpoint to {ckpt_path}")
+
+            # Memory monitoring (every 100 batches)
+            if batch_num % 100 == 0:
+                print(f"   GPU allocated: {torch.cuda.memory_allocated()/1e9:.2f} GB, reserved: {torch.cuda.memory_reserved()/1e9:.2f} GB")
 
         print(f"Loss for epoch {epoch}: {total_loss}")
 

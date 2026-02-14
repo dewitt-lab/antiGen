@@ -1,0 +1,3331 @@
+Job started at: Wed Feb 11 02:14:12 AM PST 2026
+Running on node: GPUC870
+Job ID: 1685177
+GPU: 0
+Using device: cuda
+Model type: transformer
+Learning rate: 0.001
+Output dir: /large_storage/hielab/gbrixi/fitness
+Reading JSONL header...
+  235015 total mutations in header
+  123014 nucleotide mutations in dictionary
+Reading JSONL nodes...
+  ... loaded 500000 nodes
+  ... loaded 1000000 nodes
+  ... loaded 1500000 nodes
+  ... loaded 2000000 nodes
+  ... loaded 2500000 nodes
+  ... loaded 3000000 nodes
+  ... loaded 3500000 nodes
+  ... loaded 4000000 nodes
+  ... loaded 4500000 nodes
+  ... loaded 5000000 nodes
+  ... loaded 5500000 nodes
+  ... loaded 6000000 nodes
+  ... loaded 6500000 nodes
+  ... loaded 7000000 nodes
+  ... loaded 7500000 nodes
+  ... loaded 8000000 nodes
+  ... loaded 8500000 nodes
+  ... loaded 9000000 nodes
+  ... loaded 9500000 nodes
+  ... loaded 10000000 nodes
+  Total: 10250356 nodes
+Building child edge lists...
+  10250355 edges wired, 0 orphaned nodes
+  Root: node_id=159118, name=
+  Tips with times: 8442223/8442223
+  Internal nodes with times: 1808133/1808133
+Converting times to years before present...
+  Most recent tip: 6.121373100793976
+  Root is 6.1214 years before present
+Checking for time inversions...
+  10250355 branches with both endpoints timed
+  0 time inversions (0.00%)
+
+Done! 8442223 tips, 1808133 internal nodes
+Reading reference FASTA...
+  Genome length: 29903
+  Spike region: 21563-25381 (3819 nt)
+Extracting spike sequences (root-to-tip BFS)...
+  ... processed 500000 nodes (28411 unique nt, 13351 unique aa)
+  ... processed 1000000 nodes (57164 unique nt, 26527 unique aa)
+  ... processed 1500000 nodes (100140 unique nt, 47494 unique aa)
+  ... processed 2000000 nodes (159292 unique nt, 77220 unique aa)
+  ... processed 2500000 nodes (201995 unique nt, 98348 unique aa)
+  ... processed 3000000 nodes (221987 unique nt, 107251 unique aa)
+  ... processed 3500000 nodes (243156 unique nt, 116480 unique aa)
+  ... processed 4000000 nodes (259229 unique nt, 123510 unique aa)
+  ... processed 4500000 nodes (276224 unique nt, 131465 unique aa)
+  ... processed 5000000 nodes (294639 unique nt, 142081 unique aa)
+  ... processed 5500000 nodes (317625 unique nt, 153652 unique aa)
+  ... processed 6000000 nodes (347874 unique nt, 169408 unique aa)
+  ... processed 6500000 nodes (369602 unique nt, 180951 unique aa)
+  ... processed 7000000 nodes (387247 unique nt, 189276 unique aa)
+  ... processed 7500000 nodes (408837 unique nt, 197422 unique aa)
+  ... processed 8000000 nodes (432313 unique nt, 206989 unique aa)
+  ... processed 8500000 nodes (457317 unique nt, 215248 unique aa)
+  ... processed 9000000 nodes (482837 unique nt, 225718 unique aa)
+  ... processed 9500000 nodes (514586 unique nt, 240528 unique aa)
+  ... processed 10000000 nodes (553923 unique nt, 259069 unique aa)
+  Total: 10250356 nodes, 573956 unique nt seqs, 269305 unique aa seqs
+
+SpikeSequenceSet(573956 unique seqs)
+AASequenceSet(269305 unique seqs)
+
+Total spike mutations on tree: 1001718
+Unique nt seqs: 573956
+Unique aa seqs: 269305
+Nt seqs / spike muts: 0.573
+Aa seqs / spike muts: 0.269
+  ... processed 500000/10250355 branches (5118214 examples)
+  ... processed 1000000/10250355 branches (9779961 examples)
+  ... processed 1500000/10250355 branches (13872300 examples)
+  ... processed 2000000/10250355 branches (18063629 examples)
+  ... processed 2500000/10250355 branches (22120828 examples)
+  ... processed 3000000/10250355 branches (26184682 examples)
+  ... processed 3500000/10250355 branches (30181264 examples)
+  ... processed 4000000/10250355 branches (33840079 examples)
+  ... processed 4500000/10250355 branches (38276607 examples)
+  ... processed 5000000/10250355 branches (42272144 examples)
+  ... processed 5500000/10250355 branches (46559266 examples)
+  ... processed 6000000/10250355 branches (50410786 examples)
+  ... processed 6500000/10250355 branches (54337097 examples)
+  ... processed 7000000/10250355 branches (58633063 examples)
+  ... processed 7500000/10250355 branches (63009816 examples)
+  ... processed 8000000/10250355 branches (67132415 examples)
+  ... processed 8500000/10250355 branches (72343874 examples)
+  ... processed 9000000/10250355 branches (78169257 examples)
+  ... processed 9500000/10250355 branches (82580511 examples)
+  ... processed 10000000/10250355 branches (87340335 examples)
+  Total: 89696034 training examples from 10250355 branches
+Generated 89696034 training examples
+NOTE: Multifurcations and bifurcations are currently treated the same in training examples. If this leads to weird birth rate estimates, try accounting for multifurcations.
+Generated 4910756 training examples from tree
+Number of unique AA sequences on tree: 17419
+Number of unique nucleotide sequences on tree: 36761
+Number of fitnesses modeled (approx.): 487836514
+Precomputing deduplicated tokenized tensors...
+Unique nucleotide sequences (used): 36761
+Unique AA sequences (used): 17419
+Tokenized 0 / 36761 unique nuc sequences
+Tokenized 10000 / 36761 unique nuc sequences
+Tokenized 20000 / 36761 unique nuc sequences
+Tokenized 30000 / 36761 unique nuc sequences
+Tokenized 0 / 17419 unique AA sequences
+Tokenized 10000 / 17419 unique AA sequences
+Indexed 0 training examples
+Indexed 10000 training examples
+Indexed 20000 training examples
+Indexed 30000 training examples
+Indexed 40000 training examples
+Indexed 50000 training examples
+Indexed 60000 training examples
+Indexed 70000 training examples
+Indexed 80000 training examples
+Indexed 90000 training examples
+Indexed 100000 training examples
+Indexed 110000 training examples
+Indexed 120000 training examples
+Indexed 130000 training examples
+Indexed 140000 training examples
+Indexed 150000 training examples
+Indexed 160000 training examples
+Indexed 170000 training examples
+Indexed 180000 training examples
+Indexed 190000 training examples
+Indexed 200000 training examples
+Indexed 210000 training examples
+Indexed 220000 training examples
+Indexed 230000 training examples
+Indexed 240000 training examples
+Indexed 250000 training examples
+Indexed 260000 training examples
+Indexed 270000 training examples
+Indexed 280000 training examples
+Indexed 290000 training examples
+Indexed 300000 training examples
+Indexed 310000 training examples
+Indexed 320000 training examples
+Indexed 330000 training examples
+Indexed 340000 training examples
+Indexed 350000 training examples
+Indexed 360000 training examples
+Indexed 370000 training examples
+Indexed 380000 training examples
+Indexed 390000 training examples
+Indexed 400000 training examples
+Indexed 410000 training examples
+Indexed 420000 training examples
+Indexed 430000 training examples
+Indexed 440000 training examples
+Indexed 450000 training examples
+Indexed 460000 training examples
+Indexed 470000 training examples
+Indexed 480000 training examples
+Indexed 490000 training examples
+Indexed 500000 training examples
+Indexed 510000 training examples
+Indexed 520000 training examples
+Indexed 530000 training examples
+Indexed 540000 training examples
+Indexed 550000 training examples
+Indexed 560000 training examples
+Indexed 570000 training examples
+Indexed 580000 training examples
+Indexed 590000 training examples
+Indexed 600000 training examples
+Indexed 610000 training examples
+Indexed 620000 training examples
+Indexed 630000 training examples
+Indexed 640000 training examples
+Indexed 650000 training examples
+Indexed 660000 training examples
+Indexed 670000 training examples
+Indexed 680000 training examples
+Indexed 690000 training examples
+Indexed 700000 training examples
+Indexed 710000 training examples
+Indexed 720000 training examples
+Indexed 730000 training examples
+Indexed 740000 training examples
+Indexed 750000 training examples
+Indexed 760000 training examples
+Indexed 770000 training examples
+Indexed 780000 training examples
+Indexed 790000 training examples
+Indexed 800000 training examples
+Indexed 810000 training examples
+Indexed 820000 training examples
+Indexed 830000 training examples
+Indexed 840000 training examples
+Indexed 850000 training examples
+Indexed 860000 training examples
+Indexed 870000 training examples
+Indexed 880000 training examples
+Indexed 890000 training examples
+Indexed 900000 training examples
+Indexed 910000 training examples
+Indexed 920000 training examples
+Indexed 930000 training examples
+Indexed 940000 training examples
+Indexed 950000 training examples
+Indexed 960000 training examples
+Indexed 970000 training examples
+Indexed 980000 training examples
+Indexed 990000 training examples
+Indexed 1000000 training examples
+Indexed 1010000 training examples
+Indexed 1020000 training examples
+Indexed 1030000 training examples
+Indexed 1040000 training examples
+Indexed 1050000 training examples
+Indexed 1060000 training examples
+Indexed 1070000 training examples
+Indexed 1080000 training examples
+Indexed 1090000 training examples
+Indexed 1100000 training examples
+Indexed 1110000 training examples
+Indexed 1120000 training examples
+Indexed 1130000 training examples
+Indexed 1140000 training examples
+Indexed 1150000 training examples
+Indexed 1160000 training examples
+Indexed 1170000 training examples
+Indexed 1180000 training examples
+Indexed 1190000 training examples
+Indexed 1200000 training examples
+Indexed 1210000 training examples
+Indexed 1220000 training examples
+Indexed 1230000 training examples
+Indexed 1240000 training examples
+Indexed 1250000 training examples
+Indexed 1260000 training examples
+Indexed 1270000 training examples
+Indexed 1280000 training examples
+Indexed 1290000 training examples
+Indexed 1300000 training examples
+Indexed 1310000 training examples
+Indexed 1320000 training examples
+Indexed 1330000 training examples
+Indexed 1340000 training examples
+Indexed 1350000 training examples
+Indexed 1360000 training examples
+Indexed 1370000 training examples
+Indexed 1380000 training examples
+Indexed 1390000 training examples
+Indexed 1400000 training examples
+Indexed 1410000 training examples
+Indexed 1420000 training examples
+Indexed 1430000 training examples
+Indexed 1440000 training examples
+Indexed 1450000 training examples
+Indexed 1460000 training examples
+Indexed 1470000 training examples
+Indexed 1480000 training examples
+Indexed 1490000 training examples
+Indexed 1500000 training examples
+Indexed 1510000 training examples
+Indexed 1520000 training examples
+Indexed 1530000 training examples
+Indexed 1540000 training examples
+Indexed 1550000 training examples
+Indexed 1560000 training examples
+Indexed 1570000 training examples
+Indexed 1580000 training examples
+Indexed 1590000 training examples
+Indexed 1600000 training examples
+Indexed 1610000 training examples
+Indexed 1620000 training examples
+Indexed 1630000 training examples
+Indexed 1640000 training examples
+Indexed 1650000 training examples
+Indexed 1660000 training examples
+Indexed 1670000 training examples
+Indexed 1680000 training examples
+Indexed 1690000 training examples
+Indexed 1700000 training examples
+Indexed 1710000 training examples
+Indexed 1720000 training examples
+Indexed 1730000 training examples
+Indexed 1740000 training examples
+Indexed 1750000 training examples
+Indexed 1760000 training examples
+Indexed 1770000 training examples
+Indexed 1780000 training examples
+Indexed 1790000 training examples
+Indexed 1800000 training examples
+Indexed 1810000 training examples
+Indexed 1820000 training examples
+Indexed 1830000 training examples
+Indexed 1840000 training examples
+Indexed 1850000 training examples
+Indexed 1860000 training examples
+Indexed 1870000 training examples
+Indexed 1880000 training examples
+Indexed 1890000 training examples
+Indexed 1900000 training examples
+Indexed 1910000 training examples
+Indexed 1920000 training examples
+Indexed 1930000 training examples
+Indexed 1940000 training examples
+Indexed 1950000 training examples
+Indexed 1960000 training examples
+Indexed 1970000 training examples
+Indexed 1980000 training examples
+Indexed 1990000 training examples
+Indexed 2000000 training examples
+Indexed 2010000 training examples
+Indexed 2020000 training examples
+Indexed 2030000 training examples
+Indexed 2040000 training examples
+Indexed 2050000 training examples
+Indexed 2060000 training examples
+Indexed 2070000 training examples
+Indexed 2080000 training examples
+Indexed 2090000 training examples
+Indexed 2100000 training examples
+Indexed 2110000 training examples
+Indexed 2120000 training examples
+Indexed 2130000 training examples
+Indexed 2140000 training examples
+Indexed 2150000 training examples
+Indexed 2160000 training examples
+Indexed 2170000 training examples
+Indexed 2180000 training examples
+Indexed 2190000 training examples
+Indexed 2200000 training examples
+Indexed 2210000 training examples
+Indexed 2220000 training examples
+Indexed 2230000 training examples
+Indexed 2240000 training examples
+Indexed 2250000 training examples
+Indexed 2260000 training examples
+Indexed 2270000 training examples
+Indexed 2280000 training examples
+Indexed 2290000 training examples
+Indexed 2300000 training examples
+Indexed 2310000 training examples
+Indexed 2320000 training examples
+Indexed 2330000 training examples
+Indexed 2340000 training examples
+Indexed 2350000 training examples
+Indexed 2360000 training examples
+Indexed 2370000 training examples
+Indexed 2380000 training examples
+Indexed 2390000 training examples
+Indexed 2400000 training examples
+Indexed 2410000 training examples
+Indexed 2420000 training examples
+Indexed 2430000 training examples
+Indexed 2440000 training examples
+Indexed 2450000 training examples
+Indexed 2460000 training examples
+Indexed 2470000 training examples
+Indexed 2480000 training examples
+Indexed 2490000 training examples
+Indexed 2500000 training examples
+Indexed 2510000 training examples
+Indexed 2520000 training examples
+Indexed 2530000 training examples
+Indexed 2540000 training examples
+Indexed 2550000 training examples
+Indexed 2560000 training examples
+Indexed 2570000 training examples
+Indexed 2580000 training examples
+Indexed 2590000 training examples
+Indexed 2600000 training examples
+Indexed 2610000 training examples
+Indexed 2620000 training examples
+Indexed 2630000 training examples
+Indexed 2640000 training examples
+Indexed 2650000 training examples
+Indexed 2660000 training examples
+Indexed 2670000 training examples
+Indexed 2680000 training examples
+Indexed 2690000 training examples
+Indexed 2700000 training examples
+Indexed 2710000 training examples
+Indexed 2720000 training examples
+Indexed 2730000 training examples
+Indexed 2740000 training examples
+Indexed 2750000 training examples
+Indexed 2760000 training examples
+Indexed 2770000 training examples
+Indexed 2780000 training examples
+Indexed 2790000 training examples
+Indexed 2800000 training examples
+Indexed 2810000 training examples
+Indexed 2820000 training examples
+Indexed 2830000 training examples
+Indexed 2840000 training examples
+Indexed 2850000 training examples
+Indexed 2860000 training examples
+Indexed 2870000 training examples
+Indexed 2880000 training examples
+Indexed 2890000 training examples
+Indexed 2900000 training examples
+Indexed 2910000 training examples
+Indexed 2920000 training examples
+Indexed 2930000 training examples
+Indexed 2940000 training examples
+Indexed 2950000 training examples
+Indexed 2960000 training examples
+Indexed 2970000 training examples
+Indexed 2980000 training examples
+Indexed 2990000 training examples
+Indexed 3000000 training examples
+Indexed 3010000 training examples
+Indexed 3020000 training examples
+Indexed 3030000 training examples
+Indexed 3040000 training examples
+Indexed 3050000 training examples
+Indexed 3060000 training examples
+Indexed 3070000 training examples
+Indexed 3080000 training examples
+Indexed 3090000 training examples
+Indexed 3100000 training examples
+Indexed 3110000 training examples
+Indexed 3120000 training examples
+Indexed 3130000 training examples
+Indexed 3140000 training examples
+Indexed 3150000 training examples
+Indexed 3160000 training examples
+Indexed 3170000 training examples
+Indexed 3180000 training examples
+Indexed 3190000 training examples
+Indexed 3200000 training examples
+Indexed 3210000 training examples
+Indexed 3220000 training examples
+Indexed 3230000 training examples
+Indexed 3240000 training examples
+Indexed 3250000 training examples
+Indexed 3260000 training examples
+Indexed 3270000 training examples
+Indexed 3280000 training examples
+Indexed 3290000 training examples
+Indexed 3300000 training examples
+Indexed 3310000 training examples
+Indexed 3320000 training examples
+Indexed 3330000 training examples
+Indexed 3340000 training examples
+Indexed 3350000 training examples
+Indexed 3360000 training examples
+Indexed 3370000 training examples
+Indexed 3380000 training examples
+Indexed 3390000 training examples
+Indexed 3400000 training examples
+Indexed 3410000 training examples
+Indexed 3420000 training examples
+Indexed 3430000 training examples
+Indexed 3440000 training examples
+Indexed 3450000 training examples
+Indexed 3460000 training examples
+Indexed 3470000 training examples
+Indexed 3480000 training examples
+Indexed 3490000 training examples
+Indexed 3500000 training examples
+Indexed 3510000 training examples
+Indexed 3520000 training examples
+Indexed 3530000 training examples
+Indexed 3540000 training examples
+Indexed 3550000 training examples
+Indexed 3560000 training examples
+Indexed 3570000 training examples
+Indexed 3580000 training examples
+Indexed 3590000 training examples
+Indexed 3600000 training examples
+Indexed 3610000 training examples
+Indexed 3620000 training examples
+Indexed 3630000 training examples
+Indexed 3640000 training examples
+Indexed 3650000 training examples
+Indexed 3660000 training examples
+Indexed 3670000 training examples
+Indexed 3680000 training examples
+Indexed 3690000 training examples
+Indexed 3700000 training examples
+Indexed 3710000 training examples
+Indexed 3720000 training examples
+Indexed 3730000 training examples
+Indexed 3740000 training examples
+Indexed 3750000 training examples
+Indexed 3760000 training examples
+Indexed 3770000 training examples
+Indexed 3780000 training examples
+Indexed 3790000 training examples
+Indexed 3800000 training examples
+Indexed 3810000 training examples
+Indexed 3820000 training examples
+Indexed 3830000 training examples
+Indexed 3840000 training examples
+Indexed 3850000 training examples
+Indexed 3860000 training examples
+Indexed 3870000 training examples
+Indexed 3880000 training examples
+Indexed 3890000 training examples
+Indexed 3900000 training examples
+Indexed 3910000 training examples
+Indexed 3920000 training examples
+Indexed 3930000 training examples
+Indexed 3940000 training examples
+Indexed 3950000 training examples
+Indexed 3960000 training examples
+Indexed 3970000 training examples
+Indexed 3980000 training examples
+Indexed 3990000 training examples
+Indexed 4000000 training examples
+Indexed 4010000 training examples
+Indexed 4020000 training examples
+Indexed 4030000 training examples
+Indexed 4040000 training examples
+Indexed 4050000 training examples
+Indexed 4060000 training examples
+Indexed 4070000 training examples
+Indexed 4080000 training examples
+Indexed 4090000 training examples
+Indexed 4100000 training examples
+Indexed 4110000 training examples
+Indexed 4120000 training examples
+Indexed 4130000 training examples
+Indexed 4140000 training examples
+Indexed 4150000 training examples
+Indexed 4160000 training examples
+Indexed 4170000 training examples
+Indexed 4180000 training examples
+Indexed 4190000 training examples
+Indexed 4200000 training examples
+Indexed 4210000 training examples
+Indexed 4220000 training examples
+Indexed 4230000 training examples
+Indexed 4240000 training examples
+Indexed 4250000 training examples
+Indexed 4260000 training examples
+Indexed 4270000 training examples
+Indexed 4280000 training examples
+Indexed 4290000 training examples
+Indexed 4300000 training examples
+Indexed 4310000 training examples
+Indexed 4320000 training examples
+Indexed 4330000 training examples
+Indexed 4340000 training examples
+Indexed 4350000 training examples
+Indexed 4360000 training examples
+Indexed 4370000 training examples
+Indexed 4380000 training examples
+Indexed 4390000 training examples
+Indexed 4400000 training examples
+Indexed 4410000 training examples
+Indexed 4420000 training examples
+Indexed 4430000 training examples
+Indexed 4440000 training examples
+Indexed 4450000 training examples
+Indexed 4460000 training examples
+Indexed 4470000 training examples
+Indexed 4480000 training examples
+Indexed 4490000 training examples
+Indexed 4500000 training examples
+Indexed 4510000 training examples
+Indexed 4520000 training examples
+Indexed 4530000 training examples
+Indexed 4540000 training examples
+Indexed 4550000 training examples
+Indexed 4560000 training examples
+Indexed 4570000 training examples
+Indexed 4580000 training examples
+Indexed 4590000 training examples
+Indexed 4600000 training examples
+Indexed 4610000 training examples
+Indexed 4620000 training examples
+Indexed 4630000 training examples
+Indexed 4640000 training examples
+Indexed 4650000 training examples
+Indexed 4660000 training examples
+Indexed 4670000 training examples
+Indexed 4680000 training examples
+Indexed 4690000 training examples
+Indexed 4700000 training examples
+Indexed 4710000 training examples
+Indexed 4720000 training examples
+Indexed 4730000 training examples
+Indexed 4740000 training examples
+Indexed 4750000 training examples
+Indexed 4760000 training examples
+Indexed 4770000 training examples
+Indexed 4780000 training examples
+Indexed 4790000 training examples
+Indexed 4800000 training examples
+Indexed 4810000 training examples
+Indexed 4820000 training examples
+Indexed 4830000 training examples
+Indexed 4840000 training examples
+Indexed 4850000 training examples
+Indexed 4860000 training examples
+Indexed 4870000 training examples
+Indexed 4880000 training examples
+Indexed 4890000 training examples
+Indexed 4900000 training examples
+Indexed 4910000 training examples
+Warning: 0 training examples with negative branch length (corrected to 0)
+Precomputation complete.
+  Unique nuc tensor: torch.Size([36761, 3819]) (1123.1 MB)
+  Unique AA tensor:  torch.Size([17419, 1273]) (177.4 MB)
+  Per-example indices: 4910756 x 3 ints (117.9 MB)
+  has_ancestral: 4769100 / 4910756 examples
+Model created: 565,142 trainable params
+Estimate of mutation rate: 0.001
+Estimate of sampling rate: 1.0
+Using batch size 64. 76731 batches per epoch are needed.
+Training for 1 epoch(s)
+Entering training loop...
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   DEBUG ancestral_fitness range: [0.000000, 2.274456]
+   DEBUG mutated_positions range: [0, 1218], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.289513, 1.565955]
+   DEBUG fitness_of_G range: [0.289513, 1.565955]
+   DEBUG child fitness range: [0.000000, 2.291172]
+   DEBUG fitness_by_mutation range: [0.000000, 1.743908]
+   Loss for batch 0: 21.653823852539062
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009990005055442452
+   psi: 0.9990005493164062
+   R0: 1.0010005235671997
+   DEBUG ancestral_fitness range: [0.000000, 2.075302]
+   DEBUG mutated_positions range: [0, 1166], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.258162, 1.117072]
+   DEBUG fitness_of_G range: [0.258162, 1.117072]
+   DEBUG child fitness range: [0.000000, 2.072781]
+   DEBUG fitness_by_mutation range: [0.000000, 1.947191]
+   Loss for batch 1: 5.917308330535889
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009980049217119813
+   psi: 0.9994344115257263
+   R0: 1.0018882751464844
+   DEBUG ancestral_fitness range: [0.000000, 2.422111]
+   DEBUG mutated_positions range: [0, 1166], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.234327, 2.248374]
+   DEBUG fitness_of_G range: [0.265157, 2.248374]
+   DEBUG child fitness range: [0.000000, 2.440155]
+   DEBUG fitness_by_mutation range: [0.000000, 2.440155]
+   Loss for batch 2: 34.17656707763672
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009971805848181248
+   psi: 1.000126600265503
+   R0: 1.0025897026062012
+   DEBUG ancestral_fitness range: [0.000000, 2.032006]
+   DEBUG mutated_positions range: [0, 1190], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.286929, 1.535475]
+   DEBUG fitness_of_G range: [0.286929, 1.535475]
+   DEBUG child fitness range: [0.000000, 2.052100]
+   DEBUG fitness_by_mutation range: [0.000000, 1.939513]
+   Loss for batch 3: 15.980257987976074
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0009963008342310786
+   psi: 1.000928521156311
+   R0: 1.0033437013626099
+   DEBUG ancestral_fitness range: [0.000000, 2.131505]
+   DEBUG mutated_positions range: [0, 1173], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.302950, 1.938974]
+   DEBUG fitness_of_G range: [0.302950, 1.938974]
+   DEBUG child fitness range: [0.000000, 2.055438]
+   DEBUG fitness_by_mutation range: [0.000000, 1.982977]
+   Loss for batch 4: 14.997467994689941
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.0009953815024346113
+   psi: 1.0016695261001587
+   R0: 1.0041401386260986
+   DEBUG ancestral_fitness range: [0.000000, 1.995104]
+   DEBUG mutated_positions range: [0, 1227], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.259803, 1.515891]
+   DEBUG fitness_of_G range: [0.259803, 1.515891]
+   DEBUG child fitness range: [0.000000, 2.006783]
+   DEBUG fitness_by_mutation range: [0.000000, 1.978315]
+   Loss for batch 5: 41.47707748413086
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009947940707206726
+   psi: 1.002411127090454
+   R0: 1.004970669746399
+   DEBUG ancestral_fitness range: [0.000000, 2.023430]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.348862, 1.240696]
+   DEBUG fitness_of_G range: [0.348862, 1.240696]
+   DEBUG child fitness range: [0.000000, 2.023579]
+   DEBUG fitness_by_mutation range: [0.000000, 1.856632]
+   Loss for batch 6: 34.92493438720703
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.0009942861506715417
+   psi: 1.003212332725525
+   R0: 1.0057529211044312
+   DEBUG ancestral_fitness range: [0.000000, 1.996134]
+   DEBUG mutated_positions range: [0, 1221], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 17]
+   DEBUG fitness_at_mutation range: [0.398646, 1.485836]
+   DEBUG fitness_of_G range: [0.398646, 1.485836]
+   DEBUG child fitness range: [0.000000, 2.020591]
+   DEBUG fitness_by_mutation range: [0.000000, 1.750293]
+   Loss for batch 7: 0.16491998732089996
+   mu: 0.0009936832357198
+   psi: 1.0040768384933472
+   R0: 1.0065721273422241
+   DEBUG ancestral_fitness range: [0.000000, 1.978299]
+   DEBUG mutated_positions range: [0, 1204], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.445217, 1.357500]
+   DEBUG fitness_of_G range: [0.445217, 1.357500]
+   DEBUG child fitness range: [0.000000, 2.009073]
+   DEBUG fitness_by_mutation range: [0.000000, 1.667307]
+   Loss for batch 8: 17.666837692260742
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009930044179782271
+   psi: 1.0049549341201782
+   R0: 1.0073000192642212
+   DEBUG ancestral_fitness range: [0.000000, 1.995898]
+   DEBUG mutated_positions range: [0, 1173], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.523607, 1.418834]
+   DEBUG fitness_of_G range: [0.523607, 1.418834]
+   DEBUG child fitness range: [0.000000, 2.023054]
+   DEBUG fitness_by_mutation range: [0.000000, 1.675137]
+   Loss for batch 9: 6.996785640716553
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0009922664612531662
+   psi: 1.0058165788650513
+   R0: 1.0080057382583618
+   DEBUG ancestral_fitness range: [0.000000, 2.038596]
+   DEBUG mutated_positions range: [0, 1263], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.517699, 1.373141]
+   DEBUG fitness_of_G range: [0.517699, 1.373141]
+   DEBUG child fitness range: [0.000000, 2.033076]
+   DEBUG fitness_by_mutation range: [0.000000, 1.637891]
+   Loss for batch 10: 9.56737232208252
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009914932306855917
+   psi: 1.006701946258545
+   R0: 1.0086793899536133
+   DEBUG ancestral_fitness range: [0.000000, 2.048790]
+   DEBUG mutated_positions range: [0, 1227], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.642176, 1.551945]
+   DEBUG fitness_of_G range: [0.642176, 1.551945]
+   DEBUG child fitness range: [0.000000, 2.071011]
+   DEBUG fitness_by_mutation range: [0.000000, 1.782843]
+   Loss for batch 11: 23.923736572265625
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0009908307110890746
+   psi: 1.0076134204864502
+   R0: 1.0093005895614624
+   DEBUG ancestral_fitness range: [0.000000, 2.087477]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.562143, 1.364027]
+   DEBUG fitness_of_G range: [0.562143, 1.364027]
+   DEBUG child fitness range: [0.000000, 2.101387]
+   DEBUG fitness_by_mutation range: [0.000000, 1.780981]
+   Loss for batch 12: 13.118436813354492
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009901741286739707
+   psi: 1.0084315538406372
+   R0: 1.009861707687378
+   DEBUG ancestral_fitness range: [0.000000, 2.096262]
+   DEBUG mutated_positions range: [0, 1227], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.650181, 1.393985]
+   DEBUG fitness_of_G range: [0.650181, 1.393985]
+   DEBUG child fitness range: [0.000000, 2.123119]
+   DEBUG fitness_by_mutation range: [0.000000, 1.833167]
+   Loss for batch 13: 13.50312328338623
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009894552640616894
+   psi: 1.009216547012329
+   R0: 1.0103657245635986
+   DEBUG ancestral_fitness range: [0.000000, 2.068455]
+   DEBUG mutated_positions range: [0, 1175], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.593534, 1.283218]
+   DEBUG fitness_of_G range: [0.593534, 1.283218]
+   DEBUG child fitness range: [0.000000, 2.123205]
+   DEBUG fitness_by_mutation range: [0.000000, 1.830203]
+   Loss for batch 14: 21.75291633605957
+   mu: 0.0009887440828606486
+   psi: 1.0100003480911255
+   R0: 1.0107929706573486
+   DEBUG ancestral_fitness range: [0.000000, 2.080083]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.695576, 1.607840]
+   DEBUG fitness_of_G range: [0.695576, 1.607840]
+   DEBUG child fitness range: [0.000000, 2.077987]
+   DEBUG fitness_by_mutation range: [0.000000, 1.818010]
+   Loss for batch 15: 33.537357330322266
+   mu: 0.0009882109006866813
+   psi: 1.0106511116027832
+   R0: 1.0111804008483887
+   DEBUG ancestral_fitness range: [0.000000, 2.064170]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.498187, 1.541901]
+   DEBUG fitness_of_G range: [0.498187, 1.541901]
+   DEBUG child fitness range: [0.000000, 2.066540]
+   DEBUG fitness_by_mutation range: [0.000000, 1.743702]
+   Loss for batch 16: 28.51205062866211
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009877352276816964
+   psi: 1.011315941810608
+   R0: 1.011531949043274
+   DEBUG ancestral_fitness range: [0.000000, 2.105920]
+   DEBUG mutated_positions range: [0, 1121], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 17]
+   DEBUG fitness_at_mutation range: [0.552338, 1.311478]
+   DEBUG fitness_of_G range: [0.552338, 1.311478]
+   DEBUG child fitness range: [0.000000, 2.007201]
+   DEBUG fitness_by_mutation range: [0.000000, 1.643435]
+   Loss for batch 17: 33.95320129394531
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009873927338048816
+   psi: 1.011738896369934
+   R0: 1.011793851852417
+   DEBUG ancestral_fitness range: [0.000000, 1.983362]
+   DEBUG mutated_positions range: [0, 1170], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.502654, 1.276386]
+   DEBUG fitness_of_G range: [0.502654, 1.276386]
+   DEBUG child fitness range: [0.000000, 1.954328]
+   DEBUG fitness_by_mutation range: [0.000000, 1.649500]
+   Loss for batch 18: 33.2879524230957
+   DEBUG 5 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/5
+   mu: 0.0009871720103546977
+   psi: 1.0119619369506836
+   R0: 1.0119727849960327
+   DEBUG ancestral_fitness range: [0.000000, 2.039606]
+   DEBUG mutated_positions range: [0, 1190], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [1, 17]
+   DEBUG fitness_at_mutation range: [0.438553, 1.203590]
+   DEBUG fitness_of_G range: [0.438553, 1.203590]
+   DEBUG child fitness range: [0.000000, 1.955024]
+   DEBUG fitness_by_mutation range: [0.000000, 1.625238]
+   Loss for batch 19: 7.601245880126953
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009868332417681813
+   psi: 1.012061595916748
+   R0: 1.0119876861572266
+   DEBUG ancestral_fitness range: [0.000000, 1.913709]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.844878, 1.209077]
+   DEBUG fitness_of_G range: [0.844878, 1.209077]
+   DEBUG child fitness range: [0.000000, 1.945133]
+   DEBUG fitness_by_mutation range: [0.000000, 1.595667]
+   Loss for batch 20: 13.21853256225586
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.000986552331596613
+   psi: 1.012052297592163
+   R0: 1.0119744539260864
+   DEBUG ancestral_fitness range: [0.000000, 1.870759]
+   DEBUG mutated_positions range: [0, 1166], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.566198, 1.186695]
+   DEBUG fitness_of_G range: [0.566198, 1.186695]
+   DEBUG child fitness range: [0.000000, 1.916705]
+   DEBUG fitness_by_mutation range: [0.000000, 1.570978]
+   Loss for batch 21: 12.406932830810547
+   mu: 0.0009861685102805495
+   psi: 1.0118919610977173
+   R0: 1.0118645429611206
+   DEBUG ancestral_fitness range: [0.000000, 1.874430]
+   DEBUG mutated_positions range: [0, 1263], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.686710, 1.251442]
+   DEBUG fitness_of_G range: [0.686710, 1.251442]
+   DEBUG child fitness range: [0.000000, 1.899160]
+   DEBUG fitness_by_mutation range: [0.000000, 1.503842]
+   Loss for batch 22: 14.590721130371094
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009857768891379237
+   psi: 1.011850118637085
+   R0: 1.011764407157898
+   DEBUG ancestral_fitness range: [0.000000, 1.816467]
+   DEBUG mutated_positions range: [0, 1251], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.754382, 1.298104]
+   DEBUG fitness_of_G range: [0.754382, 1.298104]
+   DEBUG child fitness range: [0.000000, 1.857667]
+   DEBUG fitness_by_mutation range: [0.000000, 1.519897]
+   Loss for batch 23: 12.198662757873535
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.000985301798209548
+   psi: 1.0118712186813354
+   R0: 1.0116596221923828
+   DEBUG ancestral_fitness range: [0.000000, 1.840642]
+   DEBUG mutated_positions range: [0, 1234], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.694275, 1.187083]
+   DEBUG fitness_of_G range: [0.694275, 1.187083]
+   DEBUG child fitness range: [0.000000, 1.853413]
+   DEBUG fitness_by_mutation range: [0.000000, 1.538190]
+   Loss for batch 24: 15.838382720947266
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009848123881965876
+   psi: 1.0117517709732056
+   R0: 1.0115468502044678
+   DEBUG ancestral_fitness range: [0.000000, 1.845477]
+   DEBUG mutated_positions range: [0, 1227], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.761817, 1.337611]
+   DEBUG fitness_of_G range: [0.761817, 1.337611]
+   DEBUG child fitness range: [0.000000, 1.868302]
+   DEBUG fitness_by_mutation range: [0.000000, 1.583409]
+   Loss for batch 25: 1.6175824403762817
+   mu: 0.0009842527797445655
+   psi: 1.0116299390792847
+   R0: 1.0114140510559082
+   DEBUG ancestral_fitness range: [0.000000, 1.794310]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.778308, 1.329446]
+   DEBUG fitness_of_G range: [0.778308, 1.329446]
+   DEBUG child fitness range: [0.000000, 1.789650]
+   DEBUG fitness_by_mutation range: [0.000000, 1.476189]
+   Loss for batch 26: 15.320754051208496
+   mu: 0.000983681296929717
+   psi: 1.0115770101547241
+   R0: 1.0112930536270142
+   DEBUG ancestral_fitness range: [0.000000, 1.864257]
+   DEBUG mutated_positions range: [0, 1228], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.674697, 1.096680]
+   DEBUG fitness_of_G range: [0.674697, 1.096680]
+   DEBUG child fitness range: [0.000000, 1.825691]
+   DEBUG fitness_by_mutation range: [0.000000, 1.409134]
+   Loss for batch 27: 20.208580017089844
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.000983098871074617
+   psi: 1.0115864276885986
+   R0: 1.0111826658248901
+   DEBUG ancestral_fitness range: [0.000000, 1.847098]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.590447, 1.178182]
+   DEBUG fitness_of_G range: [0.590447, 1.178182]
+   DEBUG child fitness range: [0.000000, 1.863261]
+   DEBUG fitness_by_mutation range: [0.000000, 1.434929]
+   Loss for batch 28: 5.94094705581665
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009824545122683048
+   psi: 1.0116608142852783
+   R0: 1.0110379457473755
+   DEBUG ancestral_fitness range: [0.000000, 1.855333]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.745597, 1.133841]
+   DEBUG fitness_of_G range: [0.745597, 1.133841]
+   DEBUG child fitness range: [0.000000, 1.835446]
+   DEBUG fitness_by_mutation range: [0.000000, 1.438444]
+   Loss for batch 29: 2.4815053939819336
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009817455429583788
+   psi: 1.0116496086120605
+   R0: 1.0108953714370728
+   DEBUG ancestral_fitness range: [0.000000, 1.811544]
+   DEBUG mutated_positions range: [0, 1228], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.632267, 1.158800]
+   DEBUG fitness_of_G range: [0.632267, 1.158800]
+   DEBUG child fitness range: [0.000000, 1.830309]
+   DEBUG fitness_by_mutation range: [0.000000, 1.447150]
+   Loss for batch 30: 20.67216682434082
+   mu: 0.0009810454212129116
+   psi: 1.0117743015289307
+   R0: 1.010745644569397
+   DEBUG ancestral_fitness range: [0.000000, 1.833250]
+   DEBUG mutated_positions range: [0, 1218], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [1, 19]
+   DEBUG fitness_at_mutation range: [0.330660, 1.159437]
+   DEBUG fitness_of_G range: [0.330660, 1.159437]
+   DEBUG child fitness range: [0.000000, 1.805141]
+   DEBUG fitness_by_mutation range: [0.000000, 1.462229]
+   Loss for batch 31: 18.94585418701172
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009804294677451253
+   psi: 1.0119116306304932
+   R0: 1.0106092691421509
+   DEBUG ancestral_fitness range: [0.000000, 1.861886]
+   DEBUG mutated_positions range: [0, 1167], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 17]
+   DEBUG fitness_at_mutation range: [0.805661, 1.174038]
+   DEBUG fitness_of_G range: [0.805661, 1.174038]
+   DEBUG child fitness range: [0.000000, 1.828019]
+   DEBUG fitness_by_mutation range: [0.000000, 1.441725]
+   Loss for batch 32: 6.597919464111328
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0009797546081244946
+   psi: 1.0120097398757935
+   R0: 1.01046621799469
+   DEBUG ancestral_fitness range: [0.000000, 1.852543]
+   DEBUG mutated_positions range: [0, 1167], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.789271, 1.191665]
+   DEBUG fitness_of_G range: [0.789271, 1.191665]
+   DEBUG child fitness range: [0.000000, 1.867059]
+   DEBUG fitness_by_mutation range: [0.000000, 1.463875]
+   Loss for batch 33: 11.299348831176758
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009790313197299838
+   psi: 1.0121140480041504
+   R0: 1.0103238821029663
+   DEBUG ancestral_fitness range: [0.000000, 1.928749]
+   DEBUG mutated_positions range: [0, 1127], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.664780, 1.171969]
+   DEBUG fitness_of_G range: [0.664780, 1.171969]
+   DEBUG child fitness range: [0.000000, 1.884433]
+   DEBUG fitness_by_mutation range: [0.000000, 1.445326]
+   Loss for batch 34: 1.4950498342514038
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009782640263438225
+   psi: 1.0122227668762207
+   R0: 1.0101855993270874
+   DEBUG ancestral_fitness range: [0.000000, 1.896261]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.753316, 1.229708]
+   DEBUG fitness_of_G range: [0.753316, 1.229708]
+   DEBUG child fitness range: [0.000000, 1.902731]
+   DEBUG fitness_by_mutation range: [0.000000, 1.491645]
+   Loss for batch 35: 26.940282821655273
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.0009776741499081254
+   psi: 1.0122922658920288
+   R0: 1.0100440979003906
+   DEBUG ancestral_fitness range: [0.000000, 1.897322]
+   DEBUG mutated_positions range: [0, 1227], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.711800, 1.087924]
+   DEBUG fitness_of_G range: [0.711800, 1.087924]
+   DEBUG child fitness range: [0.000000, 1.939011]
+   DEBUG fitness_by_mutation range: [0.000000, 1.431300]
+   Loss for batch 36: 23.30877113342285
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009771531913429499
+   psi: 1.0124099254608154
+   R0: 1.0098927021026611
+   DEBUG ancestral_fitness range: [0.000000, 1.894960]
+   DEBUG mutated_positions range: [0, 981], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.287633, 1.173786]
+   DEBUG fitness_of_G range: [0.287633, 1.173786]
+   DEBUG child fitness range: [0.000000, 1.899482]
+   DEBUG fitness_by_mutation range: [0.000000, 1.433004]
+   Loss for batch 37: 3.67720627784729
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009765536524355412
+   psi: 1.0124485492706299
+   R0: 1.0097500085830688
+   DEBUG ancestral_fitness range: [0.000000, 1.924300]
+   DEBUG mutated_positions range: [0, 1270], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.755664, 1.220580]
+   DEBUG fitness_of_G range: [0.755664, 1.220580]
+   DEBUG child fitness range: [0.000000, 1.980052]
+   DEBUG fitness_by_mutation range: [0.000000, 1.500375]
+   Loss for batch 38: 23.730331420898438
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009760164539329708
+   psi: 1.012365698814392
+   R0: 1.0096157789230347
+   DEBUG ancestral_fitness range: [0.000000, 1.960153]
+   DEBUG mutated_positions range: [0, 1218], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.521269, 1.223244]
+   DEBUG fitness_of_G range: [0.521269, 1.223244]
+   DEBUG child fitness range: [0.000000, 1.895386]
+   DEBUG fitness_by_mutation range: [0.000000, 1.479212]
+   Loss for batch 39: 5.5606842041015625
+   mu: 0.000975468778051436
+   psi: 1.0122681856155396
+   R0: 1.009491205215454
+   DEBUG ancestral_fitness range: [0.000000, 1.911862]
+   DEBUG mutated_positions range: [0, 1166], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.498853, 1.189240]
+   DEBUG fitness_of_G range: [0.498853, 1.189240]
+   DEBUG child fitness range: [0.000000, 1.939874]
+   DEBUG fitness_by_mutation range: [0.000000, 1.519239]
+   Loss for batch 40: 7.550455570220947
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0009748429292812943
+   psi: 1.0121403932571411
+   R0: 1.0093777179718018
+   DEBUG ancestral_fitness range: [0.000000, 1.896884]
+   DEBUG mutated_positions range: [0, 1249], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.398295, 1.245041]
+   DEBUG fitness_of_G range: [0.398295, 1.245041]
+   DEBUG child fitness range: [0.000000, 1.926763]
+   DEBUG fitness_by_mutation range: [0.000000, 1.491930]
+   Loss for batch 41: 16.331754684448242
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009742109687067568
+   psi: 1.0120257139205933
+   R0: 1.0092746019363403
+   DEBUG ancestral_fitness range: [0.000000, 1.894915]
+   DEBUG mutated_positions range: [0, 1263], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.320249, 1.140485]
+   DEBUG fitness_of_G range: [0.320249, 1.140485]
+   DEBUG child fitness range: [0.000000, 1.901561]
+   DEBUG fitness_by_mutation range: [0.000000, 1.464395]
+   Loss for batch 42: -8.037008285522461
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.000973521382547915
+   psi: 1.0118972063064575
+   R0: 1.009183645248413
+   DEBUG ancestral_fitness range: [0.000000, 1.858859]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.718490, 1.203877]
+   DEBUG fitness_of_G range: [0.718490, 1.203877]
+   DEBUG child fitness range: [0.000000, 1.886724]
+   DEBUG fitness_by_mutation range: [0.000000, 1.459192]
+   Loss for batch 43: 19.83772850036621
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009728526347316802
+   psi: 1.0118005275726318
+   R0: 1.0091058015823364
+   DEBUG ancestral_fitness range: [0.000000, 1.877642]
+   DEBUG mutated_positions range: [0, 1161], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.802602, 1.199057]
+   DEBUG fitness_of_G range: [0.802602, 1.199057]
+   DEBUG child fitness range: [0.000000, 1.899126]
+   DEBUG fitness_by_mutation range: [0.000000, 1.438347]
+   Loss for batch 44: 14.374351501464844
+   mu: 0.0009722052491270006
+   psi: 1.011986494064331
+   R0: 1.0090391635894775
+   DEBUG ancestral_fitness range: [0.000000, 1.809528]
+   DEBUG mutated_positions range: [0, 1187], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.711175, 1.204282]
+   DEBUG fitness_of_G range: [0.711175, 1.204282]
+   DEBUG child fitness range: [0.000000, 1.850730]
+   DEBUG fitness_by_mutation range: [0.000000, 1.398564]
+   Loss for batch 45: 15.294052124023438
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009715699125081301
+   psi: 1.012209415435791
+   R0: 1.0089784860610962
+   DEBUG ancestral_fitness range: [0.000000, 1.813631]
+   DEBUG mutated_positions range: [0, 1263], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.779991, 1.205444]
+   DEBUG fitness_of_G range: [0.779991, 1.205444]
+   DEBUG child fitness range: [0.000000, 1.751208]
+   DEBUG fitness_by_mutation range: [0.000000, 1.400991]
+   Loss for batch 46: 10.080992698669434
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009709386504255235
+   psi: 1.0124202966690063
+   R0: 1.0096533298492432
+   DEBUG ancestral_fitness range: [0.000000, 1.801467]
+   DEBUG mutated_positions range: [0, 1236], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.842258, 1.122950]
+   DEBUG fitness_of_G range: [0.842258, 1.122950]
+   DEBUG child fitness range: [0.000000, 1.779944]
+   DEBUG fitness_by_mutation range: [0.000000, 1.410800]
+   Loss for batch 47: 14.888611793518066
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.000970308727119118
+   psi: 1.0125788450241089
+   R0: 1.0102673768997192
+   DEBUG ancestral_fitness range: [0.000000, 1.791084]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.376587, 1.104636]
+   DEBUG fitness_of_G range: [0.376587, 1.104636]
+   DEBUG child fitness range: [0.000000, 1.731830]
+   DEBUG fitness_by_mutation range: [0.000000, 1.428328]
+   Loss for batch 48: 12.575006484985352
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.0009696075576357543
+   psi: 1.0127334594726562
+   R0: 1.0108247995376587
+   DEBUG ancestral_fitness range: [0.000000, 1.729236]
+   DEBUG mutated_positions range: [0, 1251], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.786678, 1.154564]
+   DEBUG fitness_of_G range: [0.786678, 1.154564]
+   DEBUG child fitness range: [0.000000, 1.748653]
+   DEBUG fitness_by_mutation range: [0.000000, 1.473395]
+   Loss for batch 49: 19.73023796081543
+   mu: 0.0009689157013781369
+   psi: 1.0128949880599976
+   R0: 1.0113240480422974
+   DEBUG ancestral_fitness range: [0.000000, 1.738964]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.762110, 1.146667]
+   DEBUG fitness_of_G range: [0.762110, 1.146667]
+   DEBUG child fitness range: [0.000000, 1.755784]
+   DEBUG fitness_by_mutation range: [0.000000, 1.406525]
+   Loss for batch 50: 9.7964448928833
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009682363015599549
+   psi: 1.013020396232605
+   R0: 1.0117781162261963
+   DEBUG ancestral_fitness range: [0.000000, 1.737052]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.731322, 1.069553]
+   DEBUG fitness_of_G range: [0.731322, 1.069553]
+   DEBUG child fitness range: [0.000000, 1.705948]
+   DEBUG fitness_by_mutation range: [0.000000, 1.404018]
+   Loss for batch 51: 12.51663589477539
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009674896136857569
+   psi: 1.0130044221878052
+   R0: 1.0121866464614868
+   DEBUG ancestral_fitness range: [0.000000, 1.692875]
+   DEBUG mutated_positions range: [0, 1166], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 20]
+   DEBUG fitness_at_mutation range: [0.000000, 1.227443]
+   DEBUG fitness_of_G range: [0.000000, 1.227443]
+   DEBUG WARNING: 1 fitness_of_G values <= 0!
+   DEBUG child fitness range: [0.000000, 1.706284]
+   DEBUG fitness_by_mutation range: [0.000000, 1.333726]
+   Loss for batch 52: 2.642566680908203
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0009666894911788404
+   psi: 1.012953281402588
+   R0: 1.0125573873519897
+   DEBUG ancestral_fitness range: [0.000000, 1.689011]
+   DEBUG mutated_positions range: [0, 981], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.710167, 1.133872]
+   DEBUG fitness_of_G range: [0.710167, 1.133872]
+   DEBUG child fitness range: [0.000000, 1.737106]
+   DEBUG fitness_by_mutation range: [0.000000, 1.337011]
+   Loss for batch 53: -1.5421333312988281
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.0009658370981924236
+   psi: 1.0127745866775513
+   R0: 1.0128754377365112
+   DEBUG ancestral_fitness range: [0.000000, 1.721145]
+   DEBUG mutated_positions range: [0, 1250], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.798566, 1.137617]
+   DEBUG fitness_of_G range: [0.798566, 1.137617]
+   DEBUG child fitness range: [0.000000, 1.787454]
+   DEBUG fitness_by_mutation range: [0.000000, 1.425663]
+   Loss for batch 54: 7.2502121925354
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009649500134401023
+   psi: 1.0125668048858643
+   R0: 1.0131351947784424
+   DEBUG ancestral_fitness range: [0.000000, 1.750413]
+   DEBUG mutated_positions range: [0, 1258], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.704485, 1.200714]
+   DEBUG fitness_of_G range: [0.704485, 1.200714]
+   DEBUG child fitness range: [0.000000, 1.749171]
+   DEBUG fitness_by_mutation range: [0.000000, 1.438886]
+   Loss for batch 55: 6.8367791175842285
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009640422067604959
+   psi: 1.012393593788147
+   R0: 1.013363003730774
+   DEBUG ancestral_fitness range: [0.000000, 1.783270]
+   DEBUG mutated_positions range: [0, 1039], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.816981, 1.166116]
+   DEBUG fitness_of_G range: [0.816981, 1.166116]
+   DEBUG child fitness range: [0.000000, 1.814683]
+   DEBUG fitness_by_mutation range: [0.000000, 1.445799]
+   Loss for batch 56: 7.297914981842041
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009631053544580936
+   psi: 1.0122792720794678
+   R0: 1.0135610103607178
+   DEBUG ancestral_fitness range: [0.000000, 1.842441]
+   DEBUG mutated_positions range: [0, 1243], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.793768, 1.191153]
+   DEBUG fitness_of_G range: [0.793768, 1.191153]
+   DEBUG child fitness range: [0.000000, 1.814700]
+   DEBUG fitness_by_mutation range: [0.000000, 1.469746]
+   Loss for batch 57: 15.286331176757812
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009622014476917684
+   psi: 1.0122668743133545
+   R0: 1.0137313604354858
+   DEBUG ancestral_fitness range: [0.000000, 1.907144]
+   DEBUG mutated_positions range: [0, 1167], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.914530, 1.139476]
+   DEBUG fitness_of_G range: [0.914530, 1.139476]
+   DEBUG child fitness range: [0.000000, 1.872326]
+   DEBUG fitness_by_mutation range: [0.000000, 1.411176]
+   Loss for batch 58: 6.708922386169434
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009612687863409519
+   psi: 1.012216329574585
+   R0: 1.0138678550720215
+   DEBUG ancestral_fitness range: [0.000000, 1.881320]
+   DEBUG mutated_positions range: [0, 1245], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.855620, 1.105098]
+   DEBUG fitness_of_G range: [0.855620, 1.105098]
+   DEBUG child fitness range: [0.000000, 1.858949]
+   DEBUG fitness_by_mutation range: [0.000000, 1.484840]
+   Loss for batch 59: 12.344320297241211
+   mu: 0.0009602997452020645
+   psi: 1.012036681175232
+   R0: 1.0139710903167725
+   DEBUG ancestral_fitness range: [0.000000, 1.955272]
+   DEBUG mutated_positions range: [0, 1263], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.862405, 1.156052]
+   DEBUG fitness_of_G range: [0.862405, 1.156052]
+   DEBUG child fitness range: [0.000000, 1.902748]
+   DEBUG fitness_by_mutation range: [0.000000, 1.470360]
+   Loss for batch 60: 6.345134258270264
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009593098075129092
+   psi: 1.0118908882141113
+   R0: 1.0140647888183594
+   DEBUG ancestral_fitness range: [0.000000, 1.914764]
+   DEBUG mutated_positions range: [0, 1258], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.833412, 1.223290]
+   DEBUG fitness_of_G range: [0.833412, 1.223290]
+   DEBUG child fitness range: [0.000000, 1.960477]
+   DEBUG fitness_by_mutation range: [0.000000, 1.485936]
+   Loss for batch 61: 12.259465217590332
+   mu: 0.0009582966449670494
+   psi: 1.0117180347442627
+   R0: 1.0141279697418213
+   DEBUG ancestral_fitness range: [0.000000, 1.979992]
+   DEBUG mutated_positions range: [0, 1228], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.654363, 1.153001]
+   DEBUG fitness_of_G range: [0.654363, 1.153001]
+   DEBUG child fitness range: [0.000000, 1.878670]
+   DEBUG fitness_by_mutation range: [0.000000, 1.534987]
+   Loss for batch 62: 15.597615242004395
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009573252755217254
+   psi: 1.0115655660629272
+   R0: 1.0141853094100952
+   DEBUG ancestral_fitness range: [0.000000, 1.955960]
+   DEBUG mutated_positions range: [0, 1201], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 17]
+   DEBUG fitness_at_mutation range: [0.573324, 1.143437]
+   DEBUG fitness_of_G range: [0.573324, 1.143437]
+   DEBUG child fitness range: [0.000000, 1.974095]
+   DEBUG fitness_by_mutation range: [0.000000, 1.577914]
+   Loss for batch 63: 18.815635681152344
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009564610663801432
+   psi: 1.0112980604171753
+   R0: 1.0142260789871216
+   DEBUG ancestral_fitness range: [0.000000, 1.981834]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.827837, 1.148140]
+   DEBUG fitness_of_G range: [0.827837, 1.148140]
+   DEBUG child fitness range: [0.000000, 2.012839]
+   DEBUG fitness_by_mutation range: [0.000000, 1.584118]
+   Loss for batch 64: 5.097499370574951
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009556290460750461
+   psi: 1.0109286308288574
+   R0: 1.0142401456832886
+   DEBUG ancestral_fitness range: [0.000000, 1.936104]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.834399, 1.179869]
+   DEBUG fitness_of_G range: [0.834399, 1.179869]
+   DEBUG child fitness range: [0.000000, 2.008256]
+   DEBUG fitness_by_mutation range: [0.000000, 1.539756]
+   Loss for batch 65: -13.158379554748535
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009547678055241704
+   psi: 1.0103962421417236
+   R0: 1.0142414569854736
+   DEBUG ancestral_fitness range: [0.000000, 1.971582]
+   DEBUG mutated_positions range: [0, 1237], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.829140, 1.163840]
+   DEBUG fitness_of_G range: [0.829140, 1.163840]
+   DEBUG child fitness range: [0.000000, 1.950712]
+   DEBUG fitness_by_mutation range: [0.000000, 1.565587]
+   Loss for batch 66: 4.629426002502441
+   DEBUG 5 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/5
+   mu: 0.0009539486491121352
+   psi: 1.010021686553955
+   R0: 1.0142308473587036
+   DEBUG ancestral_fitness range: [0.000000, 1.957722]
+   DEBUG mutated_positions range: [0, 1166], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.829248, 1.210170]
+   DEBUG fitness_of_G range: [0.829248, 1.210170]
+   DEBUG child fitness range: [0.000000, 1.970606]
+   DEBUG fitness_by_mutation range: [0.000000, 1.626585]
+   Loss for batch 67: 18.47959327697754
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0009532365365885198
+   psi: 1.0096890926361084
+   R0: 1.0141867399215698
+   DEBUG ancestral_fitness range: [0.000000, 1.990026]
+   DEBUG mutated_positions range: [0, 1227], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.702262, 1.171789]
+   DEBUG fitness_of_G range: [0.702262, 1.171789]
+   DEBUG child fitness range: [0.000000, 1.985933]
+   DEBUG fitness_by_mutation range: [0.000000, 1.560596]
+   Loss for batch 68: 2.2356600761413574
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.0009524777997285128
+   psi: 1.0094341039657593
+   R0: 1.0141184329986572
+   DEBUG ancestral_fitness range: [0.000000, 1.906606]
+   DEBUG mutated_positions range: [0, 1267], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.828581, 1.169423]
+   DEBUG fitness_of_G range: [0.828581, 1.169423]
+   DEBUG child fitness range: [0.000000, 1.901036]
+   DEBUG fitness_by_mutation range: [0.000000, 1.576042]
+   Loss for batch 69: 9.773664474487305
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009517463622614741
+   psi: 1.0093094110488892
+   R0: 1.014009714126587
+   DEBUG ancestral_fitness range: [0.000000, 1.910477]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.725691, 1.153825]
+   DEBUG fitness_of_G range: [0.725691, 1.153825]
+   DEBUG child fitness range: [0.000000, 1.883689]
+   DEBUG fitness_by_mutation range: [0.000000, 1.499118]
+   Loss for batch 70: 31.587413787841797
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009511806420050561
+   psi: 1.0091240406036377
+   R0: 1.013899803161621
+   DEBUG ancestral_fitness range: [0.000000, 1.874971]
+   DEBUG mutated_positions range: [0, 1175], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.680385, 1.162288]
+   DEBUG fitness_of_G range: [0.680385, 1.162288]
+   DEBUG child fitness range: [0.000000, 1.861862]
+   DEBUG fitness_by_mutation range: [0.000000, 1.481136]
+   Loss for batch 71: 2.0101640224456787
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.000950551766436547
+   psi: 1.0087941884994507
+   R0: 1.0137912034988403
+   DEBUG ancestral_fitness range: [0.000000, 1.827607]
+   DEBUG mutated_positions range: [0, 1175], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.789965, 1.135380]
+   DEBUG fitness_of_G range: [0.789965, 1.135380]
+   DEBUG child fitness range: [0.000000, 1.807456]
+   DEBUG fitness_by_mutation range: [0.000000, 1.456132]
+   Loss for batch 72: 2.3076958656311035
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.0009498625877313316
+   psi: 1.0083359479904175
+   R0: 1.013660192489624
+   DEBUG ancestral_fitness range: [0.000000, 1.829024]
+   DEBUG mutated_positions range: [0, 1263], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.768366, 1.188707]
+   DEBUG fitness_of_G range: [0.768366, 1.188707]
+   DEBUG child fitness range: [0.000000, 1.803029]
+   DEBUG fitness_by_mutation range: [0.000000, 1.471168]
+   Loss for batch 73: 5.130218029022217
+   DEBUG 5 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/5
+   mu: 0.0009491856908425689
+   psi: 1.0078439712524414
+   R0: 1.0135008096694946
+   DEBUG ancestral_fitness range: [0.000000, 1.797067]
+   DEBUG mutated_positions range: [0, 1152], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.597089, 1.233041]
+   DEBUG fitness_of_G range: [0.597089, 1.233041]
+   DEBUG child fitness range: [0.000000, 1.791082]
+   DEBUG fitness_by_mutation range: [0.000000, 1.481257]
+   Loss for batch 74: 10.095462799072266
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.0009485259652137756
+   psi: 1.0074101686477661
+   R0: 1.0133039951324463
+   DEBUG ancestral_fitness range: [0.000000, 1.796021]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.759947, 1.129947]
+   DEBUG fitness_of_G range: [0.759947, 1.129947]
+   DEBUG child fitness range: [0.000000, 1.804544]
+   DEBUG fitness_by_mutation range: [0.000000, 1.483051]
+   Loss for batch 75: 9.924955368041992
+   mu: 0.00094788265414536
+   psi: 1.0069386959075928
+   R0: 1.0131019353866577
+   DEBUG ancestral_fitness range: [0.000000, 1.739787]
+   DEBUG mutated_positions range: [0, 1249], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.815954, 1.203349]
+   DEBUG fitness_of_G range: [0.815954, 1.203349]
+   DEBUG child fitness range: [0.000000, 1.718982]
+   DEBUG fitness_by_mutation range: [0.000000, 1.525745]
+   Loss for batch 76: 4.941901206970215
+   DEBUG 5 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/5
+   mu: 0.0009472540696151555
+   psi: 1.0064358711242676
+   R0: 1.0129189491271973
+   DEBUG ancestral_fitness range: [0.000000, 1.800931]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.605311, 1.164644]
+   DEBUG fitness_of_G range: [0.605311, 1.164644]
+   DEBUG child fitness range: [0.000000, 1.725055]
+   DEBUG fitness_by_mutation range: [0.000000, 1.572767]
+   Loss for batch 77: 2.2172791957855225
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009465705952607095
+   psi: 1.0058599710464478
+   R0: 1.0127044916152954
+   DEBUG ancestral_fitness range: [0.000000, 1.770211]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.449129, 1.240333]
+   DEBUG fitness_of_G range: [0.449129, 1.240333]
+   DEBUG child fitness range: [0.000000, 1.702147]
+   DEBUG fitness_by_mutation range: [0.000000, 1.640720]
+   Loss for batch 78: 7.416571140289307
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0009458396234549582
+   psi: 1.0053411722183228
+   R0: 1.0124914646148682
+   DEBUG ancestral_fitness range: [0.000000, 1.714105]
+   DEBUG mutated_positions range: [0, 1241], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.602883, 1.253826]
+   DEBUG fitness_of_G range: [0.602883, 1.253826]
+   DEBUG child fitness range: [0.000000, 1.715346]
+   DEBUG fitness_by_mutation range: [0.000000, 1.560056]
+   Loss for batch 79: 7.226003170013428
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009450664510950446
+   psi: 1.0048779249191284
+   R0: 1.0122721195220947
+   DEBUG ancestral_fitness range: [0.000000, 1.722365]
+   DEBUG mutated_positions range: [0, 1263], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.746113, 1.292347]
+   DEBUG fitness_of_G range: [0.746113, 1.292347]
+   DEBUG child fitness range: [0.000000, 1.769471]
+   DEBUG fitness_by_mutation range: [0.000000, 1.564427]
+   Loss for batch 80: 15.077386856079102
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009443213930353522
+   psi: 1.0044281482696533
+   R0: 1.0120692253112793
+   DEBUG ancestral_fitness range: [0.000000, 1.733860]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.675037, 1.172611]
+   DEBUG fitness_of_G range: [0.675037, 1.172611]
+   DEBUG child fitness range: [0.000000, 1.759784]
+   DEBUG fitness_by_mutation range: [0.000000, 1.589609]
+   Loss for batch 81: 10.046113014221191
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009435953688807786
+   psi: 1.003999948501587
+   R0: 1.011878252029419
+   DEBUG ancestral_fitness range: [0.000000, 1.687220]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 17]
+   DEBUG fitness_at_mutation range: [0.782716, 1.160871]
+   DEBUG fitness_of_G range: [0.782716, 1.160871]
+   DEBUG child fitness range: [0.000000, 1.734496]
+   DEBUG fitness_by_mutation range: [0.000000, 1.554431]
+   Loss for batch 82: 20.577787399291992
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009428819757886231
+   psi: 1.0035672187805176
+   R0: 1.0116918087005615
+   DEBUG ancestral_fitness range: [0.000000, 1.733314]
+   DEBUG mutated_positions range: [0, 1162], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.787721, 1.133690]
+   DEBUG fitness_of_G range: [0.787721, 1.133690]
+   DEBUG child fitness range: [0.000000, 1.695084]
+   DEBUG fitness_by_mutation range: [0.000000, 1.577433]
+   Loss for batch 83: 6.88057804107666
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.0009421171271242201
+   psi: 1.0031840801239014
+   R0: 1.0115185976028442
+   DEBUG ancestral_fitness range: [0.000000, 1.740081]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 20]
+   DEBUG fitness_at_mutation range: [0.000000, 1.178582]
+   DEBUG fitness_of_G range: [0.000000, 1.178582]
+   DEBUG WARNING: 1 fitness_of_G values <= 0!
+   DEBUG child fitness range: [0.000000, 1.706844]
+   DEBUG fitness_by_mutation range: [0.000000, 1.550095]
+   Loss for batch 84: 23.992727279663086
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009414493106305599
+   psi: 1.002848505973816
+   R0: 1.0120431184768677
+   DEBUG ancestral_fitness range: [0.000000, 1.700197]
+   DEBUG mutated_positions range: [0, 1213], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.769175, 1.306930]
+   DEBUG fitness_of_G range: [0.769175, 1.306930]
+   DEBUG child fitness range: [0.000000, 1.725891]
+   DEBUG fitness_by_mutation range: [0.000000, 1.527109]
+   Loss for batch 85: 25.840166091918945
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009409565245732665
+   psi: 1.0026726722717285
+   R0: 1.012507677078247
+   DEBUG ancestral_fitness range: [0.000000, 1.740454]
+   DEBUG mutated_positions range: [0, 1263], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.619406, 1.213964]
+   DEBUG fitness_of_G range: [0.619406, 1.213964]
+   DEBUG child fitness range: [0.000000, 1.772120]
+   DEBUG fitness_by_mutation range: [0.000000, 1.496592]
+   Loss for batch 86: 7.469330310821533
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0009403922595083714
+   psi: 1.0024338960647583
+   R0: 1.0129164457321167
+   DEBUG ancestral_fitness range: [0.000000, 1.713738]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.616534, 1.141434]
+   DEBUG fitness_of_G range: [0.616534, 1.141434]
+   DEBUG child fitness range: [0.000000, 1.695847]
+   DEBUG fitness_by_mutation range: [0.000000, 1.477339]
+   Loss for batch 87: 6.713109970092773
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009397745598107576
+   psi: 1.0021467208862305
+   R0: 1.01326584815979
+   DEBUG ancestral_fitness range: [0.000000, 1.674602]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [3, 17]
+   DEBUG fitness_at_mutation range: [0.374810, 1.146489]
+   DEBUG fitness_of_G range: [0.374810, 1.146489]
+   DEBUG child fitness range: [0.000000, 1.691075]
+   DEBUG fitness_by_mutation range: [0.000000, 1.491979]
+   Loss for batch 88: 6.857549667358398
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009391053463332355
+   psi: 1.0019019842147827
+   R0: 1.013574481010437
+   DEBUG ancestral_fitness range: [0.000000, 1.762001]
+   DEBUG mutated_positions range: [0, 1249], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.599282, 1.134176]
+   DEBUG fitness_of_G range: [0.599282, 1.134176]
+   DEBUG child fitness range: [0.000000, 1.697350]
+   DEBUG fitness_by_mutation range: [0.000000, 1.497881]
+   Loss for batch 89: 11.54427433013916
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.00093839131295681
+   psi: 1.0018357038497925
+   R0: 1.0138455629348755
+   DEBUG ancestral_fitness range: [0.000000, 1.715122]
+   DEBUG mutated_positions range: [0, 1259], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 17]
+   DEBUG fitness_at_mutation range: [0.875441, 1.110129]
+   DEBUG fitness_of_G range: [0.875441, 1.110129]
+   DEBUG child fitness range: [0.000000, 1.686332]
+   DEBUG fitness_by_mutation range: [0.000000, 1.499352]
+   Loss for batch 90: 12.095914840698242
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009376309462822974
+   psi: 1.0015935897827148
+   R0: 1.014068603515625
+   DEBUG ancestral_fitness range: [0.000000, 1.820500]
+   DEBUG mutated_positions range: [0, 1242], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.640288, 1.081652]
+   DEBUG fitness_of_G range: [0.640288, 1.081652]
+   DEBUG child fitness range: [0.000000, 1.781376]
+   DEBUG fitness_by_mutation range: [0.000000, 1.412264]
+   Loss for batch 91: 1.9099152088165283
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009368309983983636
+   psi: 1.0014296770095825
+   R0: 1.01426100730896
+   DEBUG ancestral_fitness range: [0.000000, 1.749087]
+   DEBUG mutated_positions range: [0, 1215], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.551437, 1.140490]
+   DEBUG fitness_of_G range: [0.551437, 1.140490]
+   DEBUG child fitness range: [0.000000, 1.739331]
+   DEBUG fitness_by_mutation range: [0.000000, 1.397700]
+   Loss for batch 92: 7.3313374519348145
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009359937976114452
+   psi: 1.0012426376342773
+   R0: 1.0144164562225342
+   DEBUG ancestral_fitness range: [0.000000, 1.733629]
+   DEBUG mutated_positions range: [0, 1263], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [1, 19]
+   DEBUG fitness_at_mutation range: [0.617077, 1.138770]
+   DEBUG fitness_of_G range: [0.617077, 1.138770]
+   DEBUG child fitness range: [0.000000, 1.794361]
+   DEBUG fitness_by_mutation range: [0.000000, 1.305136]
+   Loss for batch 93: 15.750711441040039
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009351858170703053
+   psi: 1.0009844303131104
+   R0: 1.0145362615585327
+   DEBUG ancestral_fitness range: [0.000000, 1.728358]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.726574, 1.188028]
+   DEBUG fitness_of_G range: [0.726574, 1.188028]
+   DEBUG child fitness range: [0.000000, 1.766841]
+   DEBUG fitness_by_mutation range: [0.000000, 1.310580]
+   Loss for batch 94: 19.94866180419922
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.000934412470087409
+   psi: 1.0009030103683472
+   R0: 1.0146287679672241
+   DEBUG ancestral_fitness range: [0.000000, 1.731163]
+   DEBUG mutated_positions range: [0, 1250], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 17]
+   DEBUG fitness_at_mutation range: [0.667838, 1.152502]
+   DEBUG fitness_of_G range: [0.667838, 1.152502]
+   DEBUG child fitness range: [0.000000, 1.754890]
+   DEBUG fitness_by_mutation range: [0.000000, 1.305195]
+   Loss for batch 95: 11.989168167114258
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009336036746390164
+   psi: 1.000835657119751
+   R0: 1.0146679878234863
+   DEBUG ancestral_fitness range: [0.000000, 1.829500]
+   DEBUG mutated_positions range: [0, 1173], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.635005, 1.149622]
+   DEBUG fitness_of_G range: [0.635005, 1.149622]
+   DEBUG child fitness range: [0.000000, 1.789420]
+   DEBUG fitness_by_mutation range: [0.000000, 1.326553]
+   Loss for batch 96: 15.927796363830566
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009328245650976896
+   psi: 1.0007301568984985
+   R0: 1.014700174331665
+   DEBUG ancestral_fitness range: [0.000000, 1.740640]
+   DEBUG mutated_positions range: [0, 1166], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.712459, 1.225626]
+   DEBUG fitness_of_G range: [0.712459, 1.225626]
+   DEBUG child fitness range: [0.000000, 1.782222]
+   DEBUG fitness_by_mutation range: [0.000000, 1.308280]
+   Loss for batch 97: 2.1589064598083496
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0009320099488832057
+   psi: 1.000596284866333
+   R0: 1.0147063732147217
+   DEBUG ancestral_fitness range: [0.000000, 1.759725]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.536806, 1.113085]
+   DEBUG fitness_of_G range: [0.536806, 1.113085]
+   DEBUG child fitness range: [0.000000, 1.794603]
+   DEBUG fitness_by_mutation range: [0.000000, 1.293646]
+   Loss for batch 98: 11.853487968444824
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.000931165530346334
+   psi: 1.0006742477416992
+   R0: 1.0146958827972412
+   DEBUG ancestral_fitness range: [0.000000, 1.794677]
+   DEBUG mutated_positions range: [0, 1227], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.842017, 1.165007]
+   DEBUG fitness_of_G range: [0.842017, 1.165007]
+   DEBUG child fitness range: [0.000000, 1.785010]
+   DEBUG fitness_by_mutation range: [0.000000, 1.357434]
+   Loss for batch 99: 21.699642181396484
+   mu: 0.0009304984123446047
+   psi: 1.0007083415985107
+   R0: 1.0146514177322388
+   DEBUG ancestral_fitness range: [0.000000, 1.777863]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.487096, 1.182001]
+   DEBUG fitness_of_G range: [0.487096, 1.182001]
+   DEBUG child fitness range: [0.000000, 1.741256]
+   DEBUG fitness_by_mutation range: [0.000000, 1.368674]
+   Loss for batch 100: 10.661715507507324
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009297958458773792
+   psi: 1.0010294914245605
+   R0: 1.0146112442016602
+   DEBUG ancestral_fitness range: [0.000000, 1.697157]
+   DEBUG mutated_positions range: [0, 1250], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.599480, 1.126650]
+   DEBUG fitness_of_G range: [0.599480, 1.126650]
+   DEBUG child fitness range: [0.000000, 1.782456]
+   DEBUG fitness_by_mutation range: [0.000000, 1.384023]
+   Loss for batch 101: 14.753456115722656
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009291181922890246
+   psi: 1.001253604888916
+   R0: 1.0145738124847412
+   DEBUG ancestral_fitness range: [0.000000, 1.803356]
+   DEBUG mutated_positions range: [0, 1230], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.721142, 1.165359]
+   DEBUG fitness_of_G range: [0.721142, 1.165359]
+   DEBUG child fitness range: [0.000000, 1.776539]
+   DEBUG fitness_by_mutation range: [0.000000, 1.400704]
+   Loss for batch 102: 7.164673805236816
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.0009283910039812326
+   psi: 1.0014115571975708
+   R0: 1.014515995979309
+   DEBUG ancestral_fitness range: [0.000000, 1.629620]
+   DEBUG mutated_positions range: [0, 1201], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.626745, 1.291559]
+   DEBUG fitness_of_G range: [0.626745, 1.291559]
+   DEBUG child fitness range: [0.000000, 1.658940]
+   DEBUG fitness_by_mutation range: [0.000000, 1.474973]
+   Loss for batch 103: 11.768961906433105
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009276268538087606
+   psi: 1.0015252828598022
+   R0: 1.0144180059432983
+   DEBUG ancestral_fitness range: [0.000000, 1.617865]
+   DEBUG mutated_positions range: [0, 1166], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [1, 19]
+   DEBUG fitness_at_mutation range: [0.747055, 1.304001]
+   DEBUG fitness_of_G range: [0.747055, 1.304001]
+   DEBUG child fitness range: [0.000000, 1.664038]
+   DEBUG fitness_by_mutation range: [0.000000, 1.427279]
+   Loss for batch 104: 23.82865333557129
+   mu: 0.000926961365621537
+   psi: 1.00154709815979
+   R0: 1.0143173933029175
+   DEBUG ancestral_fitness range: [0.000000, 1.589756]
+   DEBUG mutated_positions range: [0, 1263], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.741064, 1.179671]
+   DEBUG fitness_of_G range: [0.741064, 1.179671]
+   DEBUG child fitness range: [0.000000, 1.644559]
+   DEBUG fitness_by_mutation range: [0.000000, 1.402044]
+   Loss for batch 105: 6.128584384918213
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.000926255714148283
+   psi: 1.0016281604766846
+   R0: 1.0142265558242798
+   DEBUG ancestral_fitness range: [0.000000, 1.621742]
+   DEBUG mutated_positions range: [0, 1202], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.716064, 1.140576]
+   DEBUG fitness_of_G range: [0.716064, 1.140576]
+   DEBUG child fitness range: [0.000000, 1.639198]
+   DEBUG fitness_by_mutation range: [0.000000, 1.359790]
+   Loss for batch 106: 20.181852340698242
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0009255722397938371
+   psi: 1.0016627311706543
+   R0: 1.0140990018844604
+   DEBUG ancestral_fitness range: [0.000000, 1.615152]
+   DEBUG mutated_positions range: [0, 1228], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.749583, 1.113474]
+   DEBUG fitness_of_G range: [0.749583, 1.113474]
+   DEBUG child fitness range: [0.000000, 1.607797]
+   DEBUG fitness_by_mutation range: [0.000000, 1.379517]
+   Loss for batch 107: 36.98882293701172
+   DEBUG 5 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/5
+   mu: 0.000925044936593622
+   psi: 1.0016173124313354
+   R0: 1.0139617919921875
+   DEBUG ancestral_fitness range: [0.000000, 1.710060]
+   DEBUG mutated_positions range: [0, 1251], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 17]
+   DEBUG fitness_at_mutation range: [0.725918, 1.078075]
+   DEBUG fitness_of_G range: [0.725918, 1.078075]
+   DEBUG child fitness range: [0.000000, 1.651871]
+   DEBUG fitness_by_mutation range: [0.000000, 1.350512]
+   Loss for batch 108: 19.76371955871582
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009245237451978028
+   psi: 1.0014573335647583
+   R0: 1.013784408569336
+   DEBUG ancestral_fitness range: [0.000000, 1.635715]
+   DEBUG mutated_positions range: [0, 1228], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.764949, 1.137701]
+   DEBUG fitness_of_G range: [0.764949, 1.137701]
+   DEBUG child fitness range: [0.000000, 1.665125]
+   DEBUG fitness_by_mutation range: [0.000000, 1.405464]
+   Loss for batch 109: 31.673913955688477
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009241473744623363
+   psi: 1.0013681650161743
+   R0: 1.013610601425171
+   DEBUG ancestral_fitness range: [0.000000, 1.710883]
+   DEBUG mutated_positions range: [0, 935], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [3, 19]
+   DEBUG fitness_at_mutation range: [0.427036, 1.090078]
+   DEBUG fitness_of_G range: [0.427036, 1.090078]
+   DEBUG child fitness range: [0.000000, 1.658073]
+   DEBUG fitness_by_mutation range: [0.000000, 1.425943]
+   Loss for batch 110: 1.0307141542434692
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009237024351023138
+   psi: 1.0012681484222412
+   R0: 1.0134434700012207
+   DEBUG ancestral_fitness range: [0.000000, 1.719478]
+   DEBUG mutated_positions range: [0, 1166], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 17]
+   DEBUG fitness_at_mutation range: [0.751346, 1.165329]
+   DEBUG fitness_of_G range: [0.751346, 1.165329]
+   DEBUG child fitness range: [0.000000, 1.724239]
+   DEBUG fitness_by_mutation range: [0.000000, 1.432381]
+   Loss for batch 111: 12.736711502075195
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009231854928657413
+   psi: 1.001172423362732
+   R0: 1.0132824182510376
+   DEBUG ancestral_fitness range: [0.000000, 1.745332]
+   DEBUG mutated_positions range: [0, 1227], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 17]
+   DEBUG fitness_at_mutation range: [0.746251, 1.170931]
+   DEBUG fitness_of_G range: [0.746251, 1.170931]
+   DEBUG child fitness range: [0.000000, 1.738308]
+   DEBUG fitness_by_mutation range: [0.000000, 1.383065]
+   Loss for batch 112: 6.88432502746582
+   mu: 0.000922608538530767
+   psi: 1.0010515451431274
+   R0: 1.013118028640747
+   DEBUG ancestral_fitness range: [0.000000, 1.736469]
+   DEBUG mutated_positions range: [0, 1175], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.600326, 1.112864]
+   DEBUG fitness_of_G range: [0.600326, 1.112864]
+   DEBUG child fitness range: [0.000000, 1.802951]
+   DEBUG fitness_by_mutation range: [0.000000, 1.373400]
+   Loss for batch 113: 23.865083694458008
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009221092914231122
+   psi: 1.0009477138519287
+   R0: 1.0129694938659668
+   DEBUG ancestral_fitness range: [0.000000, 1.807857]
+   DEBUG mutated_positions range: [0, 1250], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.590212, 1.158857]
+   DEBUG fitness_of_G range: [0.590212, 1.158857]
+   DEBUG child fitness range: [0.000000, 1.835629]
+   DEBUG fitness_by_mutation range: [0.000000, 1.377149]
+   Loss for batch 114: 7.37896728515625
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009215471218340099
+   psi: 1.0007671117782593
+   R0: 1.0128262042999268
+   DEBUG ancestral_fitness range: [0.000000, 1.972814]
+   DEBUG mutated_positions range: [0, 1166], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 17]
+   DEBUG fitness_at_mutation range: [0.858095, 1.152890]
+   DEBUG fitness_of_G range: [0.858095, 1.152890]
+   DEBUG child fitness range: [0.000000, 1.873940]
+   DEBUG fitness_by_mutation range: [0.000000, 1.371060]
+   Loss for batch 115: 5.833108425140381
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0009209387353621423
+   psi: 1.0007166862487793
+   R0: 1.0126880407333374
+   DEBUG ancestral_fitness range: [0.000000, 1.859507]
+   DEBUG mutated_positions range: [0, 1250], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.764673, 1.080975]
+   DEBUG fitness_of_G range: [0.764673, 1.080975]
+   DEBUG child fitness range: [0.000000, 1.825414]
+   DEBUG fitness_by_mutation range: [0.000000, 1.481108]
+   Loss for batch 116: 6.49769926071167
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0009202793589793146
+   psi: 1.0009456872940063
+   R0: 1.0125377178192139
+   DEBUG ancestral_fitness range: [0.000000, 1.862621]
+   DEBUG mutated_positions range: [0, 1245], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.560921, 1.201451]
+   DEBUG fitness_of_G range: [0.560921, 1.201451]
+   DEBUG child fitness range: [0.000000, 1.836854]
+   DEBUG fitness_by_mutation range: [0.000000, 1.369452]
+   Loss for batch 117: 12.791105270385742
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.000919567421078682
+   psi: 1.0009777545928955
+   R0: 1.0123766660690308
+   DEBUG ancestral_fitness range: [0.000000, 1.798135]
+   DEBUG mutated_positions range: [0, 1224], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 17]
+   DEBUG fitness_at_mutation range: [0.749729, 1.167078]
+   DEBUG fitness_of_G range: [0.749729, 1.167078]
+   DEBUG child fitness range: [0.000000, 1.893675]
+   DEBUG fitness_by_mutation range: [0.000000, 1.401228]
+   Loss for batch 118: 23.287294387817383
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009189520496875048
+   psi: 1.0009702444076538
+   R0: 1.0122230052947998
+   DEBUG ancestral_fitness range: [0.000000, 1.823726]
+   DEBUG mutated_positions range: [0, 1263], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.748460, 1.186549]
+   DEBUG fitness_of_G range: [0.748460, 1.186549]
+   DEBUG child fitness range: [0.000000, 1.780061]
+   DEBUG fitness_by_mutation range: [0.000000, 1.405188]
+   Loss for batch 119: 36.491085052490234
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009184920345433056
+   psi: 1.000852108001709
+   R0: 1.012080192565918
+   DEBUG ancestral_fitness range: [0.000000, 1.748710]
+   DEBUG mutated_positions range: [0, 1166], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.780000, 1.153542]
+   DEBUG fitness_of_G range: [0.780000, 1.153542]
+   DEBUG child fitness range: [0.000000, 1.804331]
+   DEBUG fitness_by_mutation range: [0.000000, 1.385247]
+   Loss for batch 120: 1.624720573425293
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0009179683984257281
+   psi: 1.0006247758865356
+   R0: 1.0119433403015137
+   DEBUG ancestral_fitness range: [0.000000, 1.768588]
+   DEBUG mutated_positions range: [0, 1228], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 16]
+   DEBUG fitness_at_mutation range: [0.561642, 1.127590]
+   DEBUG fitness_of_G range: [0.561642, 1.127590]
+   DEBUG child fitness range: [0.000000, 1.842053]
+   DEBUG fitness_by_mutation range: [0.000000, 1.392091]
+   Loss for batch 121: -3.0875587463378906
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009173855069093406
+   psi: 1.0003842115402222
+   R0: 1.011798620223999
+   DEBUG ancestral_fitness range: [0.000000, 1.787534]
+   DEBUG mutated_positions range: [0, 1234], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 17]
+   DEBUG fitness_at_mutation range: [0.821820, 1.188002]
+   DEBUG fitness_of_G range: [0.821820, 1.188002]
+   DEBUG child fitness range: [0.000000, 1.818932]
+   DEBUG fitness_by_mutation range: [0.000000, 1.382513]
+   Loss for batch 122: 4.1173481941223145
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009168279357254505
+   psi: 1.0001450777053833
+   R0: 1.011659860610962
+   DEBUG ancestral_fitness range: [0.000000, 1.671165]
+   DEBUG mutated_positions range: [0, 1251], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.631564, 1.128959]
+   DEBUG fitness_of_G range: [0.631564, 1.128959]
+   DEBUG child fitness range: [0.000000, 1.688248]
+   DEBUG fitness_by_mutation range: [0.000000, 1.370353]
+   Loss for batch 123: 9.510696411132812
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.0009162903297692537
+   psi: 0.9998611211776733
+   R0: 1.01152765750885
+   DEBUG ancestral_fitness range: [0.000000, 1.706355]
+   DEBUG mutated_positions range: [0, 1263], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.786877, 1.182293]
+   DEBUG fitness_of_G range: [0.786877, 1.182293]
+   DEBUG child fitness range: [0.000000, 1.749818]
+   DEBUG fitness_by_mutation range: [0.000000, 1.398214]
+   Loss for batch 124: 11.97236156463623
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009156980668194592
+   psi: 0.9996515512466431
+   R0: 1.0113945007324219
+   DEBUG ancestral_fitness range: [0.000000, 1.700478]
+   DEBUG mutated_positions range: [0, 1245], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.755763, 1.221103]
+   DEBUG fitness_of_G range: [0.755763, 1.221103]
+   DEBUG child fitness range: [0.000000, 1.740919]
+   DEBUG fitness_by_mutation range: [0.000000, 1.399831]
+   Loss for batch 125: 19.898115158081055
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009151262929663062
+   psi: 0.9994224309921265
+   R0: 1.0112619400024414
+   DEBUG ancestral_fitness range: [0.000000, 1.711990]
+   DEBUG mutated_positions range: [0, 1166], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 17]
+   DEBUG fitness_at_mutation range: [0.737615, 1.123823]
+   DEBUG fitness_of_G range: [0.737615, 1.123823]
+   DEBUG child fitness range: [0.000000, 1.680357]
+   DEBUG fitness_by_mutation range: [0.000000, 1.351953]
+   Loss for batch 126: 1.937389850616455
+   mu: 0.0009145011426880956
+   psi: 0.9991322755813599
+   R0: 1.011810302734375
+   DEBUG ancestral_fitness range: [0.000000, 1.704977]
+   DEBUG mutated_positions range: [0, 1175], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.734610, 1.130411]
+   DEBUG fitness_of_G range: [0.734610, 1.130411]
+   DEBUG child fitness range: [0.000000, 1.702002]
+   DEBUG fitness_by_mutation range: [0.000000, 1.343029]
+   Loss for batch 127: 7.493013381958008
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.000913820753339678
+   psi: 0.9988287091255188
+   R0: 1.0123060941696167
+   DEBUG ancestral_fitness range: [0.000000, 1.676545]
+   DEBUG mutated_positions range: [0, 1224], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.788616, 1.098306]
+   DEBUG fitness_of_G range: [0.788616, 1.098306]
+   DEBUG child fitness range: [0.000000, 1.694066]
+   DEBUG fitness_by_mutation range: [0.000000, 1.353658]
+   Loss for batch 128: 5.983234405517578
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009131029364652932
+   psi: 0.9985755085945129
+   R0: 1.0127369165420532
+   DEBUG ancestral_fitness range: [0.000000, 1.731375]
+   DEBUG mutated_positions range: [0, 1106], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.634224, 1.110929]
+   DEBUG fitness_of_G range: [0.634224, 1.110929]
+   DEBUG child fitness range: [0.000000, 1.751581]
+   DEBUG fitness_by_mutation range: [0.000000, 1.337536]
+   Loss for batch 129: 9.751751899719238
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009124148054979742
+   psi: 0.9984116554260254
+   R0: 1.0131189823150635
+   DEBUG ancestral_fitness range: [0.000000, 1.741615]
+   DEBUG mutated_positions range: [0, 1175], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.800940, 1.092363]
+   DEBUG fitness_of_G range: [0.800940, 1.092363]
+   DEBUG child fitness range: [0.000000, 1.638304]
+   DEBUG fitness_by_mutation range: [0.000000, 1.350722]
+   Loss for batch 130: 7.031186580657959
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009116811561398208
+   psi: 0.9980886578559875
+   R0: 1.013447880744934
+   DEBUG ancestral_fitness range: [0.000000, 1.749063]
+   DEBUG mutated_positions range: [0, 1236], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.780989, 1.117166]
+   DEBUG fitness_of_G range: [0.780989, 1.117166]
+   DEBUG child fitness range: [0.000000, 1.737841]
+   DEBUG fitness_by_mutation range: [0.000000, 1.369192]
+   Loss for batch 131: -4.053520679473877
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0009109180537052453
+   psi: 0.9977729916572571
+   R0: 1.0137361288070679
+   DEBUG ancestral_fitness range: [0.000000, 1.691823]
+   DEBUG mutated_positions range: [0, 1238], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.766803, 1.139186]
+   DEBUG fitness_of_G range: [0.766803, 1.139186]
+   DEBUG child fitness range: [0.000000, 1.669516]
+   DEBUG fitness_by_mutation range: [0.000000, 1.378377]
+   Loss for batch 132: 14.63202953338623
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009101924952119589
+   psi: 0.9975025653839111
+   R0: 1.0139670372009277
+   DEBUG ancestral_fitness range: [0.000000, 1.718127]
+   DEBUG mutated_positions range: [0, 1175], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.823426, 1.125434]
+   DEBUG fitness_of_G range: [0.823426, 1.125434]
+   DEBUG child fitness range: [0.000000, 1.775493]
+   DEBUG fitness_by_mutation range: [0.000000, 1.401943]
+   Loss for batch 133: 15.291458129882812
+   mu: 0.0009095005807466805
+   psi: 0.9972158074378967
+   R0: 1.0141631364822388
+   DEBUG ancestral_fitness range: [0.000000, 1.720187]
+   DEBUG mutated_positions range: [0, 1227], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.760939, 1.192092]
+   DEBUG fitness_of_G range: [0.760939, 1.192092]
+   DEBUG child fitness range: [0.000000, 1.716504]
+   DEBUG fitness_by_mutation range: [0.000000, 1.420870]
+   Loss for batch 134: 18.558778762817383
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009089056984521449
+   psi: 0.9969167709350586
+   R0: 1.0143402814865112
+   DEBUG ancestral_fitness range: [0.000000, 1.848774]
+   DEBUG mutated_positions range: [0, 1167], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.729628, 1.238515]
+   DEBUG fitness_of_G range: [0.729628, 1.238515]
+   DEBUG child fitness range: [0.000000, 1.760937]
+   DEBUG fitness_by_mutation range: [0.000000, 1.416051]
+   Loss for batch 135: 23.702789306640625
+   mu: 0.0009083931217901409
+   psi: 0.996479332447052
+   R0: 1.014477252960205
+   DEBUG ancestral_fitness range: [0.000000, 1.786100]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.654298, 1.092566]
+   DEBUG fitness_of_G range: [0.654298, 1.092566]
+   DEBUG child fitness range: [0.000000, 1.810021]
+   DEBUG fitness_by_mutation range: [0.000000, 1.400205]
+   Loss for batch 136: 12.044495582580566
+   mu: 0.0009078137809410691
+   psi: 0.9960445165634155
+   R0: 1.0146009922027588
+   DEBUG ancestral_fitness range: [0.000000, 1.817193]
+   DEBUG mutated_positions range: [0, 1263], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.848968, 1.207843]
+   DEBUG fitness_of_G range: [0.848968, 1.207843]
+   DEBUG child fitness range: [0.000000, 1.852994]
+   DEBUG fitness_by_mutation range: [0.000000, 1.462466]
+   Loss for batch 137: 12.03188419342041
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009071737877093256
+   psi: 0.9956574440002441
+   R0: 1.0147128105163574
+   DEBUG ancestral_fitness range: [0.000000, 1.929970]
+   DEBUG mutated_positions range: [0, 1227], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.560759, 1.283778]
+   DEBUG fitness_of_G range: [0.560759, 1.283778]
+   DEBUG child fitness range: [0.000000, 1.902931]
+   DEBUG fitness_by_mutation range: [0.000000, 1.396548]
+   Loss for batch 138: 15.125798225402832
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009065527701750398
+   psi: 0.995286226272583
+   R0: 1.0148036479949951
+   DEBUG ancestral_fitness range: [0.000000, 1.978733]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.614132, 1.110542]
+   DEBUG fitness_of_G range: [0.614132, 1.110542]
+   DEBUG child fitness range: [0.000000, 1.868297]
+   DEBUG fitness_by_mutation range: [0.000000, 1.377784]
+   Loss for batch 139: 9.996710777282715
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009059486910700798
+   psi: 0.9948779344558716
+   R0: 1.014859676361084
+   DEBUG ancestral_fitness range: [0.000000, 1.907879]
+   DEBUG mutated_positions range: [0, 1166], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.816188, 1.222672]
+   DEBUG fitness_of_G range: [0.816188, 1.222672]
+   DEBUG child fitness range: [0.000000, 1.939504]
+   DEBUG fitness_by_mutation range: [0.000000, 1.385662]
+   Loss for batch 140: 23.5979061126709
+   mu: 0.0009054300026036799
+   psi: 0.9944236874580383
+   R0: 1.0148972272872925
+   DEBUG ancestral_fitness range: [0.000000, 1.920996]
+   DEBUG mutated_positions range: [0, 1206], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.668463, 1.208778]
+   DEBUG fitness_of_G range: [0.668463, 1.208778]
+   DEBUG child fitness range: [0.000000, 1.902254]
+   DEBUG fitness_by_mutation range: [0.000000, 1.428461]
+   Loss for batch 141: 0.17336834967136383
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0009049280779436231
+   psi: 0.9939807653427124
+   R0: 1.0149312019348145
+   DEBUG ancestral_fitness range: [0.000000, 1.883729]
+   DEBUG mutated_positions range: [0, 1162], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.786629, 1.145083]
+   DEBUG fitness_of_G range: [0.786629, 1.145083]
+   DEBUG child fitness range: [0.000000, 1.868476]
+   DEBUG fitness_by_mutation range: [0.000000, 1.378545]
+   Loss for batch 142: 1.6288031339645386
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009043797617778182
+   psi: 0.9936391711235046
+   R0: 1.0149221420288086
+   DEBUG ancestral_fitness range: [0.000000, 1.949576]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 17]
+   DEBUG fitness_at_mutation range: [0.578076, 1.169912]
+   DEBUG fitness_of_G range: [0.578076, 1.169912]
+   DEBUG child fitness range: [0.000000, 1.889593]
+   DEBUG fitness_by_mutation range: [0.000000, 1.425137]
+   Loss for batch 143: 29.272985458374023
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.000903902982827276
+   psi: 0.9932000041007996
+   R0: 1.0148943662643433
+   DEBUG ancestral_fitness range: [0.000000, 1.905409]
+   DEBUG mutated_positions range: [0, 1263], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.803087, 1.089178]
+   DEBUG fitness_of_G range: [0.803087, 1.089178]
+   DEBUG child fitness range: [0.000000, 1.924278]
+   DEBUG fitness_by_mutation range: [0.000000, 1.366902]
+   Loss for batch 144: 18.116342544555664
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0009034983231686056
+   psi: 0.9928644895553589
+   R0: 1.0148189067840576
+   DEBUG ancestral_fitness range: [0.000000, 1.790311]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.843922, 1.111562]
+   DEBUG fitness_of_G range: [0.843922, 1.111562]
+   DEBUG child fitness range: [0.000000, 1.810257]
+   DEBUG fitness_by_mutation range: [0.000000, 1.386143]
+   Loss for batch 145: 1.9792721271514893
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009030189248733222
+   psi: 0.9924752116203308
+   R0: 1.0147123336791992
+   DEBUG ancestral_fitness range: [0.000000, 1.881549]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.587156, 1.136612]
+   DEBUG fitness_of_G range: [0.587156, 1.136612]
+   DEBUG child fitness range: [0.000000, 1.813761]
+   DEBUG fitness_by_mutation range: [0.000000, 1.383561]
+   Loss for batch 146: -5.4903059005737305
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.0009025497129186988
+   psi: 0.9921869039535522
+   R0: 1.0145944356918335
+   DEBUG ancestral_fitness range: [0.000000, 1.750712]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.778425, 1.200755]
+   DEBUG fitness_of_G range: [0.778425, 1.200755]
+   DEBUG child fitness range: [0.000000, 1.769816]
+   DEBUG fitness_by_mutation range: [0.000000, 1.447186]
+   Loss for batch 147: -3.0291028022766113
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009020192082971334
+   psi: 0.9917976260185242
+   R0: 1.0144492387771606
+   DEBUG ancestral_fitness range: [0.000000, 1.716548]
+   DEBUG mutated_positions range: [0, 1244], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.692668, 1.169887]
+   DEBUG fitness_of_G range: [0.692668, 1.169887]
+   DEBUG child fitness range: [0.000000, 1.679947]
+   DEBUG fitness_by_mutation range: [0.000000, 1.407420]
+   Loss for batch 148: -3.831113576889038
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0009014426032081246
+   psi: 0.9915260076522827
+   R0: 1.014305830001831
+   DEBUG ancestral_fitness range: [0.000000, 1.663481]
+   DEBUG mutated_positions range: [0, 1166], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.785837, 1.146877]
+   DEBUG fitness_of_G range: [0.785837, 1.146877]
+   DEBUG child fitness range: [0.000000, 1.686653]
+   DEBUG fitness_by_mutation range: [0.000000, 1.431574]
+   Loss for batch 149: 10.479720115661621
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0009008818306028843
+   psi: 0.9912887811660767
+   R0: 1.0141642093658447
+   DEBUG ancestral_fitness range: [0.000000, 1.700355]
+   DEBUG mutated_positions range: [0, 1229], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.747215, 1.144640]
+   DEBUG fitness_of_G range: [0.747215, 1.144640]
+   DEBUG child fitness range: [0.000000, 1.715097]
+   DEBUG fitness_by_mutation range: [0.000000, 1.434181]
+   Loss for batch 150: 28.465951919555664
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.000900406448636204
+   psi: 0.9911289811134338
+   R0: 1.0140124559402466
+   DEBUG ancestral_fitness range: [0.000000, 1.632526]
+   DEBUG mutated_positions range: [0, 1166], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.722688, 1.217642]
+   DEBUG fitness_of_G range: [0.722688, 1.217642]
+   DEBUG child fitness range: [0.000000, 1.765794]
+   DEBUG fitness_by_mutation range: [0.000000, 1.489877]
+   Loss for batch 151: 19.939117431640625
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0008999415440484881
+   psi: 0.9909947514533997
+   R0: 1.0138639211654663
+   DEBUG ancestral_fitness range: [0.000000, 1.648443]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.790159, 1.183692]
+   DEBUG fitness_of_G range: [0.790159, 1.183692]
+   DEBUG child fitness range: [0.000000, 1.710823]
+   DEBUG fitness_by_mutation range: [0.000000, 1.416748]
+   Loss for batch 152: 2.5615622997283936
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0008994039962999523
+   psi: 0.9908305406570435
+   R0: 1.0137182474136353
+   DEBUG ancestral_fitness range: [0.000000, 1.668175]
+   DEBUG mutated_positions range: [0, 1249], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.675023, 1.197795]
+   DEBUG fitness_of_G range: [0.675023, 1.197795]
+   DEBUG child fitness range: [0.000000, 1.612353]
+   DEBUG fitness_by_mutation range: [0.000000, 1.422423]
+   Loss for batch 153: 9.820413589477539
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0008988800691440701
+   psi: 0.9906102418899536
+   R0: 1.0135644674301147
+   DEBUG ancestral_fitness range: [0.000000, 1.706296]
+   DEBUG mutated_positions range: [0, 1227], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.799392, 1.185681]
+   DEBUG fitness_of_G range: [0.799392, 1.185681]
+   DEBUG child fitness range: [0.000000, 1.633512]
+   DEBUG fitness_by_mutation range: [0.000000, 1.338750]
+   Loss for batch 154: 1.851723313331604
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.000898296944797039
+   psi: 0.9904217720031738
+   R0: 1.013404130935669
+   DEBUG ancestral_fitness range: [0.000000, 1.646552]
+   DEBUG mutated_positions range: [0, 1143], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.801259, 1.088054]
+   DEBUG fitness_of_G range: [0.801259, 1.088054]
+   DEBUG child fitness range: [0.000000, 1.653289]
+   DEBUG fitness_by_mutation range: [0.000000, 1.341920]
+   Loss for batch 155: 10.468631744384766
+   mu: 0.0008977235411293805
+   psi: 0.9901607036590576
+   R0: 1.0132532119750977
+   DEBUG ancestral_fitness range: [0.000000, 1.667037]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [1, 19]
+   DEBUG fitness_at_mutation range: [0.492447, 1.166831]
+   DEBUG fitness_of_G range: [0.492447, 1.166831]
+   DEBUG child fitness range: [0.000000, 1.686596]
+   DEBUG fitness_by_mutation range: [0.000000, 1.334847]
+   Loss for batch 156: 10.31922721862793
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0008971723727881908
+   psi: 0.9899821281433105
+   R0: 1.0131168365478516
+   DEBUG ancestral_fitness range: [0.000000, 1.654356]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.686387, 1.153578]
+   DEBUG fitness_of_G range: [0.686387, 1.153578]
+   DEBUG child fitness range: [0.000000, 1.688397]
+   DEBUG fitness_by_mutation range: [0.000000, 1.387118]
+   Loss for batch 157: 10.538613319396973
+   mu: 0.0008966361056081951
+   psi: 0.9897369146347046
+   R0: 1.0129839181900024
+   DEBUG ancestral_fitness range: [0.000000, 1.724131]
+   DEBUG mutated_positions range: [0, 1231], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.648274, 1.164380]
+   DEBUG fitness_of_G range: [0.648274, 1.164380]
+   DEBUG child fitness range: [0.000000, 1.719423]
+   DEBUG fitness_by_mutation range: [0.000000, 1.348466]
+   Loss for batch 158: 12.301559448242188
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.000896042853128165
+   psi: 0.9895219206809998
+   R0: 1.0128638744354248
+   DEBUG ancestral_fitness range: [0.000000, 1.714611]
+   DEBUG mutated_positions range: [0, 1167], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.681135, 1.146586]
+   DEBUG fitness_of_G range: [0.681135, 1.146586]
+   DEBUG child fitness range: [0.000000, 1.707356]
+   DEBUG fitness_by_mutation range: [0.000000, 1.358115]
+   Loss for batch 159: 11.549720764160156
+   mu: 0.0008954029763117433
+   psi: 0.9893004894256592
+   R0: 1.0127369165420532
+   DEBUG ancestral_fitness range: [0.000000, 1.706870]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.774172, 1.157353]
+   DEBUG fitness_of_G range: [0.774172, 1.157353]
+   DEBUG child fitness range: [0.000000, 1.758082]
+   DEBUG fitness_by_mutation range: [0.000000, 1.334171]
+   Loss for batch 160: 11.727042198181152
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0008947141468524933
+   psi: 0.9891610145568848
+   R0: 1.0126221179962158
+   DEBUG ancestral_fitness range: [0.000000, 1.639388]
+   DEBUG mutated_positions range: [0, 1167], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.705210, 1.145658]
+   DEBUG fitness_of_G range: [0.705210, 1.145658]
+   DEBUG child fitness range: [0.000000, 1.759605]
+   DEBUG fitness_by_mutation range: [0.000000, 1.358386]
+   Loss for batch 161: 9.559879302978516
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0008940540137700737
+   psi: 0.9890621900558472
+   R0: 1.0125097036361694
+   DEBUG ancestral_fitness range: [0.000000, 1.729316]
+   DEBUG mutated_positions range: [0, 1251], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.707379, 1.092743]
+   DEBUG fitness_of_G range: [0.707379, 1.092743]
+   DEBUG child fitness range: [0.000000, 1.665758]
+   DEBUG fitness_by_mutation range: [0.000000, 1.352631]
+   Loss for batch 162: 11.334539413452148
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0008933500503189862
+   psi: 0.9889057278633118
+   R0: 1.0124012231826782
+   DEBUG ancestral_fitness range: [0.000000, 1.697020]
+   DEBUG mutated_positions range: [0, 1175], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.576155, 1.080396]
+   DEBUG fitness_of_G range: [0.576155, 1.080396]
+   DEBUG child fitness range: [0.000000, 1.695665]
+   DEBUG fitness_by_mutation range: [0.000000, 1.421660]
+   Loss for batch 163: 9.678573608398438
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0008926716982387006
+   psi: 0.9889292120933533
+   R0: 1.0122945308685303
+   DEBUG ancestral_fitness range: [0.000000, 1.738321]
+   DEBUG mutated_positions range: [0, 1224], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [1, 17]
+   DEBUG fitness_at_mutation range: [0.726389, 1.127854]
+   DEBUG fitness_of_G range: [0.726389, 1.116286]
+   DEBUG child fitness range: [0.000000, 1.735990]
+   DEBUG fitness_by_mutation range: [0.000000, 1.379271]
+   Loss for batch 164: 20.156982421875
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.0008920210530050099
+   psi: 0.9890062212944031
+   R0: 1.0121716260910034
+   DEBUG ancestral_fitness range: [0.000000, 1.762798]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 17]
+   DEBUG fitness_at_mutation range: [0.834216, 1.192125]
+   DEBUG fitness_of_G range: [0.834216, 1.192125]
+   DEBUG child fitness range: [0.000000, 1.700784]
+   DEBUG fitness_by_mutation range: [0.000000, 1.386195]
+   Loss for batch 165: 9.368053436279297
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0008914092322811484
+   psi: 0.9891883730888367
+   R0: 1.0120306015014648
+   DEBUG ancestral_fitness range: [0.000000, 1.734781]
+   DEBUG mutated_positions range: [0, 1201], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.845178, 1.212281]
+   DEBUG fitness_of_G range: [0.845178, 1.212281]
+   DEBUG child fitness range: [0.000000, 1.766681]
+   DEBUG fitness_by_mutation range: [0.000000, 1.410442]
+   Loss for batch 166: 11.300671577453613
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.00089076510630548
+   psi: 0.9894633293151855
+   R0: 1.0119014978408813
+   DEBUG ancestral_fitness range: [0.000000, 1.803676]
+   DEBUG mutated_positions range: [0, 1228], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 17]
+   DEBUG fitness_at_mutation range: [0.720889, 1.159804]
+   DEBUG fitness_of_G range: [0.720889, 1.159804]
+   DEBUG child fitness range: [0.000000, 1.791254]
+   DEBUG fitness_by_mutation range: [0.000000, 1.439270]
+   Loss for batch 167: -3.7794907093048096
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0008900844259187579
+   psi: 0.9898204803466797
+   R0: 1.0117683410644531
+   DEBUG ancestral_fitness range: [0.000000, 1.781995]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.681182, 1.139791]
+   DEBUG fitness_of_G range: [0.681182, 1.139791]
+   DEBUG child fitness range: [0.000000, 1.741036]
+   DEBUG fitness_by_mutation range: [0.000000, 1.434879]
+   Loss for batch 168: -13.1287260055542
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0008893598569557071
+   psi: 0.990103542804718
+   R0: 1.011631965637207
+   DEBUG ancestral_fitness range: [0.000000, 1.747616]
+   DEBUG mutated_positions range: [0, 1236], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.821641, 1.269023]
+   DEBUG fitness_of_G range: [0.821641, 1.269023]
+   DEBUG child fitness range: [0.000000, 1.744163]
+   DEBUG fitness_by_mutation range: [0.000000, 1.398468]
+   Loss for batch 169: 11.358226776123047
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0008886018767952919
+   psi: 0.9902330636978149
+   R0: 1.0114855766296387
+   DEBUG ancestral_fitness range: [0.000000, 1.719856]
+   DEBUG mutated_positions range: [0, 1236], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.780403, 1.290037]
+   DEBUG fitness_of_G range: [0.780403, 1.290037]
+   DEBUG child fitness range: [0.000000, 1.702239]
+   DEBUG fitness_by_mutation range: [0.000000, 1.400412]
+   Loss for batch 170: 9.615690231323242
+   mu: 0.0008878835360519588
+   psi: 0.9904242753982544
+   R0: 1.0113506317138672
+   DEBUG ancestral_fitness range: [0.000000, 1.705213]
+   DEBUG mutated_positions range: [0, 1166], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [1, 19]
+   DEBUG fitness_at_mutation range: [0.800441, 1.218208]
+   DEBUG fitness_of_G range: [0.800441, 1.218208]
+   DEBUG child fitness range: [0.000000, 1.757486]
+   DEBUG fitness_by_mutation range: [0.000000, 1.389051]
+   Loss for batch 171: -13.544408798217773
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0008871319587342441
+   psi: 0.9906119704246521
+   R0: 1.0112286806106567
+   DEBUG ancestral_fitness range: [0.000000, 1.678993]
+   DEBUG mutated_positions range: [0, 1233], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [1, 19]
+   DEBUG fitness_at_mutation range: [0.783502, 1.149509]
+   DEBUG fitness_of_G range: [0.783502, 1.149509]
+   DEBUG child fitness range: [0.000000, 1.690199]
+   DEBUG fitness_by_mutation range: [0.000000, 1.343130]
+   Loss for batch 172: 28.39139747619629
+   mu: 0.0008864841656759381
+   psi: 0.9909290075302124
+   R0: 1.011112093925476
+   DEBUG ancestral_fitness range: [0.000000, 1.783039]
+   DEBUG mutated_positions range: [0, 1161], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.809256, 1.117312]
+   DEBUG fitness_of_G range: [0.809256, 1.117312]
+   DEBUG child fitness range: [0.000000, 1.661060]
+   DEBUG fitness_by_mutation range: [0.000000, 1.372068]
+   Loss for batch 173: 7.070885181427002
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.000885794113855809
+   psi: 0.9910750985145569
+   R0: 1.0110069513320923
+   DEBUG ancestral_fitness range: [0.000000, 1.705522]
+   DEBUG mutated_positions range: [0, 1241], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 17]
+   DEBUG fitness_at_mutation range: [0.800903, 1.198038]
+   DEBUG fitness_of_G range: [0.800903, 1.198038]
+   DEBUG child fitness range: [0.000000, 1.673585]
+   DEBUG fitness_by_mutation range: [0.000000, 1.349898]
+   Loss for batch 174: -8.970084190368652
+   mu: 0.0008850771700963378
+   psi: 0.9913598895072937
+   R0: 1.0108942985534668
+   DEBUG ancestral_fitness range: [0.000000, 1.651665]
+   DEBUG mutated_positions range: [0, 1241], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.773717, 1.268360]
+   DEBUG fitness_of_G range: [0.773717, 1.268360]
+   DEBUG child fitness range: [0.000000, 1.691607]
+   DEBUG fitness_by_mutation range: [0.000000, 1.341208]
+   Loss for batch 175: 21.867006301879883
+   mu: 0.00088453758507967
+   psi: 0.9916778206825256
+   R0: 1.01079261302948
+   DEBUG ancestral_fitness range: [0.000000, 1.697815]
+   DEBUG mutated_positions range: [0, 1228], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.754090, 1.139953]
+   DEBUG fitness_of_G range: [0.754090, 1.139953]
+   DEBUG child fitness range: [0.000000, 1.647944]
+   DEBUG fitness_by_mutation range: [0.000000, 1.367817]
+   Loss for batch 176: 14.662930488586426
+   mu: 0.000884018954820931
+   psi: 0.9918419122695923
+   R0: 1.0107008218765259
+   DEBUG ancestral_fitness range: [0.000000, 1.626182]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.644077, 1.135065]
+   DEBUG fitness_of_G range: [0.644077, 1.135065]
+   DEBUG child fitness range: [0.000000, 1.626173]
+   DEBUG fitness_by_mutation range: [0.000000, 1.363731]
+   Loss for batch 177: 10.416854858398438
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0008835107437334955
+   psi: 0.99200040102005
+   R0: 1.0106178522109985
+   DEBUG ancestral_fitness range: [0.000000, 1.648054]
+   DEBUG mutated_positions range: [0, 1269], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 17]
+   DEBUG fitness_at_mutation range: [0.745246, 1.096955]
+   DEBUG fitness_of_G range: [0.745246, 1.096955]
+   DEBUG child fitness range: [0.000000, 1.632112]
+   DEBUG fitness_by_mutation range: [0.000000, 1.413449]
+   Loss for batch 178: 6.4577836990356445
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0008829463622532785
+   psi: 0.9921602606773376
+   R0: 1.0105334520339966
+   DEBUG ancestral_fitness range: [0.000000, 1.663475]
+   DEBUG mutated_positions range: [0, 1166], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.723101, 1.117736]
+   DEBUG fitness_of_G range: [0.723101, 1.117736]
+   DEBUG child fitness range: [0.000000, 1.665526]
+   DEBUG fitness_by_mutation range: [0.000000, 1.468761]
+   Loss for batch 179: 9.410684585571289
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0008824013639241457
+   psi: 0.9924634695053101
+   R0: 1.0104519128799438
+   DEBUG ancestral_fitness range: [0.000000, 1.590051]
+   DEBUG mutated_positions range: [0, 1227], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 17]
+   DEBUG fitness_at_mutation range: [0.712149, 1.158487]
+   DEBUG fitness_of_G range: [0.712149, 1.158487]
+   DEBUG child fitness range: [0.000000, 1.775562]
+   DEBUG fitness_by_mutation range: [0.000000, 1.454474]
+   Loss for batch 180: 23.512548446655273
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0008819369249977171
+   psi: 0.9927461743354797
+   R0: 1.0103728771209717
+   DEBUG ancestral_fitness range: [0.000000, 1.741752]
+   DEBUG mutated_positions range: [0, 1201], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.560903, 1.234220]
+   DEBUG fitness_of_G range: [0.560903, 1.234220]
+   DEBUG child fitness range: [0.000000, 1.694922]
+   DEBUG fitness_by_mutation range: [0.000000, 1.467663]
+   Loss for batch 181: 10.34142780303955
+   mu: 0.0008814761531539261
+   psi: 0.9928668737411499
+   R0: 1.0102903842926025
+   DEBUG ancestral_fitness range: [0.000000, 1.620457]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.762707, 1.222689]
+   DEBUG fitness_of_G range: [0.762707, 1.222689]
+   DEBUG child fitness range: [0.000000, 1.708298]
+   DEBUG fitness_by_mutation range: [0.000000, 1.489442]
+   Loss for batch 182: 11.68649959564209
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0008809538558125496
+   psi: 0.9928022027015686
+   R0: 1.0102158784866333
+   DEBUG ancestral_fitness range: [0.000000, 1.616246]
+   DEBUG mutated_positions range: [0, 1234], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.778363, 1.159761]
+   DEBUG fitness_of_G range: [0.778363, 1.159761]
+   DEBUG child fitness range: [0.000000, 1.611085]
+   DEBUG fitness_by_mutation range: [0.000000, 1.483607]
+   Loss for batch 183: 11.564281463623047
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0008803751552477479
+   psi: 0.992801308631897
+   R0: 1.0101372003555298
+   DEBUG ancestral_fitness range: [0.000000, 1.657085]
+   DEBUG mutated_positions range: [0, 1228], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.823417, 1.273670]
+   DEBUG fitness_of_G range: [0.823417, 1.273670]
+   DEBUG child fitness range: [0.000000, 1.633390]
+   DEBUG fitness_by_mutation range: [0.000000, 1.485189]
+   Loss for batch 184: 18.435874938964844
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0008798816124908626
+   psi: 0.9927614331245422
+   R0: 1.0100605487823486
+   DEBUG ancestral_fitness range: [0.000000, 1.629365]
+   DEBUG mutated_positions range: [0, 1228], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 17]
+   DEBUG fitness_at_mutation range: [0.916012, 1.180228]
+   DEBUG fitness_of_G range: [0.916012, 1.180228]
+   DEBUG child fitness range: [0.000000, 1.655017]
+   DEBUG fitness_by_mutation range: [0.000000, 1.467127]
+   Loss for batch 185: -3.962435722351074
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0008793376618996263
+   psi: 0.992696225643158
+   R0: 1.0099858045578003
+   DEBUG ancestral_fitness range: [0.000000, 1.553443]
+   DEBUG mutated_positions range: [0, 1167], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.870960, 1.134426]
+   DEBUG fitness_of_G range: [0.870960, 1.134426]
+   DEBUG child fitness range: [0.000000, 1.589740]
+   DEBUG fitness_by_mutation range: [0.000000, 1.532386]
+   Loss for batch 186: 19.87139320373535
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0008788069826550782
+   psi: 0.9926918745040894
+   R0: 1.0099027156829834
+   DEBUG ancestral_fitness range: [0.000000, 1.633430]
+   DEBUG mutated_positions range: [0, 1257], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.698176, 1.211241]
+   DEBUG fitness_of_G range: [0.698176, 1.211241]
+   DEBUG child fitness range: [0.000000, 1.581696]
+   DEBUG fitness_by_mutation range: [0.000000, 1.523737]
+   Loss for batch 187: 10.283172607421875
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0008782887016423047
+   psi: 0.9926970601081848
+   R0: 1.0098228454589844
+   DEBUG ancestral_fitness range: [0.000000, 1.560981]
+   DEBUG mutated_positions range: [0, 1258], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [3, 19]
+   DEBUG fitness_at_mutation range: [0.704176, 1.186065]
+   DEBUG fitness_of_G range: [0.704176, 1.186065]
+   DEBUG child fitness range: [0.000000, 1.603217]
+   DEBUG fitness_by_mutation range: [0.000000, 1.384180]
+   Loss for batch 188: 15.298315048217773
+   mu: 0.0008777804905548692
+   psi: 0.99261474609375
+   R0: 1.0097461938858032
+   DEBUG ancestral_fitness range: [0.000000, 1.676632]
+   DEBUG mutated_positions range: [0, 1258], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.776407, 1.221453]
+   DEBUG fitness_of_G range: [0.776407, 1.221453]
+   DEBUG child fitness range: [0.000000, 1.583428]
+   DEBUG fitness_by_mutation range: [0.000000, 1.375467]
+   Loss for batch 189: 15.342244148254395
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0008772783330641687
+   psi: 0.9924077391624451
+   R0: 1.0096769332885742
+   DEBUG ancestral_fitness range: [0.000000, 1.644598]
+   DEBUG mutated_positions range: [0, 1175], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.780048, 1.160966]
+   DEBUG fitness_of_G range: [0.780048, 1.160966]
+   DEBUG child fitness range: [0.000000, 1.640838]
+   DEBUG fitness_by_mutation range: [0.000000, 1.426221]
+   Loss for batch 190: 18.40707015991211
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0008768554544076324
+   psi: 0.9923684597015381
+   R0: 1.0096021890640259
+   DEBUG ancestral_fitness range: [0.000000, 1.586580]
+   DEBUG mutated_positions range: [0, 1019], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.793124, 1.238732]
+   DEBUG fitness_of_G range: [0.793124, 1.238732]
+   DEBUG child fitness range: [0.000000, 1.625684]
+   DEBUG fitness_by_mutation range: [0.000000, 1.413151]
+   Loss for batch 191: 1.9197591543197632
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0008763643563725054
+   psi: 0.9922978281974792
+   R0: 1.0095270872116089
+   DEBUG ancestral_fitness range: [0.000000, 1.606065]
+   DEBUG mutated_positions range: [0, 1251], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 17]
+   DEBUG fitness_at_mutation range: [0.827411, 1.134340]
+   DEBUG fitness_of_G range: [0.827411, 1.134340]
+   DEBUG child fitness range: [0.000000, 1.629795]
+   DEBUG fitness_by_mutation range: [0.000000, 1.387622]
+   Loss for batch 192: -0.06992346048355103
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0008758864132687449
+   psi: 0.9921495914459229
+   R0: 1.0094488859176636
+   DEBUG ancestral_fitness range: [0.000000, 1.630316]
+   DEBUG mutated_positions range: [0, 1228], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]
+   DEBUG fitness_at_mutation range: [0.750921, 1.093705]
+   DEBUG fitness_of_G range: [0.750921, 1.093705]
+   DEBUG child fitness range: [0.000000, 1.671068]
+   DEBUG fitness_by_mutation range: [0.000000, 1.508498]
+   Loss for batch 193: 28.497570037841797
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0008754880982451141
+   psi: 0.9922153353691101
+   R0: 1.0093718767166138
+   DEBUG ancestral_fitness range: [0.000000, 1.678475]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.653213, 1.119479]
+   DEBUG fitness_of_G range: [0.653213, 1.119479]
+   DEBUG child fitness range: [0.000000, 1.710635]
+   DEBUG fitness_by_mutation range: [0.000000, 1.514464]
+   Loss for batch 194: 1.581842064857483
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0008750265114940703
+   psi: 0.9924216866493225
+   R0: 1.009299397468567
+   DEBUG ancestral_fitness range: [0.000000, 1.771233]
+   DEBUG mutated_positions range: [0, 811], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.769659, 1.411861]
+   DEBUG fitness_of_G range: [0.769659, 1.411861]
+   DEBUG child fitness range: [0.000000, 1.756570]
+   DEBUG fitness_by_mutation range: [0.000000, 1.411861]
+   Loss for batch 195: 10.281234741210938
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0008745772647671402
+   psi: 0.9925292730331421
+   R0: 1.0092312097549438
+   DEBUG ancestral_fitness range: [0.000000, 1.810791]
+   DEBUG mutated_positions range: [0, 1183], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.749298, 1.137885]
+   DEBUG fitness_of_G range: [0.749298, 1.137885]
+   DEBUG child fitness range: [0.000000, 1.746673]
+   DEBUG fitness_by_mutation range: [0.000000, 1.369065]
+   Loss for batch 196: 18.487640380859375
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0008742036297917366
+   psi: 0.9925942420959473
+   R0: 1.0091639757156372
+   DEBUG ancestral_fitness range: [0.000000, 1.721858]
+   DEBUG mutated_positions range: [0, 1201], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.826179, 1.139488]
+   DEBUG fitness_of_G range: [0.826179, 1.139488]
+   DEBUG child fitness range: [0.000000, 1.752476]
+   DEBUG fitness_by_mutation range: [0.000000, 1.333966]
+   Loss for batch 197: -0.43908005952835083
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0008738340111449361
+   psi: 0.9925325512886047
+   R0: 1.0091004371643066
+   DEBUG ancestral_fitness range: [0.000000, 1.728109]
+   DEBUG mutated_positions range: [0, 1246], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.607036, 1.180954]
+   DEBUG fitness_of_G range: [0.607036, 1.180954]
+   DEBUG child fitness range: [0.000000, 1.764688]
+   DEBUG fitness_by_mutation range: [0.000000, 1.352145]
+   Loss for batch 198: 11.661645889282227
+   mu: 0.0008733962313272059
+   psi: 0.9926261305809021
+   R0: 1.0090402364730835
+   DEBUG ancestral_fitness range: [0.000000, 1.720114]
+   DEBUG mutated_positions range: [0, 1228], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.906447, 1.175054]
+   DEBUG fitness_of_G range: [0.906447, 1.175054]
+   DEBUG child fitness range: [0.000000, 1.798942]
+   DEBUG fitness_by_mutation range: [0.000000, 1.348315]
+   Loss for batch 199: 6.47419548034668
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0008728940738365054
+   psi: 0.9928106069564819
+   R0: 1.0089858770370483
+   DEBUG ancestral_fitness range: [0.000000, 1.699766]
+   DEBUG mutated_positions range: [0, 1191], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.656494, 1.186159]
+   DEBUG fitness_of_G range: [0.656494, 1.186159]
+   DEBUG child fitness range: [0.000000, 1.738983]
+   DEBUG fitness_by_mutation range: [0.000000, 1.332438]
+   Loss for batch 200: 6.780139446258545
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.000872339413035661
+   psi: 0.9928991198539734
+   R0: 1.0089309215545654
+   DEBUG ancestral_fitness range: [0.000000, 1.699703]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.596177, 1.239836]
+   DEBUG fitness_of_G range: [0.596177, 1.239836]
+   DEBUG child fitness range: [0.000000, 1.665575]
+   DEBUG fitness_by_mutation range: [0.000000, 1.406880]
+   Loss for batch 201: 20.713857650756836
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.0008717971504665911
+   psi: 0.9929337501525879
+   R0: 1.0088756084442139
+   DEBUG ancestral_fitness range: [0.000000, 1.629359]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.843699, 1.184841]
+   DEBUG fitness_of_G range: [0.843699, 1.184841]
+   DEBUG child fitness range: [0.000000, 1.630254]
+   DEBUG fitness_by_mutation range: [0.000000, 1.330161]
+   Loss for batch 202: 15.235729217529297
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.0008712693816050887
+   psi: 0.9931030869483948
+   R0: 1.0088157653808594
+   DEBUG ancestral_fitness range: [0.000000, 1.730560]
+   DEBUG mutated_positions range: [0, 1117], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 19]
+   DEBUG fitness_at_mutation range: [0.781648, 1.184964]
+   DEBUG fitness_of_G range: [0.781648, 1.184964]
+   DEBUG child fitness range: [0.000000, 1.665651]
+   DEBUG fitness_by_mutation range: [0.000000, 1.377411]
+   Loss for batch 203: 5.845139980316162
+   mu: 0.0008706970256753266
+   psi: 0.9932748675346375
+   R0: 1.008756160736084
+   DEBUG ancestral_fitness range: [0.000000, 1.624617]
+   DEBUG mutated_positions range: [0, 1091], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [2, 17]
+   DEBUG fitness_at_mutation range: [0.786960, 1.122545]
+   DEBUG fitness_of_G range: [0.786960, 1.122545]
+   DEBUG child fitness range: [0.000000, 1.639507]
+   DEBUG fitness_by_mutation range: [0.000000, 1.372618]
+   Loss for batch 204: 20.7613468170166
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.0008701363112777472
+   psi: 0.9933310151100159
+   R0: 1.008702278137207
+   DEBUG ancestral_fitness range: [0.000000, 1.718735]
+   DEBUG mutated_positions range: [0, 1228], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 17]
+   DEBUG fitness_at_mutation range: [0.769509, 1.108954]
+   DEBUG fitness_of_G range: [0.769509, 1.108954]
+   DEBUG child fitness range: [0.000000, 1.633947]
+   DEBUG fitness_by_mutation range: [0.000000, 1.356272]
+   Loss for batch 205: 1.2414225339889526
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0008695294964127243
+   psi: 0.9933950901031494
+   R0: 1.008649468421936
+   DEBUG ancestral_fitness range: [0.000000, 1.700894]
+   DEBUG mutated_positions range: [0, 1271], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.771108, 1.215802]
+   DEBUG fitness_of_G range: [0.771108, 1.215802]
+   DEBUG child fitness range: [0.000000, 1.732764]
+   DEBUG fitness_by_mutation range: [0.000000, 1.331803]
+   Loss for batch 206: 11.10813045501709
+   mu: 0.000868884613737464
+   psi: 0.9936133027076721
+   R0: 1.0085996389389038
+   DEBUG ancestral_fitness range: [0.000000, 1.683190]
+   DEBUG mutated_positions range: [0, 1218], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.817744, 1.167466]
+   DEBUG fitness_of_G range: [0.817744, 1.167466]
+   DEBUG child fitness range: [0.000000, 1.714749]
+   DEBUG fitness_by_mutation range: [0.000000, 1.352159]
+   Loss for batch 207: -5.560657024383545
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0008682753541506827
+   psi: 0.993736207485199
+   R0: 1.0085546970367432
+   DEBUG ancestral_fitness range: [0.000000, 1.694616]
+   DEBUG mutated_positions range: [0, 1236], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.681751, 1.104677]
+   DEBUG fitness_of_G range: [0.681751, 1.104677]
+   DEBUG child fitness range: [0.000000, 1.700731]
+   DEBUG fitness_by_mutation range: [0.000000, 1.381306]
+   Loss for batch 208: 7.14716100692749
+   DEBUG 1 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/1
+   mu: 0.0008676197612658143
+   psi: 0.9937593936920166
+   R0: 1.0085139274597168
+   DEBUG ancestral_fitness range: [0.000000, 1.733307]
+   DEBUG mutated_positions range: [0, 1238], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 17]
+   DEBUG fitness_at_mutation range: [0.797444, 1.220644]
+   DEBUG fitness_of_G range: [0.797444, 1.220644]
+   DEBUG child fitness range: [0.000000, 1.775840]
+   DEBUG fitness_by_mutation range: [0.000000, 1.405110]
+   Loss for batch 209: 20.187667846679688
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.000866992399096489
+   psi: 0.9937431216239929
+   R0: 1.0084763765335083
+   DEBUG ancestral_fitness range: [0.000000, 1.701922]
+   DEBUG mutated_positions range: [0, 1227], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.797523, 1.127793]
+   DEBUG fitness_of_G range: [0.797523, 1.127793]
+   DEBUG child fitness range: [0.000000, 1.752492]
+   DEBUG fitness_by_mutation range: [0.000000, 1.380235]
+   Loss for batch 210: 36.883460998535156
+   DEBUG 3 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/3
+   mu: 0.0008665290661156178
+   psi: 0.9937785863876343
+   R0: 1.0084400177001953
+   DEBUG ancestral_fitness range: [0.000000, 1.633809]
+   DEBUG mutated_positions range: [0, 1262], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [4, 19]
+   DEBUG fitness_at_mutation range: [0.688653, 1.133033]
+   DEBUG fitness_of_G range: [0.688653, 1.133033]
+   DEBUG child fitness range: [0.000000, 1.681691]
+   DEBUG fitness_by_mutation range: [0.000000, 1.345414]
+   Loss for batch 211: 20.08815574645996
+   DEBUG 4 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/4
+   mu: 0.0008660751045681536
+   psi: 0.9938164353370667
+   R0: 1.0084038972854614
+   DEBUG ancestral_fitness range: [0.000000, 1.671360]
+   DEBUG mutated_positions range: [0, 1166], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 19]
+   DEBUG fitness_at_mutation range: [0.722081, 1.112047]
+   DEBUG fitness_of_G range: [0.722081, 1.112047]
+   DEBUG child fitness range: [0.000000, 1.688000]
+   DEBUG fitness_by_mutation range: [0.000000, 1.332914]
+   Loss for batch 212: -13.201372146606445
+   DEBUG 2 examples without ancestral, their ancestral UIDs: min=0 max=0
+   DEBUG no-ancestor examples where ancestral != child seq: 0/2
+   mu: 0.0008655594429001212
+   psi: 0.9937678575515747
+   R0: 1.0083662271499634
+   DEBUG ancestral_fitness range: [0.000000, 1.665671]
+   DEBUG mutated_positions range: [0, 1228], seq_len_aa=1273
+   DEBUG mutated_aa_indices range: [0, 17]

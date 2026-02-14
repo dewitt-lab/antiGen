@@ -206,7 +206,7 @@ class DataConfig:
     """Configuration for data processing."""
     start_pos: int = 21562
     end_pos: int = 25381
-    dt: float = 0.1
+    dt: float = 0.01
 
 
 @dataclass

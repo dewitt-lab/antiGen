@@ -388,8 +388,9 @@ def train_one_batch(
             loss = loss + loss_contrib.sum()
 
             mutation_mask = (event_types_interval == 1)
-            if mutation_mask.any():
-                loss = loss - mutation_mask.sum() * torch.log(mu / (D - 1))
+            # Removing this because if we fix mu, mu here drops out of likelihood
+            # if mutation_mask.any():
+                # loss = loss - mutation_mask.sum() * torch.log(mu / (D - 1))
 
             if config.training.mutation_fitness_loss and mutation_mask.any():
                 mutation_batch_indices = interval_indices[mutation_mask]
@@ -414,11 +415,15 @@ def train_one_batch(
 
             birth_mask = (event_types_interval == 2)
             if birth_mask.any():
-                loss = loss - torch.log(2.0 * lam[interval] * fitness_of_G_interval[birth_mask]).sum()
+                # lambda also drops out as a constant factor when it's fixed
+                #loss = loss - torch.log(2.0 * lam[interval] * fitness_of_G_interval[birth_mask]).sum()
+                loss = loss - torch.log(fitness_of_G_interval[birth_mask]).sum()
 
-            sample_mask = (event_types_interval == 3)
-            if sample_mask.any():
-                loss = loss - sample_mask.sum() * torch.log(psi)
+
+            # Psi also drops out as constant when fixed
+            # sample_mask = (event_types_interval == 3)
+            # if sample_mask.any():
+            #    loss = loss - sample_mask.sum() * torch.log(psi)
 
     # Extract scalars before backward
     loss_val = loss.item()
@@ -531,7 +536,13 @@ def main():
         for e in all_training_examples:
             if (e[4] is not None) and (e[5] is not None):
                 if e[4] > cutoff:
-                    training_examples.append(e)
+                    # move everything backwards towards time 0
+                    examp = (e[0], e[1], e[2], e[3], e[4] - cutoff, e[5] - cutoff, e[6])
+                    training_examples.append(examp)
+
+        # Recompute N_GRID for the truncated time range
+        max_time = max(e[5] for e in training_examples)
+        N_GRID = math.ceil(max_time / DT) + 1
 
     print(f"Generated {len(training_examples)} training examples from tree")
     
@@ -785,8 +796,8 @@ def main():
     os.makedirs(config.output_dir, exist_ok=True)
 
     optimizer = optim.Adam([
-        {'params': fitness_model.parameters(), 'lr': learning_rate},
-        {'params': [log_psi, log_mu, log_f0], 'lr': learning_rate * 0.1},
+        {'params': fitness_model.parameters(), 'lr': learning_rate} #,
+        # {'params': [log_f0], 'lr': learning_rate}, # Not learning mu, r0, or psi for now
     ], lr=learning_rate)
 
     # Learning rate warmup scheduler
@@ -820,6 +831,8 @@ def main():
 
         # Track total loss
         total_loss = 0.0
+
+        MAX_BATCHES = 100
 
         # SGD loop using DataLoader
         for batch_num, batch_data in enumerate(dataloader):
@@ -893,6 +906,11 @@ def main():
             # Memory monitoring (every 100 batches)
             if batch_num % 100 == 0:
                 print(f"   GPU allocated: {torch.cuda.memory_allocated()/1e9:.2f} GB, reserved: {torch.cuda.memory_reserved()/1e9:.2f} GB")
+
+            # Early termination
+            if MAX_BATCHES is not None and global_step >= MAX_BATCHES:
+                print(f"   Reached max batches ({MAX_BATCHES}), stopping training.")
+                break
 
         print(f"Loss for epoch {epoch}: {total_loss}")
 

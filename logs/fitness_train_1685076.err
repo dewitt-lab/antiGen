@@ -1,2 +1,0 @@
-/var/spool/slurmd/job1685076/slurm_script: line 24: 1982220 Killed                  python python/train.py data/mutation-annotated-trees/SARS-CoV-2.json data/mutation-annotated-trees/NC_045512.2.fasta --model transformer --num-layers 2 --epochs 1 --batch-size 64
-[2026-02-10T22:12:06.190] error: Detected 1 oom_kill event in StepId=1685076.batch. Some of the step tasks have been OOM Killed.

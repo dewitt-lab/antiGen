@@ -21,6 +21,6 @@ echo "GPU: $CUDA_VISIBLE_DEVICES"
 
 python python/train.py data/mutation-annotated-trees/SARS-CoV-2.json \
     data/mutation-annotated-trees/NC_045512.2.fasta \
-    --model transformer --num-layers 2 --epochs 1 --batch-size 64 --lr 0.005
+    --model transformer --d-model 128 --num-layers 2 --epochs 1 --batch-size 64 --lr 0.0001 --output-dir /large_storage/hielab/ispecht/fitness-inference
 
 echo "Job finished at: $(date)"

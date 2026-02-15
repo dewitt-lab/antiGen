@@ -1,6 +1,0 @@
-
-EnvironmentNameNotFound: Could not find conda environment: chronumental
-You can list all discoverable environments with `conda info --envs`.
-
-
-[2026-02-09T23:57:24.767] error: *** JOB 1682804 ON GPU71E4 CANCELLED AT 2026-02-09T23:57:24 DUE to SIGNAL Terminated ***

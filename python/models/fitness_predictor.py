@@ -86,5 +86,4 @@ class FitnessPredictor(BaseFitnessPredictor):
 
         # Project to fitness space
         x = self.output_proj(x)
-        x = torch.nn.functional.softplus(x)
         return x

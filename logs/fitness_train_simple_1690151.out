@@ -1,0 +1,124 @@
+Job started at: Sat Feb 14 02:34:33 PM PST 2026
+Running on node: GPU71E4
+Job ID: 1690151
+GPU: 0
+Using device: cuda
+Loading tree...
+Reading JSONL header...
+  235015 total mutations in header
+  123014 nucleotide mutations in dictionary
+Reading JSONL nodes...
+  ... loaded 500000 nodes
+  ... loaded 1000000 nodes
+  ... loaded 1500000 nodes
+  ... loaded 2000000 nodes
+  ... loaded 2500000 nodes
+  ... loaded 3000000 nodes
+  ... loaded 3500000 nodes
+  ... loaded 4000000 nodes
+  ... loaded 4500000 nodes
+  ... loaded 5000000 nodes
+  ... loaded 5500000 nodes
+  ... loaded 6000000 nodes
+  ... loaded 6500000 nodes
+  ... loaded 7000000 nodes
+  ... loaded 7500000 nodes
+  ... loaded 8000000 nodes
+  ... loaded 8500000 nodes
+  ... loaded 9000000 nodes
+  ... loaded 9500000 nodes
+  ... loaded 10000000 nodes
+  Total: 10250356 nodes
+Building child edge lists...
+  10250355 edges wired, 0 orphaned nodes
+  Root: node_id=159118, name=
+  Tips with times: 8442223/8442223
+  Internal nodes with times: 1808133/1808133
+Converting times to years before present...
+  Most recent tip: 6.121373100793976
+  Root is 6.1214 years before present
+Checking for time inversions...
+  10250355 branches with both endpoints timed
+  0 time inversions (0.00%)
+
+Done! 8442223 tips, 1808133 internal nodes
+Reading reference FASTA...
+  Genome length: 29903
+  Spike region: 21563-25381 (3819 nt)
+Extracting spike sequences (root-to-tip BFS)...
+  ... processed 500000 nodes (28411 unique nt, 13351 unique aa)
+  ... processed 1000000 nodes (57164 unique nt, 26527 unique aa)
+  ... processed 1500000 nodes (100140 unique nt, 47494 unique aa)
+  ... processed 2000000 nodes (159292 unique nt, 77220 unique aa)
+  ... processed 2500000 nodes (201995 unique nt, 98348 unique aa)
+  ... processed 3000000 nodes (221987 unique nt, 107251 unique aa)
+  ... processed 3500000 nodes (243156 unique nt, 116480 unique aa)
+  ... processed 4000000 nodes (259229 unique nt, 123510 unique aa)
+  ... processed 4500000 nodes (276224 unique nt, 131465 unique aa)
+  ... processed 5000000 nodes (294639 unique nt, 142081 unique aa)
+  ... processed 5500000 nodes (317625 unique nt, 153652 unique aa)
+  ... processed 6000000 nodes (347874 unique nt, 169408 unique aa)
+  ... processed 6500000 nodes (369602 unique nt, 180951 unique aa)
+  ... processed 7000000 nodes (387247 unique nt, 189276 unique aa)
+  ... processed 7500000 nodes (408837 unique nt, 197422 unique aa)
+  ... processed 8000000 nodes (432313 unique nt, 206989 unique aa)
+  ... processed 8500000 nodes (457317 unique nt, 215248 unique aa)
+  ... processed 9000000 nodes (482837 unique nt, 225718 unique aa)
+  ... processed 9500000 nodes (514586 unique nt, 240528 unique aa)
+  ... processed 10000000 nodes (553923 unique nt, 259069 unique aa)
+  Total: 10250356 nodes, 573956 unique nt seqs, 269305 unique aa seqs
+
+SpikeSequenceSet(573956 unique seqs)
+AASequenceSet(269305 unique seqs)
+
+Total spike mutations on tree: 1001718
+Unique nt seqs: 573956
+Unique aa seqs: 269305
+Nt seqs / spike muts: 0.573
+Aa seqs / spike muts: 0.269
+  ... processed 500000/10250355 branches (5118214 examples)
+  ... processed 1000000/10250355 branches (9779961 examples)
+  ... processed 1500000/10250355 branches (13872300 examples)
+  ... processed 2000000/10250355 branches (18063629 examples)
+  ... processed 2500000/10250355 branches (22120828 examples)
+  ... processed 3000000/10250355 branches (26184682 examples)
+  ... processed 3500000/10250355 branches (30181264 examples)
+  ... processed 4000000/10250355 branches (33840079 examples)
+  ... processed 4500000/10250355 branches (38276607 examples)
+  ... processed 5000000/10250355 branches (42272144 examples)
+  ... processed 5500000/10250355 branches (46559266 examples)
+  ... processed 6000000/10250355 branches (50410786 examples)
+  ... processed 6500000/10250355 branches (54337097 examples)
+  ... processed 7000000/10250355 branches (58633063 examples)
+  ... processed 7500000/10250355 branches (63009816 examples)
+  ... processed 8000000/10250355 branches (67132415 examples)
+  ... processed 8500000/10250355 branches (72343874 examples)
+  ... processed 9000000/10250355 branches (78169257 examples)
+  ... processed 9500000/10250355 branches (82580511 examples)
+  ... processed 10000000/10250355 branches (87340335 examples)
+  Total: 89696034 training examples from 10250355 branches
+Generated 89696034 training examples
+NOTE: Multifurcations and bifurcations are currently treated the same in training examples. If this leads to weird birth rate estimates, try accounting for multifurcations.
+Building per-ancestor mutation matrices...
+  Time range: 0 to 6.121 ybp
+  Using examples with start_time >= 5.121 ybp (first year of pandemic)
+  41390 nonsynonymous mutation events
+  15867 synonymous mutations skipped
+  943096 mutations filtered (outside first year)
+  1600 unique ancestral sequences with observed mutations
+Tokenizing and building tensors...
+  Total unique mutations across all ancestors: 5383
+  Matrix density: 0.000120
+  Mean mutations per ancestor: 3.4
+Dataset: 1600 ancestral sequences
+Batches per epoch: 25
+Model: 565,142 trainable params
+BCE pos_weight: 7944.9
+Starting training...
+  Epoch 0, batch 0: loss=1.0932
+  Epoch 0, batch 10: loss=1.5163
+  Epoch 0, batch 20: loss=1.1340
+Epoch 0: avg_loss=1.2752
+Saving model to /large_storage/hielab/ispecht/fitness-inference/fitness_simple_d128_n2_lr0.0001_20260214_144214.pt...
+Done.
+Job finished at: Sat Feb 14 02:42:23 PM PST 2026

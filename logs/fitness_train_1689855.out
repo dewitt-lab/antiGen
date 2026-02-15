@@ -1,0 +1,4634 @@
+Job started at: Sat Feb 14 10:29:00 AM PST 2026
+Running on node: GPU71E4
+Job ID: 1689855
+GPU: 0
+Using device: cuda
+Model type: transformer
+Learning rate: 0.0001
+Output dir: /large_storage/hielab/gbrixi/fitness
+Reading JSONL header...
+  235015 total mutations in header
+  123014 nucleotide mutations in dictionary
+Reading JSONL nodes...
+  ... loaded 500000 nodes
+  ... loaded 1000000 nodes
+  ... loaded 1500000 nodes
+  ... loaded 2000000 nodes
+  ... loaded 2500000 nodes
+  ... loaded 3000000 nodes
+  ... loaded 3500000 nodes
+  ... loaded 4000000 nodes
+  ... loaded 4500000 nodes
+  ... loaded 5000000 nodes
+  ... loaded 5500000 nodes
+  ... loaded 6000000 nodes
+  ... loaded 6500000 nodes
+  ... loaded 7000000 nodes
+  ... loaded 7500000 nodes
+  ... loaded 8000000 nodes
+  ... loaded 8500000 nodes
+  ... loaded 9000000 nodes
+  ... loaded 9500000 nodes
+  ... loaded 10000000 nodes
+  Total: 10250356 nodes
+Building child edge lists...
+  10250355 edges wired, 0 orphaned nodes
+  Root: node_id=159118, name=
+  Tips with times: 8442223/8442223
+  Internal nodes with times: 1808133/1808133
+Converting times to years before present...
+  Most recent tip: 6.121373100793976
+  Root is 6.1214 years before present
+Checking for time inversions...
+  10250355 branches with both endpoints timed
+  0 time inversions (0.00%)
+
+Done! 8442223 tips, 1808133 internal nodes
+Reading reference FASTA...
+  Genome length: 29903
+  Spike region: 21563-25381 (3819 nt)
+Extracting spike sequences (root-to-tip BFS)...
+  ... processed 500000 nodes (28411 unique nt, 13351 unique aa)
+  ... processed 1000000 nodes (57164 unique nt, 26527 unique aa)
+  ... processed 1500000 nodes (100140 unique nt, 47494 unique aa)
+  ... processed 2000000 nodes (159292 unique nt, 77220 unique aa)
+  ... processed 2500000 nodes (201995 unique nt, 98348 unique aa)
+  ... processed 3000000 nodes (221987 unique nt, 107251 unique aa)
+  ... processed 3500000 nodes (243156 unique nt, 116480 unique aa)
+  ... processed 4000000 nodes (259229 unique nt, 123510 unique aa)
+  ... processed 4500000 nodes (276224 unique nt, 131465 unique aa)
+  ... processed 5000000 nodes (294639 unique nt, 142081 unique aa)
+  ... processed 5500000 nodes (317625 unique nt, 153652 unique aa)
+  ... processed 6000000 nodes (347874 unique nt, 169408 unique aa)
+  ... processed 6500000 nodes (369602 unique nt, 180951 unique aa)
+  ... processed 7000000 nodes (387247 unique nt, 189276 unique aa)
+  ... processed 7500000 nodes (408837 unique nt, 197422 unique aa)
+  ... processed 8000000 nodes (432313 unique nt, 206989 unique aa)
+  ... processed 8500000 nodes (457317 unique nt, 215248 unique aa)
+  ... processed 9000000 nodes (482837 unique nt, 225718 unique aa)
+  ... processed 9500000 nodes (514586 unique nt, 240528 unique aa)
+  ... processed 10000000 nodes (553923 unique nt, 259069 unique aa)
+  Total: 10250356 nodes, 573956 unique nt seqs, 269305 unique aa seqs
+
+SpikeSequenceSet(573956 unique seqs)
+AASequenceSet(269305 unique seqs)
+
+Total spike mutations on tree: 1001718
+Unique nt seqs: 573956
+Unique aa seqs: 269305
+Nt seqs / spike muts: 0.573
+Aa seqs / spike muts: 0.269
+  ... processed 500000/10250355 branches (5118214 examples)
+  ... processed 1000000/10250355 branches (9779961 examples)
+  ... processed 1500000/10250355 branches (13872300 examples)
+  ... processed 2000000/10250355 branches (18063629 examples)
+  ... processed 2500000/10250355 branches (22120828 examples)
+  ... processed 3000000/10250355 branches (26184682 examples)
+  ... processed 3500000/10250355 branches (30181264 examples)
+  ... processed 4000000/10250355 branches (33840079 examples)
+  ... processed 4500000/10250355 branches (38276607 examples)
+  ... processed 5000000/10250355 branches (42272144 examples)
+  ... processed 5500000/10250355 branches (46559266 examples)
+  ... processed 6000000/10250355 branches (50410786 examples)
+  ... processed 6500000/10250355 branches (54337097 examples)
+  ... processed 7000000/10250355 branches (58633063 examples)
+  ... processed 7500000/10250355 branches (63009816 examples)
+  ... processed 8000000/10250355 branches (67132415 examples)
+  ... processed 8500000/10250355 branches (72343874 examples)
+  ... processed 9000000/10250355 branches (78169257 examples)
+  ... processed 9500000/10250355 branches (82580511 examples)
+  ... processed 10000000/10250355 branches (87340335 examples)
+  Total: 89696034 training examples from 10250355 branches
+Generated 89696034 training examples
+NOTE: Multifurcations and bifurcations are currently treated the same in training examples. If this leads to weird birth rate estimates, try accounting for multifurcations.
+Generated 4910756 training examples from tree
+Number of unique AA sequences on tree: 17419
+Number of unique nucleotide sequences on tree: 36761
+Number of fitnesses modeled (approx.): 487836514
+Precomputing deduplicated tokenized tensors...
+Unique nucleotide sequences (used): 36761
+Unique AA sequences (used): 17419
+Tokenized 0 / 36761 unique nuc sequences
+Tokenized 10000 / 36761 unique nuc sequences
+Tokenized 20000 / 36761 unique nuc sequences
+Tokenized 30000 / 36761 unique nuc sequences
+Tokenized 0 / 17419 unique AA sequences
+Tokenized 10000 / 17419 unique AA sequences
+Indexed 0 training examples
+Indexed 10000 training examples
+Indexed 20000 training examples
+Indexed 30000 training examples
+Indexed 40000 training examples
+Indexed 50000 training examples
+Indexed 60000 training examples
+Indexed 70000 training examples
+Indexed 80000 training examples
+Indexed 90000 training examples
+Indexed 100000 training examples
+Indexed 110000 training examples
+Indexed 120000 training examples
+Indexed 130000 training examples
+Indexed 140000 training examples
+Indexed 150000 training examples
+Indexed 160000 training examples
+Indexed 170000 training examples
+Indexed 180000 training examples
+Indexed 190000 training examples
+Indexed 200000 training examples
+Indexed 210000 training examples
+Indexed 220000 training examples
+Indexed 230000 training examples
+Indexed 240000 training examples
+Indexed 250000 training examples
+Indexed 260000 training examples
+Indexed 270000 training examples
+Indexed 280000 training examples
+Indexed 290000 training examples
+Indexed 300000 training examples
+Indexed 310000 training examples
+Indexed 320000 training examples
+Indexed 330000 training examples
+Indexed 340000 training examples
+Indexed 350000 training examples
+Indexed 360000 training examples
+Indexed 370000 training examples
+Indexed 380000 training examples
+Indexed 390000 training examples
+Indexed 400000 training examples
+Indexed 410000 training examples
+Indexed 420000 training examples
+Indexed 430000 training examples
+Indexed 440000 training examples
+Indexed 450000 training examples
+Indexed 460000 training examples
+Indexed 470000 training examples
+Indexed 480000 training examples
+Indexed 490000 training examples
+Indexed 500000 training examples
+Indexed 510000 training examples
+Indexed 520000 training examples
+Indexed 530000 training examples
+Indexed 540000 training examples
+Indexed 550000 training examples
+Indexed 560000 training examples
+Indexed 570000 training examples
+Indexed 580000 training examples
+Indexed 590000 training examples
+Indexed 600000 training examples
+Indexed 610000 training examples
+Indexed 620000 training examples
+Indexed 630000 training examples
+Indexed 640000 training examples
+Indexed 650000 training examples
+Indexed 660000 training examples
+Indexed 670000 training examples
+Indexed 680000 training examples
+Indexed 690000 training examples
+Indexed 700000 training examples
+Indexed 710000 training examples
+Indexed 720000 training examples
+Indexed 730000 training examples
+Indexed 740000 training examples
+Indexed 750000 training examples
+Indexed 760000 training examples
+Indexed 770000 training examples
+Indexed 780000 training examples
+Indexed 790000 training examples
+Indexed 800000 training examples
+Indexed 810000 training examples
+Indexed 820000 training examples
+Indexed 830000 training examples
+Indexed 840000 training examples
+Indexed 850000 training examples
+Indexed 860000 training examples
+Indexed 870000 training examples
+Indexed 880000 training examples
+Indexed 890000 training examples
+Indexed 900000 training examples
+Indexed 910000 training examples
+Indexed 920000 training examples
+Indexed 930000 training examples
+Indexed 940000 training examples
+Indexed 950000 training examples
+Indexed 960000 training examples
+Indexed 970000 training examples
+Indexed 980000 training examples
+Indexed 990000 training examples
+Indexed 1000000 training examples
+Indexed 1010000 training examples
+Indexed 1020000 training examples
+Indexed 1030000 training examples
+Indexed 1040000 training examples
+Indexed 1050000 training examples
+Indexed 1060000 training examples
+Indexed 1070000 training examples
+Indexed 1080000 training examples
+Indexed 1090000 training examples
+Indexed 1100000 training examples
+Indexed 1110000 training examples
+Indexed 1120000 training examples
+Indexed 1130000 training examples
+Indexed 1140000 training examples
+Indexed 1150000 training examples
+Indexed 1160000 training examples
+Indexed 1170000 training examples
+Indexed 1180000 training examples
+Indexed 1190000 training examples
+Indexed 1200000 training examples
+Indexed 1210000 training examples
+Indexed 1220000 training examples
+Indexed 1230000 training examples
+Indexed 1240000 training examples
+Indexed 1250000 training examples
+Indexed 1260000 training examples
+Indexed 1270000 training examples
+Indexed 1280000 training examples
+Indexed 1290000 training examples
+Indexed 1300000 training examples
+Indexed 1310000 training examples
+Indexed 1320000 training examples
+Indexed 1330000 training examples
+Indexed 1340000 training examples
+Indexed 1350000 training examples
+Indexed 1360000 training examples
+Indexed 1370000 training examples
+Indexed 1380000 training examples
+Indexed 1390000 training examples
+Indexed 1400000 training examples
+Indexed 1410000 training examples
+Indexed 1420000 training examples
+Indexed 1430000 training examples
+Indexed 1440000 training examples
+Indexed 1450000 training examples
+Indexed 1460000 training examples
+Indexed 1470000 training examples
+Indexed 1480000 training examples
+Indexed 1490000 training examples
+Indexed 1500000 training examples
+Indexed 1510000 training examples
+Indexed 1520000 training examples
+Indexed 1530000 training examples
+Indexed 1540000 training examples
+Indexed 1550000 training examples
+Indexed 1560000 training examples
+Indexed 1570000 training examples
+Indexed 1580000 training examples
+Indexed 1590000 training examples
+Indexed 1600000 training examples
+Indexed 1610000 training examples
+Indexed 1620000 training examples
+Indexed 1630000 training examples
+Indexed 1640000 training examples
+Indexed 1650000 training examples
+Indexed 1660000 training examples
+Indexed 1670000 training examples
+Indexed 1680000 training examples
+Indexed 1690000 training examples
+Indexed 1700000 training examples
+Indexed 1710000 training examples
+Indexed 1720000 training examples
+Indexed 1730000 training examples
+Indexed 1740000 training examples
+Indexed 1750000 training examples
+Indexed 1760000 training examples
+Indexed 1770000 training examples
+Indexed 1780000 training examples
+Indexed 1790000 training examples
+Indexed 1800000 training examples
+Indexed 1810000 training examples
+Indexed 1820000 training examples
+Indexed 1830000 training examples
+Indexed 1840000 training examples
+Indexed 1850000 training examples
+Indexed 1860000 training examples
+Indexed 1870000 training examples
+Indexed 1880000 training examples
+Indexed 1890000 training examples
+Indexed 1900000 training examples
+Indexed 1910000 training examples
+Indexed 1920000 training examples
+Indexed 1930000 training examples
+Indexed 1940000 training examples
+Indexed 1950000 training examples
+Indexed 1960000 training examples
+Indexed 1970000 training examples
+Indexed 1980000 training examples
+Indexed 1990000 training examples
+Indexed 2000000 training examples
+Indexed 2010000 training examples
+Indexed 2020000 training examples
+Indexed 2030000 training examples
+Indexed 2040000 training examples
+Indexed 2050000 training examples
+Indexed 2060000 training examples
+Indexed 2070000 training examples
+Indexed 2080000 training examples
+Indexed 2090000 training examples
+Indexed 2100000 training examples
+Indexed 2110000 training examples
+Indexed 2120000 training examples
+Indexed 2130000 training examples
+Indexed 2140000 training examples
+Indexed 2150000 training examples
+Indexed 2160000 training examples
+Indexed 2170000 training examples
+Indexed 2180000 training examples
+Indexed 2190000 training examples
+Indexed 2200000 training examples
+Indexed 2210000 training examples
+Indexed 2220000 training examples
+Indexed 2230000 training examples
+Indexed 2240000 training examples
+Indexed 2250000 training examples
+Indexed 2260000 training examples
+Indexed 2270000 training examples
+Indexed 2280000 training examples
+Indexed 2290000 training examples
+Indexed 2300000 training examples
+Indexed 2310000 training examples
+Indexed 2320000 training examples
+Indexed 2330000 training examples
+Indexed 2340000 training examples
+Indexed 2350000 training examples
+Indexed 2360000 training examples
+Indexed 2370000 training examples
+Indexed 2380000 training examples
+Indexed 2390000 training examples
+Indexed 2400000 training examples
+Indexed 2410000 training examples
+Indexed 2420000 training examples
+Indexed 2430000 training examples
+Indexed 2440000 training examples
+Indexed 2450000 training examples
+Indexed 2460000 training examples
+Indexed 2470000 training examples
+Indexed 2480000 training examples
+Indexed 2490000 training examples
+Indexed 2500000 training examples
+Indexed 2510000 training examples
+Indexed 2520000 training examples
+Indexed 2530000 training examples
+Indexed 2540000 training examples
+Indexed 2550000 training examples
+Indexed 2560000 training examples
+Indexed 2570000 training examples
+Indexed 2580000 training examples
+Indexed 2590000 training examples
+Indexed 2600000 training examples
+Indexed 2610000 training examples
+Indexed 2620000 training examples
+Indexed 2630000 training examples
+Indexed 2640000 training examples
+Indexed 2650000 training examples
+Indexed 2660000 training examples
+Indexed 2670000 training examples
+Indexed 2680000 training examples
+Indexed 2690000 training examples
+Indexed 2700000 training examples
+Indexed 2710000 training examples
+Indexed 2720000 training examples
+Indexed 2730000 training examples
+Indexed 2740000 training examples
+Indexed 2750000 training examples
+Indexed 2760000 training examples
+Indexed 2770000 training examples
+Indexed 2780000 training examples
+Indexed 2790000 training examples
+Indexed 2800000 training examples
+Indexed 2810000 training examples
+Indexed 2820000 training examples
+Indexed 2830000 training examples
+Indexed 2840000 training examples
+Indexed 2850000 training examples
+Indexed 2860000 training examples
+Indexed 2870000 training examples
+Indexed 2880000 training examples
+Indexed 2890000 training examples
+Indexed 2900000 training examples
+Indexed 2910000 training examples
+Indexed 2920000 training examples
+Indexed 2930000 training examples
+Indexed 2940000 training examples
+Indexed 2950000 training examples
+Indexed 2960000 training examples
+Indexed 2970000 training examples
+Indexed 2980000 training examples
+Indexed 2990000 training examples
+Indexed 3000000 training examples
+Indexed 3010000 training examples
+Indexed 3020000 training examples
+Indexed 3030000 training examples
+Indexed 3040000 training examples
+Indexed 3050000 training examples
+Indexed 3060000 training examples
+Indexed 3070000 training examples
+Indexed 3080000 training examples
+Indexed 3090000 training examples
+Indexed 3100000 training examples
+Indexed 3110000 training examples
+Indexed 3120000 training examples
+Indexed 3130000 training examples
+Indexed 3140000 training examples
+Indexed 3150000 training examples
+Indexed 3160000 training examples
+Indexed 3170000 training examples
+Indexed 3180000 training examples
+Indexed 3190000 training examples
+Indexed 3200000 training examples
+Indexed 3210000 training examples
+Indexed 3220000 training examples
+Indexed 3230000 training examples
+Indexed 3240000 training examples
+Indexed 3250000 training examples
+Indexed 3260000 training examples
+Indexed 3270000 training examples
+Indexed 3280000 training examples
+Indexed 3290000 training examples
+Indexed 3300000 training examples
+Indexed 3310000 training examples
+Indexed 3320000 training examples
+Indexed 3330000 training examples
+Indexed 3340000 training examples
+Indexed 3350000 training examples
+Indexed 3360000 training examples
+Indexed 3370000 training examples
+Indexed 3380000 training examples
+Indexed 3390000 training examples
+Indexed 3400000 training examples
+Indexed 3410000 training examples
+Indexed 3420000 training examples
+Indexed 3430000 training examples
+Indexed 3440000 training examples
+Indexed 3450000 training examples
+Indexed 3460000 training examples
+Indexed 3470000 training examples
+Indexed 3480000 training examples
+Indexed 3490000 training examples
+Indexed 3500000 training examples
+Indexed 3510000 training examples
+Indexed 3520000 training examples
+Indexed 3530000 training examples
+Indexed 3540000 training examples
+Indexed 3550000 training examples
+Indexed 3560000 training examples
+Indexed 3570000 training examples
+Indexed 3580000 training examples
+Indexed 3590000 training examples
+Indexed 3600000 training examples
+Indexed 3610000 training examples
+Indexed 3620000 training examples
+Indexed 3630000 training examples
+Indexed 3640000 training examples
+Indexed 3650000 training examples
+Indexed 3660000 training examples
+Indexed 3670000 training examples
+Indexed 3680000 training examples
+Indexed 3690000 training examples
+Indexed 3700000 training examples
+Indexed 3710000 training examples
+Indexed 3720000 training examples
+Indexed 3730000 training examples
+Indexed 3740000 training examples
+Indexed 3750000 training examples
+Indexed 3760000 training examples
+Indexed 3770000 training examples
+Indexed 3780000 training examples
+Indexed 3790000 training examples
+Indexed 3800000 training examples
+Indexed 3810000 training examples
+Indexed 3820000 training examples
+Indexed 3830000 training examples
+Indexed 3840000 training examples
+Indexed 3850000 training examples
+Indexed 3860000 training examples
+Indexed 3870000 training examples
+Indexed 3880000 training examples
+Indexed 3890000 training examples
+Indexed 3900000 training examples
+Indexed 3910000 training examples
+Indexed 3920000 training examples
+Indexed 3930000 training examples
+Indexed 3940000 training examples
+Indexed 3950000 training examples
+Indexed 3960000 training examples
+Indexed 3970000 training examples
+Indexed 3980000 training examples
+Indexed 3990000 training examples
+Indexed 4000000 training examples
+Indexed 4010000 training examples
+Indexed 4020000 training examples
+Indexed 4030000 training examples
+Indexed 4040000 training examples
+Indexed 4050000 training examples
+Indexed 4060000 training examples
+Indexed 4070000 training examples
+Indexed 4080000 training examples
+Indexed 4090000 training examples
+Indexed 4100000 training examples
+Indexed 4110000 training examples
+Indexed 4120000 training examples
+Indexed 4130000 training examples
+Indexed 4140000 training examples
+Indexed 4150000 training examples
+Indexed 4160000 training examples
+Indexed 4170000 training examples
+Indexed 4180000 training examples
+Indexed 4190000 training examples
+Indexed 4200000 training examples
+Indexed 4210000 training examples
+Indexed 4220000 training examples
+Indexed 4230000 training examples
+Indexed 4240000 training examples
+Indexed 4250000 training examples
+Indexed 4260000 training examples
+Indexed 4270000 training examples
+Indexed 4280000 training examples
+Indexed 4290000 training examples
+Indexed 4300000 training examples
+Indexed 4310000 training examples
+Indexed 4320000 training examples
+Indexed 4330000 training examples
+Indexed 4340000 training examples
+Indexed 4350000 training examples
+Indexed 4360000 training examples
+Indexed 4370000 training examples
+Indexed 4380000 training examples
+Indexed 4390000 training examples
+Indexed 4400000 training examples
+Indexed 4410000 training examples
+Indexed 4420000 training examples
+Indexed 4430000 training examples
+Indexed 4440000 training examples
+Indexed 4450000 training examples
+Indexed 4460000 training examples
+Indexed 4470000 training examples
+Indexed 4480000 training examples
+Indexed 4490000 training examples
+Indexed 4500000 training examples
+Indexed 4510000 training examples
+Indexed 4520000 training examples
+Indexed 4530000 training examples
+Indexed 4540000 training examples
+Indexed 4550000 training examples
+Indexed 4560000 training examples
+Indexed 4570000 training examples
+Indexed 4580000 training examples
+Indexed 4590000 training examples
+Indexed 4600000 training examples
+Indexed 4610000 training examples
+Indexed 4620000 training examples
+Indexed 4630000 training examples
+Indexed 4640000 training examples
+Indexed 4650000 training examples
+Indexed 4660000 training examples
+Indexed 4670000 training examples
+Indexed 4680000 training examples
+Indexed 4690000 training examples
+Indexed 4700000 training examples
+Indexed 4710000 training examples
+Indexed 4720000 training examples
+Indexed 4730000 training examples
+Indexed 4740000 training examples
+Indexed 4750000 training examples
+Indexed 4760000 training examples
+Indexed 4770000 training examples
+Indexed 4780000 training examples
+Indexed 4790000 training examples
+Indexed 4800000 training examples
+Indexed 4810000 training examples
+Indexed 4820000 training examples
+Indexed 4830000 training examples
+Indexed 4840000 training examples
+Indexed 4850000 training examples
+Indexed 4860000 training examples
+Indexed 4870000 training examples
+Indexed 4880000 training examples
+Indexed 4890000 training examples
+Indexed 4900000 training examples
+Indexed 4910000 training examples
+Warning: 0 training examples with negative branch length (corrected to 0)
+Precomputation complete.
+  Unique nuc tensor: torch.Size([36761, 3819]) (1123.1 MB)
+  Unique AA tensor:  torch.Size([17419, 1273]) (177.4 MB)
+  Per-example indices: 4910756 x 3 ints (117.9 MB)
+  has_ancestral: 4769100 / 4910756 examples
+Model created: 13,283,862 trainable params
+Estimate of mutation rate: 0.001
+Estimate of sampling rate: 1.0
+Using batch size 64. 76731 batches per epoch are needed.
+Training for 1 epoch(s)
+Entering training loop...
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 0: 18.39724349975586
+   GPU allocated: 1.59 GB, reserved: 35.75 GB
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 1: 49.19208908081055
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 2: 38.27777099609375
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 3: 16.916231155395508
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 4: 13.15808391571045
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 5: 18.069984436035156
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 6: 17.06270408630371
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 7: 11.414865493774414
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 8: 11.700128555297852
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 9: 14.653690338134766
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 10: 12.558527946472168
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 11: 11.456521034240723
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 12: 10.909802436828613
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 13: 10.78213119506836
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 14: 11.786404609680176
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 15: 8.558577537536621
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 16: 9.312019348144531
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 17: 10.194182395935059
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 18: 9.812573432922363
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 19: 10.320125579833984
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 20: 11.349567413330078
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 21: 9.809410095214844
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 22: 10.025914192199707
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 23: 9.183167457580566
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 24: 10.444085121154785
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 25: 12.078727722167969
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 26: 10.456679344177246
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 27: 10.457923889160156
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 28: 10.220916748046875
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 29: 11.165144920349121
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 30: 9.60373306274414
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 31: 9.28327751159668
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 32: 10.641611099243164
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 33: 12.326488494873047
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 34: 11.794225692749023
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 35: 9.459022521972656
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 36: 10.058357238769531
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 37: 10.113537788391113
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 38: 10.199594497680664
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 39: 10.216782569885254
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 40: 10.83749771118164
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 41: 10.916535377502441
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 42: 9.441169738769531
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 43: 11.24940013885498
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 44: 13.132036209106445
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 45: 11.20920181274414
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 46: 9.682361602783203
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 47: 11.585484504699707
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 48: 10.882545471191406
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 49: 11.021039962768555
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 50: 11.823912620544434
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 51: 11.457353591918945
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 52: 10.575403213500977
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 53: 11.102858543395996
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 54: 10.463776588439941
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 55: 11.621027946472168
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 56: 9.718856811523438
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 57: 11.008673667907715
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 58: 11.140240669250488
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 59: 11.765896797180176
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 60: 8.61003589630127
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 61: 10.557051658630371
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 62: 9.36727523803711
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 63: 12.838403701782227
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 64: 12.268064498901367
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 65: 9.615983963012695
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 66: 11.095216751098633
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 67: 10.312499046325684
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 68: 9.943074226379395
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 69: 8.9579439163208
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 70: 11.579785346984863
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 71: 11.09255313873291
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 72: 10.23831558227539
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 73: 11.31142520904541
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 74: 9.212640762329102
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 75: 12.238985061645508
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 76: 10.121435165405273
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 77: 9.892889976501465
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 78: 10.141668319702148
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 79: 10.093480110168457
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 80: 9.78228759765625
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 81: 10.504607200622559
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 82: 11.72091293334961
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 83: 9.979207038879395
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 84: 7.625125408172607
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 85: 10.693833351135254
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 86: 10.18818473815918
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 87: 10.63263988494873
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 88: 10.014162063598633
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 89: 10.409708976745605
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 90: 7.8902435302734375
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 91: 9.62543773651123
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 92: 9.642045974731445
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 93: 10.629630088806152
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 94: 9.502674102783203
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 95: 11.184165954589844
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 96: 8.75969409942627
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 97: 9.676445960998535
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 98: 9.55303955078125
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 99: 10.146204948425293
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 100: 9.478841781616211
+   GPU allocated: 1.59 GB, reserved: 36.43 GB
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 101: 10.863256454467773
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 102: 9.567758560180664
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 103: 11.057393074035645
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 104: 10.642062187194824
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 105: 10.123629570007324
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 106: 11.097149848937988
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 107: 10.301502227783203
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 108: 9.286398887634277
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 109: 10.74046516418457
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 110: 10.10319995880127
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 111: 10.425088882446289
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 112: 9.715154647827148
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 113: 10.45582389831543
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 114: 8.51965045928955
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 115: 9.665712356567383
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 116: 10.28074836730957
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 117: 8.761842727661133
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 118: 8.041937828063965
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 119: 10.898245811462402
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 120: 10.641310691833496
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 121: 9.080341339111328
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 122: 10.4673433303833
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 123: 10.52320671081543
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 124: 9.723804473876953
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 125: 10.642109870910645
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 126: 10.130602836608887
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 127: 10.771268844604492
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 128: 10.060295104980469
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 129: 9.219829559326172
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 130: 10.695101737976074
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 131: 11.274457931518555
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 132: 9.330604553222656
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 133: 8.843480110168457
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 134: 11.37839412689209
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 135: 8.554084777832031
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 136: 9.603626251220703
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 137: 9.632562637329102
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 138: 8.56535816192627
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 139: 8.906783103942871
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 140: 11.59640121459961
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 141: 10.174690246582031
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 142: 8.248029708862305
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 143: 8.15455150604248
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 144: 9.918168067932129
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 145: 9.423025131225586
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 146: 10.853546142578125
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 147: 10.747190475463867
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 148: 10.398822784423828
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 149: 9.899904251098633
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 150: 9.885220527648926
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 151: 8.974312782287598
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 152: 10.864664077758789
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 153: 9.736186027526855
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 154: 8.56065845489502
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 155: 9.370039939880371
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 156: 10.5693941116333
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 157: 9.477094650268555
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 158: 10.228574752807617
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 159: 8.885430335998535
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 160: 8.052030563354492
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 161: 8.904613494873047
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 162: 9.803030967712402
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 163: 10.002427101135254
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 164: 12.32323169708252
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 165: 9.63569164276123
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 166: 9.559293746948242
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 167: 9.769665718078613
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 168: 10.385168075561523
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 169: 11.413046836853027
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 170: 10.204948425292969
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 171: 9.256296157836914
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 172: 9.529549598693848
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 173: 9.225579261779785
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 174: 11.4387788772583
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 175: 10.91061019897461
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 176: 10.940467834472656
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 177: 10.887944221496582
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 178: 10.671085357666016
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 179: 11.024197578430176
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 180: 8.687959671020508
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 181: 8.710373878479004
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 182: 9.894643783569336
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 183: 8.441075325012207
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 184: 10.81677532196045
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 185: 9.496393203735352
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 186: 10.224456787109375
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 187: 11.743699073791504
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 188: 8.887859344482422
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 189: 9.735669136047363
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 190: 10.521895408630371
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 191: 7.993359565734863
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 192: 9.749363899230957
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 193: 8.312328338623047
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 194: 10.563583374023438
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 195: 10.269330024719238
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 196: 9.512765884399414
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 197: 9.35451602935791
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 198: 8.590557098388672
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 199: 10.083779335021973
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 200: 9.436452865600586
+   GPU allocated: 1.59 GB, reserved: 36.43 GB
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 201: 9.888245582580566
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 202: 8.402259826660156
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 203: 10.715917587280273
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 204: 9.031403541564941
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 205: 10.592172622680664
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 206: 10.586320877075195
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 207: 10.417795181274414
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 208: 12.103999137878418
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 209: 9.10575008392334
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 210: 10.26928424835205
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 211: 10.00908088684082
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 212: 10.43369197845459
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 213: 9.655203819274902
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 214: 10.571858406066895
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 215: 9.539213180541992
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 216: 9.088607788085938
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 217: 10.922313690185547
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 218: 11.457113265991211
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 219: 10.030396461486816
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 220: 8.453351974487305
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 221: 10.648965835571289
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 222: 10.240492820739746
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 223: 7.366570949554443
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 224: 9.389467239379883
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 225: 9.45590591430664
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 226: 8.410748481750488
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 227: 10.141744613647461
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 228: 12.357512474060059
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 229: 10.204710006713867
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 230: 10.481393814086914
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 231: 8.381219863891602
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 232: 9.691679000854492
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 233: 10.279335021972656
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 234: 9.463033676147461
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 235: 9.690142631530762
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 236: 9.699773788452148
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 237: 10.155946731567383
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 238: 10.172059059143066
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 239: 9.6882963180542
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 240: 7.951177597045898
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 241: 9.881158828735352
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 242: 9.232626914978027
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 243: 9.433940887451172
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 244: 9.888538360595703
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 245: 9.798998832702637
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 246: 8.766161918640137
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 247: 10.095039367675781
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 248: 9.46767520904541
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 249: 8.494766235351562
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 250: 8.68923282623291
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 251: 8.820834159851074
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 252: 10.512492179870605
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 253: 8.392875671386719
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 254: 9.188152313232422
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 255: 8.277583122253418
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 256: 8.769875526428223
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 257: 10.273782730102539
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 258: 9.133895874023438
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 259: 9.3285551071167
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 260: 11.295344352722168
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 261: 10.74864387512207
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 262: 11.255899429321289
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 263: 9.44180965423584
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 264: 9.817459106445312
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 265: 8.888107299804688
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 266: 10.14473819732666
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 267: 9.515423774719238
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 268: 9.28736400604248
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 269: 10.08078384399414
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 270: 8.031351089477539
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 271: 8.767342567443848
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 272: 9.63630199432373
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 273: 9.501137733459473
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 274: 9.354229927062988
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 275: 9.233256340026855
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 276: 9.928415298461914
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 277: 9.92481803894043
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 278: 8.186537742614746
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 279: 10.934944152832031
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 280: 10.380502700805664
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 281: 8.6996431350708
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 282: 9.521631240844727
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 283: 8.787845611572266
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 284: 9.89205551147461
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 285: 8.946063041687012
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 286: 10.78905963897705
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 287: 10.038190841674805
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 288: 10.540546417236328
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 289: 10.88058853149414
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 290: 10.363456726074219
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 291: 8.220714569091797
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 292: 8.935694694519043
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 293: 8.747151374816895
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 294: 10.919861793518066
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 295: 9.165596961975098
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 296: 10.895720481872559
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 297: 9.606748580932617
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 298: 9.853778839111328
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 299: 10.504188537597656
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 300: 8.28609561920166
+   GPU allocated: 1.59 GB, reserved: 36.43 GB
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 301: 9.805350303649902
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 302: 9.12607479095459
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 303: 11.203621864318848
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 304: 11.079973220825195
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 305: 8.889439582824707
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 306: 9.590415954589844
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 307: 7.6514387130737305
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 308: 8.612342834472656
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 309: 12.42150592803955
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 310: 9.27592658996582
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 311: 9.87748908996582
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 312: 7.678115367889404
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 313: 9.338634490966797
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 314: 10.603742599487305
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 315: 9.707642555236816
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 316: 9.995134353637695
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 317: 10.848862648010254
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 318: 8.040899276733398
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 319: 9.475499153137207
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 320: 8.060367584228516
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 321: 10.027748107910156
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 322: 9.784305572509766
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 323: 9.11323356628418
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 324: 10.779212951660156
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 325: 7.765400409698486
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 326: 10.716474533081055
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 327: 10.397627830505371
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 328: 9.327824592590332
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 329: 9.99363899230957
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 330: 8.70537281036377
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 331: 9.233073234558105
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 332: 9.250675201416016
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 333: 9.722649574279785
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 334: 10.526545524597168
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 335: 8.429129600524902
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 336: 10.388771057128906
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 337: 10.940319061279297
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 338: 9.57357406616211
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 339: 11.016521453857422
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 340: 8.952949523925781
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 341: 11.861560821533203
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 342: 9.950337409973145
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 343: 10.914626121520996
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 344: 10.811775207519531
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 345: 10.083184242248535
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 346: 10.757349967956543
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 347: 11.052401542663574
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 348: 7.221726417541504
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 349: 10.670228958129883
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 350: 10.2858247756958
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 351: 8.511143684387207
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 352: 9.595102310180664
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 353: 9.636540412902832
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 354: 8.692536354064941
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 355: 10.439202308654785
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 356: 9.542562484741211
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 357: 8.745522499084473
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 358: 8.369094848632812
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 359: 9.517754554748535
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 360: 9.716291427612305
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 361: 11.689207077026367
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 362: 11.515146255493164
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 363: 9.585580825805664
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 364: 9.95840072631836
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 365: 10.493494987487793
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 366: 9.943039894104004
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 367: 9.127605438232422
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 368: 8.924040794372559
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 369: 10.974347114562988
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 370: 9.284554481506348
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 371: 10.97273063659668
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 372: 9.905041694641113
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 373: 8.763938903808594
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 374: 9.6600980758667
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 375: 8.027137756347656
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 376: 9.242812156677246
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 377: 9.826411247253418
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 378: 10.55540943145752
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 379: 9.570496559143066
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 380: 8.548068046569824
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 381: 9.308016777038574
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 382: 9.155320167541504
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 383: 10.832454681396484
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 384: 10.803054809570312
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 385: 10.605162620544434
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 386: 13.454895973205566
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 387: 8.732756614685059
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 388: 10.797067642211914
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 389: 9.26925277709961
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 390: 10.46474552154541
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 391: 9.069167137145996
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 392: 10.175387382507324
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 393: 10.259833335876465
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 394: 10.142435073852539
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 395: 9.757084846496582
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 396: 10.40685749053955
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 397: 9.756293296813965
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 398: 9.72099781036377
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 399: 9.918055534362793
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 400: 9.261781692504883
+   GPU allocated: 1.59 GB, reserved: 36.43 GB
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 401: 9.396230697631836
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 402: 10.110692024230957
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 403: 9.261697769165039
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 404: 9.978862762451172
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 405: 9.274297714233398
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 406: 8.548040390014648
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 407: 14.052403450012207
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 408: 13.034555435180664
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 409: 10.788642883300781
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 410: 10.073453903198242
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 411: 8.591675758361816
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 412: 9.489034652709961
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 413: 9.696916580200195
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 414: 9.040937423706055
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 415: 9.71322250366211
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 416: 9.171666145324707
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 417: 9.972954750061035
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 418: 8.63034439086914
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 419: 9.815352439880371
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 420: 9.443896293640137
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 421: 8.54038143157959
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 422: 9.17566967010498
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 423: 10.087193489074707
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 424: 8.11625862121582
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 425: 8.596871376037598
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 426: 11.36462116241455
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 427: 9.10196590423584
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 428: 10.3129243850708
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 429: 10.424976348876953
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 430: 9.322405815124512
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 431: 9.248204231262207
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 432: 9.752789497375488
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 433: 6.438788414001465
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 434: 10.60104751586914
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 435: 9.33169937133789
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 436: 9.959627151489258
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 437: 9.782217979431152
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 438: 9.613356590270996
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 439: 9.34994888305664
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 440: 9.469320297241211
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 441: 9.516559600830078
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 442: 9.242399215698242
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 443: 7.590019702911377
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 444: 11.28264045715332
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 445: 10.386024475097656
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 446: 10.034781455993652
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 447: 8.571093559265137
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 448: 10.04052448272705
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 449: 9.772281646728516
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 450: 8.804368019104004
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 451: 9.992766380310059
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 452: 7.566870212554932
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 453: 9.18848991394043
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 454: 10.789615631103516
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 455: 9.472683906555176
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 456: 10.893631935119629
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 457: 9.21904182434082
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 458: 8.123529434204102
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 459: 9.065505027770996
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 460: 10.41898250579834
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 461: 9.779558181762695
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 462: 9.943140983581543
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 463: 11.142053604125977
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 464: 10.794209480285645
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 465: 10.540921211242676
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 466: 11.677824020385742
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 467: 10.527835845947266
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 468: 8.778733253479004
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 469: 8.504380226135254
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 470: 10.632083892822266
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 471: 10.115259170532227
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 472: 9.505778312683105
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 473: 8.940573692321777
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 474: 8.720154762268066
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 475: 10.98035717010498
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 476: 10.890013694763184
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 477: 11.51259994506836
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 478: 9.395025253295898
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 479: 10.843923568725586
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 480: 10.919843673706055
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 481: 10.474044799804688
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 482: 9.479048728942871
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 483: 9.294633865356445
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 484: 9.31621265411377
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 485: 9.937922477722168
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 486: 9.039949417114258
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 487: 10.168196678161621
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 488: 9.833855628967285
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 489: 10.145737648010254
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 490: 10.100479125976562
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 491: 8.544329643249512
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 492: 10.01207447052002
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 493: 10.481968879699707
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 494: 9.424657821655273
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 495: 9.28274154663086
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 496: 9.568614959716797
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 497: 7.935908317565918
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 498: 9.784833908081055
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 499: 9.7935209274292
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 500: 9.351366996765137
+   GPU allocated: 1.59 GB, reserved: 36.43 GB
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 501: 8.942743301391602
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 502: 10.956443786621094
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 503: 8.280021667480469
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 504: 9.076616287231445
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 505: 8.627629280090332
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 506: 9.564919471740723
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 507: 10.38625717163086
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 508: 9.334552764892578
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 509: 10.016681671142578
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 510: 10.78475570678711
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 511: 8.918283462524414
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 512: 10.240180969238281
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 513: 8.143604278564453
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 514: 9.249961853027344
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 515: 10.329971313476562
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 516: 10.6461763381958
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 517: 11.307174682617188
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 518: 9.725412368774414
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 519: 9.959267616271973
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 520: 8.23279094696045
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 521: 10.358945846557617
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 522: 10.16788387298584
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 523: 11.1483736038208
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 524: 9.970067977905273
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 525: 10.60374927520752
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 526: 10.089128494262695
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 527: 8.509978294372559
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 528: 9.709761619567871
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 529: 10.966819763183594
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 530: 9.355053901672363
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 531: 9.454131126403809
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 532: 8.577848434448242
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 533: 10.456921577453613
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 534: 9.156487464904785
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 535: 9.685590744018555
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 536: 9.09243106842041
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 537: 8.616351127624512
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 538: 11.929136276245117
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 539: 9.468087196350098
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 540: 8.367584228515625
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 541: 9.931715965270996
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 542: 9.841751098632812
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 543: 10.822845458984375
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 544: 9.247620582580566
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 545: 9.078023910522461
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 546: 10.8203706741333
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 547: 10.000616073608398
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 548: 9.589343070983887
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 549: 10.44936752319336
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 550: 9.632648468017578
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 551: 9.94194507598877
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 552: 8.949865341186523
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 553: 8.84499454498291
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 554: 9.686182975769043
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 555: 9.108153343200684
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 556: 7.848392486572266
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 557: 9.833585739135742
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 558: 10.196372985839844
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 559: 10.934040069580078
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 560: 9.200119972229004
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 561: 9.422009468078613
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 562: 9.34771728515625
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 563: 8.885628700256348
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 564: 8.403775215148926
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 565: 9.365283012390137
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 566: 9.080464363098145
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 567: 10.701299667358398
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 568: 9.534284591674805
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 569: 11.170995712280273
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 570: 9.639549255371094
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 571: 8.480178833007812
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 572: 10.232956886291504
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 573: 8.542304992675781
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 574: 11.011398315429688
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 575: 10.045805931091309
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 576: 8.753795623779297
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 577: 10.92573070526123
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 578: 9.426037788391113
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 579: 9.897924423217773
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 580: 8.458908081054688
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 581: 8.351591110229492
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 582: 11.408656120300293
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 583: 10.553236961364746
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 584: 11.728205680847168
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 585: 10.064218521118164
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 586: 9.585471153259277
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 587: 10.338740348815918
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 588: 9.139570236206055
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 589: 9.211752891540527
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 590: 11.003589630126953
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 591: 8.59567928314209
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 592: 9.022236824035645
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 593: 10.561323165893555
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 594: 9.075224876403809
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 595: 9.967097282409668
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 596: 7.9023590087890625
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 597: 9.883370399475098
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 598: 10.406161308288574
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 599: 10.86914348602295
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 600: 8.570611000061035
+   GPU allocated: 1.59 GB, reserved: 36.43 GB
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 601: 9.525857925415039
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 602: 10.479033470153809
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 603: 8.654229164123535
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 604: 9.906527519226074
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 605: 8.021790504455566
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 606: 10.517327308654785
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 607: 9.520572662353516
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 608: 9.021796226501465
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 609: 8.011237144470215
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 610: 9.51219367980957
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 611: 10.075032234191895
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 612: 11.113093376159668
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 613: 9.714897155761719
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 614: 9.785038948059082
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 615: 8.657222747802734
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 616: 9.822421073913574
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 617: 9.705045700073242
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 618: 10.918967247009277
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 619: 8.148078918457031
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 620: 10.640705108642578
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 621: 10.764033317565918
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 622: 9.568663597106934
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 623: 10.172844886779785
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 624: 9.866713523864746
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 625: 10.495786666870117
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 626: 10.53317642211914
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 627: 9.877267837524414
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 628: 8.98766040802002
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 629: 9.291743278503418
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 630: 9.126078605651855
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 631: 9.451366424560547
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 632: 8.109710693359375
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 633: 9.994287490844727
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 634: 9.9928617477417
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 635: 9.111841201782227
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 636: 9.402899742126465
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 637: 9.876991271972656
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 638: 9.946820259094238
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 639: 7.459766387939453
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 640: 9.559050559997559
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 641: 10.969629287719727
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 642: 9.036275863647461
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 643: 10.913326263427734
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 644: 8.327194213867188
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 645: 9.312577247619629
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 646: 8.184574127197266
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 647: 9.502278327941895
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 648: 10.42005443572998
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 649: 9.51192855834961
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 650: 9.481073379516602
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 651: 9.677363395690918
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 652: 8.795303344726562
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 653: 9.408516883850098
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 654: 8.643867492675781
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 655: 9.307578086853027
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 656: 10.85071849822998
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 657: 9.292880058288574
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 658: 9.572393417358398
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 659: 8.66843318939209
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 660: 10.8088960647583
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 661: 10.777162551879883
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 662: 8.01052188873291
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 663: 9.389700889587402
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 664: 10.419219017028809
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 665: 9.226543426513672
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 666: 10.447466850280762
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 667: 8.79345703125
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 668: 10.730971336364746
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 669: 9.151612281799316
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 670: 9.65648078918457
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 671: 9.991145133972168
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 672: 9.720078468322754
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 673: 9.499216079711914
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 674: 8.319685935974121
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 675: 10.636610984802246
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 676: 8.722686767578125
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 677: 8.297545433044434
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 678: 9.752567291259766
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 679: 9.809555053710938
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 680: 8.511592864990234
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 681: 8.726186752319336
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 682: 9.304610252380371
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 683: 9.906883239746094
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 684: 6.760371208190918
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 685: 8.18915843963623
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 686: 8.46313762664795
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 687: 9.678642272949219
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 688: 8.92054271697998
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 689: 8.660991668701172
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 690: 10.715293884277344
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 691: 9.872441291809082
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 692: 9.59117603302002
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 693: 9.37534236907959
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 694: 8.611980438232422
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 695: 9.091569900512695
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 696: 9.449238777160645
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 697: 9.445351600646973
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 698: 10.66435432434082
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 699: 10.230717658996582
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 700: 10.035774230957031
+   GPU allocated: 1.59 GB, reserved: 36.43 GB
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 701: 10.009016990661621
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 702: 8.183991432189941
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 703: 10.111793518066406
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 704: 9.790231704711914
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 705: 9.81393814086914
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 706: 8.685102462768555
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 707: 10.449531555175781
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 708: 8.355607986450195
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 709: 9.321609497070312
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 710: 10.016033172607422
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 711: 9.634634017944336
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 712: 9.810100555419922
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 713: 9.681490898132324
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 714: 10.793678283691406
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 715: 9.331298828125
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 716: 9.46085262298584
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 717: 10.230875015258789
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 718: 9.807491302490234
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 719: 10.385260581970215
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 720: 9.237668991088867
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 721: 10.43702220916748
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 722: 10.09217357635498
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 723: 8.633023262023926
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 724: 9.777052879333496
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 725: 9.537458419799805
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 726: 9.10888671875
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 727: 9.89316177368164
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 728: 9.522653579711914
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 729: 9.726713180541992
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 730: 8.678877830505371
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 731: 8.589171409606934
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 732: 8.472395896911621
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 733: 10.046756744384766
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 734: 10.535256385803223
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 735: 8.313953399658203
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 736: 9.968789100646973
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 737: 9.28113079071045
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 738: 10.731898307800293
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 739: 8.925132751464844
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 740: 8.808568954467773
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 741: 8.926074981689453
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 742: 7.841724872589111
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 743: 9.912243843078613
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 744: 9.832342147827148
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 745: 8.842254638671875
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 746: 9.104655265808105
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 747: 9.71656608581543
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 748: 9.329825401306152
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 749: 9.500750541687012
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 750: 9.353792190551758
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 751: 9.649300575256348
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 752: 9.993815422058105
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 753: 8.631476402282715
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 754: 8.164700508117676
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 755: 8.827754020690918
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 756: 11.107606887817383
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 757: 8.032896995544434
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 758: 10.93982982635498
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 759: 9.870671272277832
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 760: 10.577176094055176
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 761: 8.715296745300293
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 762: 7.8721394538879395
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 763: 9.48453140258789
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 764: 10.485651969909668
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 765: 8.490992546081543
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 766: 8.198174476623535
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 767: 9.909669876098633
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 768: 8.503023147583008
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 769: 10.581927299499512
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 770: 9.000125885009766
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 771: 8.932114601135254
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 772: 10.329559326171875
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 773: 7.637254238128662
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 774: 7.228208065032959
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 775: 10.895493507385254
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 776: 8.341009140014648
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 777: 7.464227676391602
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 778: 10.972315788269043
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 779: 10.843210220336914
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 780: 7.659352779388428
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 781: 10.239428520202637
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 782: 8.903676986694336
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 783: 8.05450439453125
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 784: 8.504695892333984
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 785: 8.909977912902832
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 786: 9.810349464416504
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 787: 9.482752799987793
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 788: 9.583346366882324
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 789: 9.41612434387207
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 790: 8.136578559875488
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 791: 9.853164672851562
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 792: 8.655542373657227
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 793: 10.548277854919434
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 794: 8.944117546081543
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 795: 9.613946914672852
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 796: 9.59510326385498
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 797: 8.444267272949219
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 798: 10.52277660369873
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 799: 9.577889442443848
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 800: 10.241929054260254
+   GPU allocated: 1.59 GB, reserved: 36.43 GB
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 801: 9.994362831115723
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 802: 9.17458438873291
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 803: 9.744991302490234
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 804: 12.288431167602539
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 805: 8.740144729614258
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 806: 9.758111953735352
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 807: 9.287934303283691
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 808: 7.507111549377441
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 809: 10.628314971923828
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 810: 8.30865478515625
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 811: 9.808847427368164
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 812: 9.890507698059082
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 813: 9.335262298583984
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 814: 9.569689750671387
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 815: 8.957525253295898
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 816: 10.035979270935059
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 817: 8.8179349899292
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 818: 10.232089042663574
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 819: 8.336719512939453
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 820: 11.424813270568848
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 821: 10.371865272521973
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 822: 8.986771583557129
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 823: 8.871829986572266
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 824: 10.07461166381836
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 825: 9.830241203308105
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 826: 10.4700345993042
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 827: 10.825016021728516
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 828: 9.688665390014648
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 829: 9.412699699401855
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 830: 10.071589469909668
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 831: 9.522075653076172
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 832: 8.456555366516113
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 833: 9.968178749084473
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 834: 9.64962100982666
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 835: 9.51598834991455
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 836: 9.744178771972656
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 837: 8.802495002746582
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 838: 9.435086250305176
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 839: 9.781554222106934
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 840: 9.373868942260742
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 841: 10.257649421691895
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 842: 9.203181266784668
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 843: 7.638200759887695
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 844: 8.693669319152832
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 845: 9.631340980529785
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 846: 10.608771324157715
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 847: 8.717845916748047
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 848: 9.0230073928833
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 849: 7.7569966316223145
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 850: 10.119508743286133
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 851: 10.236696243286133
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 852: 10.038532257080078
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 853: 9.74824047088623
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 854: 10.873047828674316
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 855: 9.840035438537598
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 856: 9.751114845275879
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 857: 8.750129699707031
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 858: 10.088071823120117
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 859: 8.855655670166016
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 860: 11.603719711303711
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 861: 8.522749900817871
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 862: 8.717205047607422
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 863: 9.605597496032715
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 864: 9.718626022338867
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 865: 9.949673652648926
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 866: 8.56786060333252
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 867: 8.990484237670898
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 868: 9.363194465637207
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 869: 10.005284309387207
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 870: 10.588776588439941
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 871: 9.481846809387207
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 872: 9.019604682922363
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 873: 9.634154319763184
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 874: 8.941206932067871
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 875: 10.062710762023926
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 876: 8.97758674621582
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 877: 8.964163780212402
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 878: 10.277426719665527
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 879: 9.290326118469238
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 880: 9.150712013244629
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 881: 9.304227828979492
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 882: 9.718347549438477
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 883: 8.765996932983398
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 884: 8.45464038848877
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 885: 8.803611755371094
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 886: 9.477553367614746
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 887: 9.576671600341797
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 888: 10.138666152954102
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 889: 8.873571395874023
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 890: 8.965167999267578
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 891: 10.411422729492188
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 892: 8.62936019897461
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 893: 8.547831535339355
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 894: 10.938775062561035
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 895: 7.920583248138428
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 896: 9.460843086242676
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 897: 11.041232109069824
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 898: 9.636809349060059
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 899: 11.06234073638916
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 900: 10.134875297546387
+   GPU allocated: 1.59 GB, reserved: 36.43 GB
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 901: 9.833489418029785
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 902: 9.665602684020996
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 903: 10.068997383117676
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 904: 8.45043659210205
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 905: 10.3402681350708
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 906: 7.157470703125
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 907: 9.338157653808594
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 908: 9.256166458129883
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 909: 9.147880554199219
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 910: 7.925267219543457
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 911: 9.123842239379883
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 912: 8.303070068359375
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 913: 10.987741470336914
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 914: 9.979726791381836
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 915: 8.162445068359375
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 916: 10.775327682495117
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 917: 10.248875617980957
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 918: 10.660238265991211
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 919: 10.068904876708984
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 920: 7.9952239990234375
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 921: 8.46536922454834
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 922: 8.853157997131348
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 923: 10.672104835510254
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 924: 6.856167316436768
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 925: 7.747250556945801
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 926: 9.259636878967285
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 927: 9.573264122009277
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 928: 8.962779998779297
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 929: 9.526579856872559
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 930: 9.542742729187012
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 931: 11.363849639892578
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 932: 10.677115440368652
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 933: 9.99811840057373
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 934: 10.765871047973633
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 935: 7.414483547210693
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 936: 9.324980735778809
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 937: 8.442267417907715
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 938: 8.983548164367676
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 939: 9.411698341369629
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 940: 9.598954200744629
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 941: 10.492883682250977
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 942: 10.192724227905273
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 943: 9.049627304077148
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 944: 9.14497184753418
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 945: 10.639715194702148
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 946: 10.280823707580566
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 947: 10.054274559020996
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 948: 10.204527854919434
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 949: 9.273299217224121
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 950: 10.553513526916504
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 951: 10.390083312988281
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 952: 7.902892112731934
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 953: 10.155299186706543
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 954: 9.754631996154785
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 955: 9.905024528503418
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 956: 8.181551933288574
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 957: 9.062422752380371
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 958: 10.462320327758789
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 959: 9.276201248168945
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 960: 8.779450416564941
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 961: 8.485454559326172
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 962: 10.588151931762695
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 963: 10.508868217468262
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 964: 11.000429153442383
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 965: 9.138158798217773
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 966: 9.854772567749023
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 967: 8.801657676696777
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 968: 9.82681941986084
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 969: 9.135669708251953
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 970: 8.809379577636719
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 971: 10.334163665771484
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 972: 10.780075073242188
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 973: 9.900640487670898
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 974: 10.086118698120117
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 975: 8.530505180358887
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 976: 10.359640121459961
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 977: 10.903682708740234
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 978: 9.933871269226074
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 979: 10.363343238830566
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 980: 10.47863483428955
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 981: 10.169073104858398
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 982: 9.611797332763672
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 983: 8.865143775939941
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 984: 10.671216011047363
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 985: 10.04653549194336
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 986: 9.275853157043457
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 987: 8.988900184631348
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 988: 9.994802474975586
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 989: 10.154356956481934
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 990: 9.101242065429688
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 991: 10.018570899963379
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 992: 9.522512435913086
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 993: 7.090827465057373
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 994: 10.006492614746094
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 995: 9.652026176452637
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 996: 9.412565231323242
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 997: 10.899250030517578
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 998: 8.854893684387207
+   mu: 0.0009999999310821295
+   psi: 1.0
+   R0: 1.0
+   Loss for batch 999: 9.155943870544434
+   Reached max batches (1000), stopping training.
+Loss for epoch 0: 9832.029084205627
+Saving final model to /large_storage/hielab/gbrixi/fitness/fitness_transformer_d512_n4_lr0.0001_bs64_20260214_105227.pt...
+Job finished at: Sat Feb 14 10:52:43 AM PST 2026

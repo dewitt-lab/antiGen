@@ -1,125 +1,83 @@
-import sys
+#!/usr/bin/env python
+"""Predict fitness matrix for an amino acid sequence using a trained model.
+
+Usage:
+    python predict_fitness.py <checkpoint_path> <aa_sequence> [--output <output.csv>]
+
+The output CSV has rows = positions (0-indexed) and columns = amino acids.
+"""
+
+import argparse
 import csv
 import torch
-import torch.nn as nn
+import numpy as np
 from models.factory import load_model
-from helpers import *
+from helpers import get_fitnesses_from_indices
 
 
-def load_trained_model(checkpoint_path, device='cuda'):
-    """
-    Load a trained fitness prediction model using the factory.
+ALLOWED_AAS = "ACDEFGHIKLMNPQRSTVWY*-"
 
-    Args:
-        checkpoint_path: Path to saved .pt file
-        device: 'cuda' or 'cpu'
 
-    Returns:
-        model, parameters dict, checkpoint
-    """
-    # Use factory to load model (handles both legacy and new checkpoints)
-    model, checkpoint = load_model(checkpoint_path, device)
-
-    # Extract population genetics parameters
-    params = {
-        'lam': torch.exp(checkpoint['log_lam']).to(device),
-        'gam': torch.exp(checkpoint['log_gam']).to(device),
-        'psi': torch.exp(checkpoint['log_psi']).to(device),
-        'mu': torch.exp(checkpoint['log_mu']).to(device),
-        'f0': torch.exp(checkpoint['log_f0']).to(device),
-    }
-
-    print(f"Model loaded from {checkpoint_path}")
-    print(f"Model type: {model.config.model_type.value}")
-    print(f"Trained for {checkpoint['epoch']} epochs")
-    print(f"Final loss: {checkpoint['loss']:.2f}")
-    print(f"Parameters:")
-    print(f"  mu: {params['mu'].item():.6f}")
-    print(f"  psi: {params['psi'].item():.3f}")
-    print(f"  f0: {params['f0'].item():.3f}")
-    print(f"  R0: {(params['f0'] * params['lam'][-1] / params['gam']).item():.2f}")
-
-    return model, params, checkpoint
+def parse_args():
+    parser = argparse.ArgumentParser(description='Predict fitness matrix for an AA sequence')
+    parser.add_argument('checkpoint', help='Path to model checkpoint (.pt)')
+    parser.add_argument('sequence', help='Amino acid sequence (string)')
+    parser.add_argument('--output', '-o', type=str, default='fitness_matrix.csv',
+                        help='Output CSV path (default: fitness_matrix.csv)')
+    parser.add_argument('--device', type=str, default=None,
+                        help='Device (default: auto)')
+    return parser.parse_args()
 
 
 def main():
-    
-    """
-    Main runner function
-    """
-
-    # Define alphabet
-    allowed_nucleotides = "ACGT-"
-    D = len(allowed_nucleotides) # Alphabet size = embedding dimension for now. TO BE IMPROVED
-
-    allowed_aas = "ACDEFGHIKLMNPQRSTVWY*-"
-    E = len(allowed_aas)
-
-    # Check that the file is being properly used
-    if (len(sys.argv) !=3):
-        print("Please specify a model file and sequence file.")
-        return
-    
-    # Input files
-    model_file = sys.argv[1]
-    seq_file = sys.argv[2]
-
-    with open(seq_file, 'r') as f:
-        aa_seq = f.read()
-
-    # Remove trailing newline:
-    aa_seq = aa_seq.strip()
+    args = parse_args()
 
     # Device
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    if args.device:
+        device = torch.device(args.device)
+    else:
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
 
-    # Tokenize sequence to indices
-    aa_indices = aa_seq_to_indices(aa_seq, allowed_aas, device).unsqueeze(0)  # (1, seq_len)
+    # Load model
+    print(f"Loading model from {args.checkpoint}...")
+    model, checkpoint = load_model(args.checkpoint, device=device)
+    model.eval()
 
-    # Run inference
-    fitness_model, params, checkpoint = load_trained_model(model_file, device)
+    # Validate sequence
+    aa_seq = args.sequence.upper()
+    for i, c in enumerate(aa_seq):
+        if c not in ALLOWED_AAS:
+            raise ValueError(f"Invalid amino acid '{c}' at position {i}. Allowed: {ALLOWED_AAS}")
 
+    seq_len = len(aa_seq)
+    print(f"Sequence length: {seq_len} amino acids")
+
+    # Tokenize
+    aa_indices = torch.tensor(
+        [ALLOWED_AAS.index(c) for c in aa_seq], dtype=torch.long
+    ).unsqueeze(0).to(device)  # (1, seq_len)
+
+    # Predict
     with torch.no_grad():
-        # Apply transformer (accepts indices directly)
-        fitness = fitness_model(aa_indices)
-        fitness = torch.sigmoid(fitness)
-        fitness = -torch.log(1.0 - fitness)
+        fitness = get_fitnesses_from_indices(model, aa_indices, ALLOWED_AAS, device)
+    # fitness shape: (1, seq_len, E)
+    fitness = fitness.squeeze(0).cpu().numpy()  # (seq_len, E)
 
-        # Zero out fitness for stop codon
-        fitness[:, :, char_to_index('*', allowed_aas)] = 0.0
+    print(f"Fitness matrix shape: {fitness.shape}")
 
-    # Remove batch dimension: (1, N/3, E) -> (N/3, E)
-    fitness = fitness.squeeze(0)
-    
-    # Move to CPU and convert to numpy
-    fitness_matrix = fitness.cpu().numpy()
-    
-    print(f"Fitness matrix shape: {fitness_matrix.shape}")
-    
-    # Save to CSV
-    output_file = 'fitness_predictions.csv'
-    
-    print(f"Saving fitness predictions to {output_file}...")
-    
-    # Create header: Position, then all amino acids
-    header = ['Position'] + list(allowed_aas)
-    
-    with open(output_file, 'w', newline='') as f:
+    # Write CSV
+    with open(args.output, 'w', newline='') as f:
         writer = csv.writer(f)
+        # Header: position, then each amino acid
+        header = ['position', 'ref_aa'] + list(ALLOWED_AAS)
         writer.writerow(header)
-        
-        # Write each position (codon)
-        for pos in range(len(aa_seq)):
-            row = [pos + 1]  # Position (1-indexed)
-            # Add fitness values for all possible amino acids
-            row.extend(fitness_matrix[pos, :].tolist())
+        for pos in range(seq_len):
+            row = [pos, aa_seq[pos]] + [f"{fitness[pos, j]:.6f}" for j in range(len(ALLOWED_AAS))]
             writer.writerow(row)
-    
-    print(f"Successfully saved {len(aa_seq)} positions × {E} amino acids to {output_file}")
-    
-    
+
+    print(f"Fitness matrix written to {args.output}")
 
 
-if __name__=="__main__":
+if __name__ == '__main__':
     main()

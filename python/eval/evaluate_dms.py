@@ -41,7 +41,7 @@ def forward_with_variable_length(model: torch.nn.Module, aa_indices: torch.Tenso
     model_seq_len = model.seq_len
 
     # ESM2-based models handle variable lengths natively
-    if model.__class__.__name__ in ("ESM2FitnessPredictor", "VespaGFitnessPredictor", "ESM2PottsFitnessPredictor"):
+    if model.__class__.__name__ in ("ESM2FitnessPredictor", "VespaGFitnessPredictor"):
         return model(aa_indices)
 
     # For FitnessPredictor, handle length mismatch

@@ -11,7 +11,6 @@ class ModelType(str, Enum):
     """Supported model architectures."""
     FITNESS_PREDICTOR = "fitness_predictor"
     ESM2_FITNESS_PREDICTOR = "esm2_fitness_predictor"
-    ESM2_POTTS_FITNESS = "esm2_potts_fitness"  # Conservation + Potts couplings
     ESMC_FITNESS_PREDICTOR = "esmc_fitness_predictor"  # ESM C finetune
     VESPAG_FITNESS = "vespag_fitness"  # VespaG: ESM2-3B embeddings + FNN
 
@@ -317,14 +316,6 @@ class ExperimentConfig:
                 freeze_backbone=esm2_d.get("freeze_backbone", True),
                 finetune_layers=esm2_d.get("finetune_layers", 0),
             )
-        elif model_type_str == "esm2_potts_fitness":
-            model_type = ModelType.ESM2_POTTS_FITNESS
-            esm2_d = model_d.get("esm2", {})
-            esm2_config = ESM2Config(
-                model_name=esm2_d.get("model_name", "facebook/esm2_t12_35M_UR50D"),
-                freeze_backbone=esm2_d.get("freeze_backbone", True),
-                finetune_layers=esm2_d.get("finetune_layers", 0),
-            )
         elif model_type_str == "esmc":
             model_type = ModelType.ESMC_FITNESS_PREDICTOR
             esmc_d = model_d.get("esmc", {})
@@ -405,8 +396,6 @@ class ExperimentConfig:
         # Convert to YAML-friendly structure
         if self.model.model_type == ModelType.ESM2_FITNESS_PREDICTOR:
             model_type_str = "esm2"
-        elif self.model.model_type == ModelType.ESM2_POTTS_FITNESS:
-            model_type_str = "esm2_potts_fitness"
         elif self.model.model_type == ModelType.ESMC_FITNESS_PREDICTOR:
             model_type_str = "esmc"
         elif self.model.model_type == ModelType.VESPAG_FITNESS:

@@ -7,7 +7,7 @@ import sys
 import os
 import random
 import math
-import csv
+
 import argparse
 import numpy as np
 from datetime import datetime
@@ -263,11 +263,7 @@ def main():
         scheduler = None
 
 
-    csv_filename = os.path.join(args.output_dir, "training_loss_simple.csv")
     os.makedirs(args.output_dir, exist_ok=True)
-    with open(csv_filename, 'w', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(['epoch', 'batch', 'train_loss', 'test_batch_loss', 'test_epoch_loss'])
 
     global_step = 0
     print("Starting training...")
@@ -309,11 +305,6 @@ def main():
             if batch_num % 10 == 0:
                 print(f"  Epoch {epoch}, batch {batch_num}: train_loss={train_loss_val:.8f}, test_batch_loss={test_batch_loss_val:.8f}")
 
-            with open(csv_filename, 'a', newline='') as f:
-                writer = csv.writer(f)
-                # test_epoch_loss is empty during training; filled in at epoch end
-                writer.writerow([epoch, batch_num, train_loss_val, test_batch_loss_val, ''])
-
             if args.max_batches is not None and global_step >= args.max_batches:
                 print(f"Reached max batches ({args.max_batches}), stopping.")
                 break
@@ -321,12 +312,11 @@ def main():
         avg_train_loss = total_train_loss / max(n_batches, 1)
         print(f"Epoch {epoch}: avg_train_loss={avg_train_loss:.8f}")
 
-        with open(csv_filename, 'a', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow([epoch, 'epoch_end', avg_train_loss, '', avg_test_loss])
-
         if args.max_batches is not None and global_step >= args.max_batches:
             break
+
+    avg_test_loss = evaluate_full(model, test_loader, device)
+    print(f"Final test loss: {avg_test_loss:.8f}")
 
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     if args.model_type == 'esm2':

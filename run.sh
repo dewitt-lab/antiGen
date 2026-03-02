@@ -20,7 +20,7 @@ echo "Job ID: $SLURM_JOB_ID"
 echo "GPU: $CUDA_VISIBLE_DEVICES"
 
 python python/train.py \
-    --cutoff 5.0 --ignore-dead-ends --d-model 128 --num-layers 2 --epochs 64 --batch-size 64 \
+    --cutoff 1.0 --ignore-dead-ends --d-model 128 --num-layers 2 --epochs 64 --batch-size 64 \
     --lr 0.0001 --output-dir /large_storage/hielab/ispecht/fitness-inference
 
 echo "Job finished at: $(date)"

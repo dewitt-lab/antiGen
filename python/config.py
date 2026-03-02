@@ -12,6 +12,7 @@ class ModelType(str, Enum):
     FITNESS_PREDICTOR = "fitness_predictor"
     ESM2_FITNESS_PREDICTOR = "esm2_fitness_predictor"
     ESM2_POTTS_FITNESS = "esm2_potts_fitness"  # Conservation + Potts couplings
+    ESMC_FITNESS_PREDICTOR = "esmc_fitness_predictor"  # ESM C finetune
     VESPAG_FITNESS = "vespag_fitness"  # VespaG: ESM2-3B embeddings + FNN
 
 
@@ -75,10 +76,30 @@ class ESM2Config:
         model_name: HuggingFace model identifier.
         hidden_size: ESM-2 hidden dimension (determined by model).
         freeze_backbone: Whether to freeze ESM-2 weights during training.
+        finetune_layers: Number of last encoder layers to unfreeze when
+            freeze_backbone is True. 0 means freeze entire backbone.
+            Ignored when freeze_backbone is False.
     """
     model_name: str = "facebook/esm2_t12_35M_UR50D"
     hidden_size: int = 480  # Fixed by the 35M model
     freeze_backbone: bool = True
+    finetune_layers: int = 0
+
+
+@dataclass(frozen=True)
+class ESMCConfig:
+    """Configuration for ESM C based model.
+
+    Attributes:
+        model_name: ESM C model identifier (esmc_300m, esmc_600m, esmc_6b).
+        freeze_backbone: Whether to freeze ESM C weights during training.
+        finetune_layers: Number of last transformer blocks to unfreeze when
+            freeze_backbone is True. 0 means freeze entire backbone.
+            Ignored when freeze_backbone is False.
+    """
+    model_name: str = "esmc_300m"
+    freeze_backbone: bool = True
+    finetune_layers: int = 0
 
 
 @dataclass(frozen=True)
@@ -119,6 +140,7 @@ class ModelConfig:
     alphabet: AlphabetConfig = field(default_factory=AlphabetConfig)
     transformer: TransformerConfig = field(default_factory=TransformerConfig)
     esm2: ESM2Config = field(default_factory=ESM2Config)
+    esmc: ESMCConfig = field(default_factory=ESMCConfig)
     vespag: VespaGConfig = field(default_factory=VespaGConfig)
 
     def to_dict(self) -> dict[str, Any]:
@@ -141,6 +163,12 @@ class ModelConfig:
                 "model_name": self.esm2.model_name,
                 "hidden_size": self.esm2.hidden_size,
                 "freeze_backbone": self.esm2.freeze_backbone,
+                "finetune_layers": self.esm2.finetune_layers,
+            },
+            "esmc": {
+                "model_name": self.esmc.model_name,
+                "freeze_backbone": self.esmc.freeze_backbone,
+                "finetune_layers": self.esmc.finetune_layers,
             },
             "vespag": {
                 "hidden_sizes": list(self.vespag.hidden_sizes),
@@ -155,8 +183,16 @@ class ModelConfig:
     def from_dict(cls, d: dict[str, Any]) -> ModelConfig:
         """Deserialize config from dictionary."""
         # Filter ESM2 config to only known fields (backward compat)
-        esm2_fields = {'model_name', 'hidden_size', 'freeze_backbone'}
+        esm2_fields = {'model_name', 'hidden_size', 'freeze_backbone', 'finetune_layers'}
         esm2_dict = {k: v for k, v in d["esm2"].items() if k in esm2_fields}
+
+        # Parse ESM C config (with backward compat for old checkpoints)
+        esmc_dict = d.get("esmc", {})
+        esmc_config = ESMCConfig(
+            model_name=esmc_dict.get("model_name", "esmc_300m"),
+            freeze_backbone=esmc_dict.get("freeze_backbone", True),
+            finetune_layers=esmc_dict.get("finetune_layers", 0),
+        )
 
         # Parse VespaG config (with backward compat for old checkpoints)
         vespag_dict = d.get("vespag", {})
@@ -175,6 +211,7 @@ class ModelConfig:
             alphabet=AlphabetConfig(**d["alphabet"]),
             transformer=TransformerConfig(**d["transformer"]),
             esm2=ESM2Config(**esm2_dict),
+            esmc=esmc_config,
             vespag=vespag_config,
         )
 
@@ -266,24 +303,36 @@ class ExperimentConfig:
         model_d = d.get("model", {})
         model_type_str = model_d.get("type", "transformer")
 
+        # Defaults for configs not specified
+        transformer_config = TransformerConfig()
+        esm2_config = ESM2Config()
+        esmc_config = ESMCConfig()
+        vespag_config = VespaGConfig()
+
         if model_type_str == "esm2":
             model_type = ModelType.ESM2_FITNESS_PREDICTOR
             esm2_d = model_d.get("esm2", {})
             esm2_config = ESM2Config(
                 model_name=esm2_d.get("model_name", "facebook/esm2_t12_35M_UR50D"),
                 freeze_backbone=esm2_d.get("freeze_backbone", True),
+                finetune_layers=esm2_d.get("finetune_layers", 0),
             )
-            transformer_config = TransformerConfig()
-            vespag_config = VespaGConfig()
         elif model_type_str == "esm2_potts_fitness":
             model_type = ModelType.ESM2_POTTS_FITNESS
             esm2_d = model_d.get("esm2", {})
             esm2_config = ESM2Config(
                 model_name=esm2_d.get("model_name", "facebook/esm2_t12_35M_UR50D"),
                 freeze_backbone=esm2_d.get("freeze_backbone", True),
+                finetune_layers=esm2_d.get("finetune_layers", 0),
             )
-            transformer_config = TransformerConfig()
-            vespag_config = VespaGConfig()
+        elif model_type_str == "esmc":
+            model_type = ModelType.ESMC_FITNESS_PREDICTOR
+            esmc_d = model_d.get("esmc", {})
+            esmc_config = ESMCConfig(
+                model_name=esmc_d.get("model_name", "esmc_300m"),
+                freeze_backbone=esmc_d.get("freeze_backbone", True),
+                finetune_layers=esmc_d.get("finetune_layers", 0),
+            )
         elif model_type_str == "vespag":
             model_type = ModelType.VESPAG_FITNESS
             vespag_d = model_d.get("vespag", {})
@@ -295,8 +344,6 @@ class ExperimentConfig:
                 normalize_scores=vespag_d.get("normalize_scores", False),
                 load_pretrained=vespag_d.get("load_pretrained", True),
             )
-            esm2_config = ESM2Config()
-            transformer_config = TransformerConfig()
         else:
             model_type = ModelType.FITNESS_PREDICTOR
             transformer_d = model_d.get("transformer", {})
@@ -307,8 +354,6 @@ class ExperimentConfig:
                 num_layers=transformer_d.get("num_layers", 1),
                 dropout=transformer_d.get("dropout", 0.1),
             )
-            esm2_config = ESM2Config()
-            vespag_config = VespaGConfig()
 
         # seq_len will be computed from data config
         data_d = d.get("data", {})
@@ -321,6 +366,7 @@ class ExperimentConfig:
             seq_len=seq_len,
             transformer=transformer_config,
             esm2=esm2_config,
+            esmc=esmc_config,
             vespag=vespag_config,
         )
 
@@ -361,6 +407,8 @@ class ExperimentConfig:
             model_type_str = "esm2"
         elif self.model.model_type == ModelType.ESM2_POTTS_FITNESS:
             model_type_str = "esm2_potts_fitness"
+        elif self.model.model_type == ModelType.ESMC_FITNESS_PREDICTOR:
+            model_type_str = "esmc"
         elif self.model.model_type == ModelType.VESPAG_FITNESS:
             model_type_str = "vespag"
         else:
@@ -394,6 +442,13 @@ class ExperimentConfig:
             d["model"]["esm2"] = {
                 "model_name": self.model.esm2.model_name,
                 "freeze_backbone": self.model.esm2.freeze_backbone,
+                "finetune_layers": self.model.esm2.finetune_layers,
+            }
+        elif model_type_str == "esmc":
+            d["model"]["esmc"] = {
+                "model_name": self.model.esmc.model_name,
+                "freeze_backbone": self.model.esmc.freeze_backbone,
+                "finetune_layers": self.model.esmc.finetune_layers,
             }
         elif model_type_str == "vespag":
             d["model"]["vespag"] = {

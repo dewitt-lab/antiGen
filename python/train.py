@@ -16,8 +16,8 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from collections import defaultdict
-from config import ModelConfig, ModelType, TransformerConfig
-from models.factory import save_checkpoint
+from config import ModelConfig, ModelType, TransformerConfig, AlphabetConfig, ESM2Config, ESMCConfig
+from models.factory import create_model
 from parse_tree import parse_big_tree
 
 
@@ -112,8 +112,18 @@ def parse_args():
     parser.add_argument('--cutoff', type=float, default=1.0, help='Train/test cutoff (years since MRCA)')
     parser.add_argument('--ignore-dead-ends', action='store_true', default=False, help='Do not make examples for sequences with no downstream mutants')
 
-    parser.add_argument('--d-model', type=int, default=512, help='Model dimension')
-    parser.add_argument('--num-layers', type=int, default=4, help='Number of transformer layers')
+    parser.add_argument('--model-type', type=str, default='transformer', choices=['transformer', 'esm2', 'esmc'],
+                        help='Model architecture: from-scratch transformer, ESM-2 finetune, or ESM C finetune')
+    parser.add_argument('--d-model', type=int, default=512, help='Model dimension (transformer only)')
+    parser.add_argument('--num-layers', type=int, default=4, help='Number of transformer layers (transformer only)')
+    parser.add_argument('--esm2-model-name', type=str, default='facebook/esm2_t12_35M_UR50D',
+                        help='HuggingFace ESM-2 model name (esm2 only)')
+    parser.add_argument('--esmc-model-name', type=str, default='esmc_300m',
+                        help='ESM C model name: esmc_300m, esmc_600m, esmc_6b (esmc only)')
+    parser.add_argument('--freeze-backbone', action='store_true', default=False,
+                        help='Freeze pretrained backbone, only train output head (esm2/esmc)')
+    parser.add_argument('--finetune-layers', type=int, default=0,
+                        help='Number of last encoder layers to unfreeze (requires --freeze-backbone, esm2/esmc)')
     parser.add_argument('--lr', type=float, default=0.0001, help='Learning rate')
     parser.add_argument('--epochs', type=int, default=10, help='Number of epochs')
     parser.add_argument('--batch-size', type=int, default=32, help='Batch size')
@@ -191,10 +201,40 @@ def main():
 
     print(f"Train batches per epoch: {math.ceil(len(train_dataset) / args.batch_size)}")
 
-    model = MutationPredictor(
-        vocab_size=E, seq_len=seq_len_aa, d_model=args.d_model,
-        nhead=4, dim_feedforward=4 * args.d_model, num_layers=args.num_layers,
-    ).to(device)
+    allowed_aas_str = allowed_aas
+    alphabet_config = AlphabetConfig(amino_acids=allowed_aas_str)
+
+    if args.model_type == 'esm2':
+        model_config = ModelConfig(
+            model_type=ModelType.ESM2_FITNESS_PREDICTOR,
+            seq_len=seq_len_aa,
+            alphabet=alphabet_config,
+            esm2=ESM2Config(
+                model_name=args.esm2_model_name,
+                freeze_backbone=args.freeze_backbone,
+                finetune_layers=args.finetune_layers,
+            ),
+        )
+        model = create_model(model_config, device)
+        print(f"Model: ESM-2 ({args.esm2_model_name}), freeze_backbone={args.freeze_backbone}, finetune_layers={args.finetune_layers}")
+    elif args.model_type == 'esmc':
+        model_config = ModelConfig(
+            model_type=ModelType.ESMC_FITNESS_PREDICTOR,
+            seq_len=seq_len_aa,
+            alphabet=alphabet_config,
+            esmc=ESMCConfig(
+                model_name=args.esmc_model_name,
+                freeze_backbone=args.freeze_backbone,
+                finetune_layers=args.finetune_layers,
+            ),
+        )
+        model = create_model(model_config, device)
+        print(f"Model: ESM C ({args.esmc_model_name}), freeze_backbone={args.freeze_backbone}, finetune_layers={args.finetune_layers}")
+    else:
+        model = MutationPredictor(
+            vocab_size=E, seq_len=seq_len_aa, d_model=args.d_model,
+            nhead=4, dim_feedforward=4 * args.d_model, num_layers=args.num_layers,
+        ).to(device)
     print(f"Model: {model.get_num_parameters(trainable_only=True):,} trainable params")
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
@@ -283,27 +323,43 @@ def main():
             break
 
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    output_path = os.path.join(
-        args.output_dir,
-        f"fitness_simple_d{args.d_model}_n{args.num_layers}_lr{args.lr}_{timestamp}.pt",
-    )
+    if args.model_type == 'esm2':
+        model_name_short = args.esm2_model_name.split('/')[-1]
+        output_path = os.path.join(
+            args.output_dir,
+            f"fitness_esm2_{model_name_short}_lr{args.lr}_{timestamp}.pt",
+        )
+    elif args.model_type == 'esmc':
+        output_path = os.path.join(
+            args.output_dir,
+            f"fitness_esmc_{args.esmc_model_name}_lr{args.lr}_{timestamp}.pt",
+        )
+    else:
+        output_path = os.path.join(
+            args.output_dir,
+            f"fitness_simple_d{args.d_model}_n{args.num_layers}_lr{args.lr}_{timestamp}.pt",
+        )
 
     print(f"Saving model to {output_path}...")
-    torch.save({
+    checkpoint = {
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
         'epoch': epoch,
         'global_step': global_step,
         'loss': avg_train_loss,
-        'model_args': {
+    }
+    if args.model_type in ('esm2', 'esmc'):
+        checkpoint['config'] = model_config.to_dict()
+    else:
+        checkpoint['model_args'] = {
             'vocab_size': E,
             'seq_len': seq_len_aa,
             'd_model': args.d_model,
             'nhead': 4,
             'dim_feedforward': 4 * args.d_model,
             'num_layers': args.num_layers,
-        },
-    }, output_path)
+        }
+    torch.save(checkpoint, output_path)
 
     print("Done.")
 

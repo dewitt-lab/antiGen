@@ -45,6 +45,9 @@ def create_model(
     elif config.model_type == ModelType.ESM2_POTTS_FITNESS:
         from models.esm2_potts_fitness import ESM2PottsFitnessPredictor
         model = ESM2PottsFitnessPredictor(config)
+    elif config.model_type == ModelType.ESMC_FITNESS_PREDICTOR:
+        from models.esmc_fitness_predictor import ESMCFitnessPredictor
+        model = ESMCFitnessPredictor(config)
     elif config.model_type == ModelType.VESPAG_FITNESS:
         from models.vespag_fitness_predictor import VespaGFitnessPredictor
         model = VespaGFitnessPredictor(config)

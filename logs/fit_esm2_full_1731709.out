@@ -1,0 +1,60 @@
+Job started at: Sun Mar  1 06:26:22 PM PST 2026
+Running on node: GPUC870
+Job ID: 1731709
+GPU: 0
+Alphabet size: 22
+Using device: cuda
+Loading tree...
+Reading JSONL header...
+  235015 total mutations in header
+  11650 spike mutations in dictionary
+Reading JSONL nodes...
+  ... loaded 500000 nodes
+  ... loaded 1000000 nodes
+  ... loaded 1500000 nodes
+  ... loaded 2000000 nodes
+  ... loaded 2500000 nodes
+  ... loaded 3000000 nodes
+  ... loaded 3500000 nodes
+  ... loaded 4000000 nodes
+  ... loaded 4500000 nodes
+  ... loaded 5000000 nodes
+  ... loaded 5500000 nodes
+  ... loaded 6000000 nodes
+  ... loaded 6500000 nodes
+  ... loaded 7000000 nodes
+  ... loaded 7500000 nodes
+  ... loaded 8000000 nodes
+  ... loaded 8500000 nodes
+  ... loaded 9000000 nodes
+  ... loaded 9500000 nodes
+  ... loaded 10000000 nodes
+  Total: 10250356 nodes, 634027 spike mutations
+Wiring children and parents...
+  Root: node_id=159118
+  ... processed 500000 nodes, 32352 examples generated
+  ... processed 1000000 nodes, 65703 examples generated
+  ... processed 1500000 nodes, 107346 examples generated
+  ... processed 2000000 nodes, 160897 examples generated
+  ... processed 2500000 nodes, 199388 examples generated
+  ... processed 3000000 nodes, 223372 examples generated
+  ... processed 3500000 nodes, 247124 examples generated
+  ... processed 4000000 nodes, 270757 examples generated
+  ... processed 4500000 nodes, 296514 examples generated
+  ... processed 5000000 nodes, 322872 examples generated
+  ... processed 5500000 nodes, 350743 examples generated
+  ... processed 6000000 nodes, 382249 examples generated
+  ... processed 6500000 nodes, 404537 examples generated
+  ... processed 7000000 nodes, 425366 examples generated
+  ... processed 7500000 nodes, 452148 examples generated
+  ... processed 8000000 nodes, 483272 examples generated
+  ... processed 8500000 nodes, 512943 examples generated
+  ... processed 9000000 nodes, 542138 examples generated
+  ... processed 9500000 nodes, 578617 examples generated
+  ... processed 10000000 nodes, 615266 examples generated
+  Done: 10250356 nodes processed, 634028 examples generated
+Generated 634028 training examples
+Sequence length: 1273
+Training examples: 5763, Testing examples: 112607
+Train batches per epoch: 181
+Job finished at: Sun Mar  1 06:28:35 PM PST 2026

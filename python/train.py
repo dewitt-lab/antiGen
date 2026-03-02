@@ -319,15 +319,7 @@ def main():
                 break
 
         avg_train_loss = total_train_loss / max(n_batches, 1)
-
-        # Full test set evaluation once per 10 epochs
-        avg_test_loss = ''
-        if epoch % 100 == 0:
-            print(f"  Evaluating on full test set...")
-            avg_test_loss = evaluate_full(model, test_loader, device)
-            print(f"Epoch {epoch}: avg_train_loss={avg_train_loss:.8f}, full_test_loss={avg_test_loss:.8f}")
-        else:
-            print(f"Epoch {epoch}: avg_train_loss={avg_train_loss:.8f}")
+        print(f"Epoch {epoch}: avg_train_loss={avg_train_loss:.8f}")
 
         with open(csv_filename, 'a', newline='') as f:
             writer = csv.writer(f)

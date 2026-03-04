@@ -21,44 +21,6 @@ from models.factory import create_model
 from parse_tree import parse_big_tree
 
 
-# ── Model ─────────────────────────────────────────────────────────────────────
-
-class MutationPredictor(nn.Module):
-    def __init__(self, vocab_size, seq_len, d_model=128, nhead=4,
-                 dim_feedforward=512, num_layers=2, dropout=0.1):
-        super().__init__()
-        self.aa_embedding = nn.Embedding(vocab_size, d_model)
-        self.pos_encoding = nn.Parameter(torch.randn(1, seq_len, d_model) * 0.02)
-
-        if num_layers == 1:
-            self.transformer = nn.TransformerEncoderLayer(
-                d_model=d_model, nhead=nhead,
-                dim_feedforward=dim_feedforward,
-                dropout=dropout, batch_first=True,
-            )
-        else:
-            layer = nn.TransformerEncoderLayer(
-                d_model=d_model, nhead=nhead,
-                dim_feedforward=dim_feedforward,
-                dropout=dropout, batch_first=True,
-            )
-            self.transformer = nn.TransformerEncoder(layer, num_layers=num_layers)
-
-        self.output_proj = nn.Linear(d_model, vocab_size)
-
-    def forward(self, x):
-        x = self.aa_embedding(x)
-        x = x + self.pos_encoding
-        x = self.transformer(x)
-        x = self.output_proj(x)
-        return x
-
-    def get_num_parameters(self, trainable_only=True):
-        if trainable_only:
-            return sum(p.numel() for p in self.parameters() if p.requires_grad)
-        return sum(p.numel() for p in self.parameters())
-
-
 # ── Dataset ───────────────────────────────────────────────────────────────────
 
 class MutationDataset(Dataset):
@@ -81,11 +43,13 @@ def compute_loss(logits, target_batch, aa_batch):
     wt_mask.scatter_(2, aa_batch.unsqueeze(-1), False)
 
     probs = torch.sigmoid(logits)
-    probs = probs / probs.sum()
+    probs = probs * wt_mask  # zero out wild-type before normalizing
+    probs = probs / probs.sum(dim=(1, 2), keepdim=True)  # per-example normalization
     probs = probs.clamp(1e-8, 1 - 1e-8)
 
     loss = -(target_batch * torch.log(probs))
-    return loss[wt_mask].mean()
+    n_mutations = target_batch.sum().clamp(min=1)
+    return loss.sum() / n_mutations
 
 
 @torch.no_grad()
@@ -245,10 +209,18 @@ def main():
         model = create_model(model_config, device)
         print(f"Model: VespaG (ESM2-3B + FNN), freeze_backbone={args.freeze_backbone}, load_pretrained={args.load_pretrained}")
     else:
-        model = MutationPredictor(
-            vocab_size=E, seq_len=seq_len_aa, d_model=args.d_model,
-            nhead=4, dim_feedforward=4 * args.d_model, num_layers=args.num_layers,
-        ).to(device)
+        model_config = ModelConfig(
+            model_type=ModelType.FITNESS_PREDICTOR,
+            seq_len=seq_len_aa,
+            alphabet=alphabet_config,
+            transformer=TransformerConfig(
+                d_model=args.d_model,
+                nhead=4,
+                dim_feedforward=4 * args.d_model,
+                num_layers=args.num_layers,
+            ),
+        )
+        model = create_model(model_config, device)
     print(f"Model: {model.get_num_parameters(trainable_only=True):,} trainable params")
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
@@ -349,17 +321,7 @@ def main():
         'global_step': global_step,
         'loss': avg_train_loss,
     }
-    if args.model_type in ('esm2', 'esmc', 'vespag'):
-        checkpoint['config'] = model_config.to_dict()
-    else:
-        checkpoint['model_args'] = {
-            'vocab_size': E,
-            'seq_len': seq_len_aa,
-            'd_model': args.d_model,
-            'nhead': 4,
-            'dim_feedforward': 4 * args.d_model,
-            'num_layers': args.num_layers,
-        }
+    checkpoint['config'] = model_config.to_dict()
     torch.save(checkpoint, output_path)
 
     print("Done.")

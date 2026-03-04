@@ -138,10 +138,28 @@ def load_model(
 def _convert_legacy_checkpoint(checkpoint: dict[str, Any]) -> ModelConfig:
     """Convert legacy checkpoint format to new config format.
 
-    Legacy format stores individual hyperparameters; new format uses
-    structured ModelConfig.
+    Handles two legacy formats:
+    - 'model_args' dict: from train.py's transformer path (vocab_size, seq_len, d_model, etc.)
+    - Top-level keys (d_model, E, N): oldest format
     """
-    # Extract legacy parameters
+    if "model_args" in checkpoint:
+        ma = checkpoint["model_args"]
+        return ModelConfig(
+            model_type=ModelType.FITNESS_PREDICTOR,
+            seq_len=ma["seq_len"],
+            alphabet=AlphabetConfig(
+                amino_acids="ACDEFGHIKLMNPQRSTVWY*-",
+            ),
+            transformer=TransformerConfig(
+                d_model=ma["d_model"],
+                nhead=ma.get("nhead", 4),
+                dim_feedforward=ma.get("dim_feedforward", 4 * ma["d_model"]),
+                num_layers=ma.get("num_layers", 1),
+                dropout=0.1,
+            ),
+        )
+
+    # Oldest legacy format with top-level keys
     d_model = checkpoint.get("d_model", 128)
     E = checkpoint.get("E", 22)
     N = checkpoint.get("N", 3819)  # nucleotide length

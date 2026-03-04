@@ -2,7 +2,7 @@
 """Predict per-site per-AA normalized mutation probabilities for an amino acid sequence.
 
 Usage:
-    python predict_fitness.py <checkpoint.pt> <sequence.fasta> [--output scores.csv]
+    python infer.py <checkpoint.pt> <sequence.fasta> [--output scores.csv]
 
 Output CSV has columns: position, ref_aa, then one column per amino acid
 with the predicted normalized mutation probability.
@@ -11,43 +11,11 @@ with the predicted normalized mutation probability.
 import argparse
 import csv
 import torch
-import torch.nn as nn
+
+from models.factory import load_model
 
 
 ALLOWED_AAS = "ACDEFGHIKLMNPQRSTVWY*-"
-
-
-# ── Model (must match train_simple.py) ────────────────────────────────────────
-
-class MutationPredictor(nn.Module):
-    def __init__(self, vocab_size, seq_len, d_model=128, nhead=4,
-                 dim_feedforward=512, num_layers=2, dropout=0.1):
-        super().__init__()
-        self.aa_embedding = nn.Embedding(vocab_size, d_model)
-        self.pos_encoding = nn.Parameter(torch.randn(1, seq_len, d_model) * 0.02)
-
-        if num_layers == 1:
-            self.transformer = nn.TransformerEncoderLayer(
-                d_model=d_model, nhead=nhead,
-                dim_feedforward=dim_feedforward,
-                dropout=dropout, batch_first=True,
-            )
-        else:
-            layer = nn.TransformerEncoderLayer(
-                d_model=d_model, nhead=nhead,
-                dim_feedforward=dim_feedforward,
-                dropout=dropout, batch_first=True,
-            )
-            self.transformer = nn.TransformerEncoder(layer, num_layers=num_layers)
-
-        self.output_proj = nn.Linear(d_model, vocab_size)
-
-    def forward(self, x):
-        x = self.aa_embedding(x)
-        x = x + self.pos_encoding
-        x = self.transformer(x)
-        x = self.output_proj(x)
-        return x
 
 
 def read_sequence(path):
@@ -65,7 +33,6 @@ def read_sequence(path):
                 seq_parts.append(line.upper())
         return ''.join(seq_parts)
     else:
-        # first_line already has the full content for a single-line raw text file
         return first_line.upper()
 
 
@@ -73,7 +40,7 @@ def read_sequence(path):
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Predict normalized mutation probabilities for an AA sequence')
-    parser.add_argument('checkpoint', help='Path to model checkpoint (.pt)')
+    parser.add_argument('checkpoint', help='Path to model checkpoint (.pt) or config (.yaml)')
     parser.add_argument('fasta', help='Path to amino acid FASTA or raw text file')
     parser.add_argument('--output', '-o', type=str, default='mutation_scores.csv',
                         help='Output CSV path (default: mutation_scores.csv)')
@@ -90,41 +57,46 @@ def main():
     print(f"Using device: {device}")
 
     print(f"Loading model from {args.checkpoint}...")
-    checkpoint = torch.load(args.checkpoint, map_location=device, weights_only=False)
-    model_args = checkpoint['model_args']
-    model = MutationPredictor(**model_args).to(device)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    model.eval()
-    print(f"Model loaded: d_model={model_args['d_model']}, num_layers={model_args['num_layers']}")
+    model, checkpoint = load_model(args.checkpoint, device=device)
+    config = model.config
+    print(f"Model type: {config.model_type.value}")
+    print(f"Parameters: {model.get_num_parameters(trainable_only=False):,} total")
+
+    allowed_aas = config.alphabet.amino_acids
+    expected_len = config.seq_len
 
     print(f"Reading sequence from {args.fasta}...")
     aa_seq = read_sequence(args.fasta)
     print(f"Sequence length: {len(aa_seq)}")
 
-    expected_len = model_args['seq_len']
     if len(aa_seq) != expected_len:
         raise ValueError(f"Sequence length {len(aa_seq)} does not match model's expected length {expected_len}")
     for i, c in enumerate(aa_seq):
-        if c not in ALLOWED_AAS:
+        if c not in allowed_aas:
             raise ValueError(f"Invalid amino acid '{c}' at position {i}")
 
     aa_indices = torch.tensor(
-        [ALLOWED_AAS.index(c) for c in aa_seq], dtype=torch.long
+        [allowed_aas.index(c) for c in aa_seq], dtype=torch.long
     ).unsqueeze(0).to(device)  # (1, seq_len)
 
     with torch.no_grad():
         logits = model(aa_indices)          # (1, seq_len, E)
         probs = torch.sigmoid(logits)       # (1, seq_len, E)
-        probs = probs / probs.sum()         # normalize to sum to 1 (matches training)
-    
+
+        # Mask out wild-type before normalizing (matches training)
+        wt_mask = torch.ones_like(probs, dtype=torch.bool)
+        wt_mask.scatter_(2, aa_indices.unsqueeze(-1), False)
+        probs = probs * wt_mask
+        probs = probs / probs.sum(dim=(1, 2), keepdim=True)  # per-example normalization
+
     probs = probs.squeeze(0).cpu().numpy()  # (seq_len, E)
     print(f"Probability matrix shape: {probs.shape}, sum: {probs.sum():.6f}")
 
     with open(args.output, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['position', 'ref_aa'] + list(ALLOWED_AAS))
+        writer.writerow(['position', 'ref_aa'] + list(allowed_aas))
         for pos in range(len(aa_seq)):
-            row = [pos, aa_seq[pos]] + [f"{probs[pos, j]:.8f}" for j in range(len(ALLOWED_AAS))]
+            row = [pos, aa_seq[pos]] + [f"{probs[pos, j]:.8f}" for j in range(len(allowed_aas))]
             writer.writerow(row)
 
     print(f"Probabilities written to {args.output}")

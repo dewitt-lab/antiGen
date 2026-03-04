@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=fit_transformer
-#SBATCH --partition=evo_gpu_priority
+#SBATCH --partition=gpu
 #SBATCH --time=24:00:00
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus=1

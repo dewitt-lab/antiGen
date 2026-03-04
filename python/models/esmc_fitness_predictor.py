@@ -134,4 +134,6 @@ class ESMCFitnessPredictor(BaseFitnessPredictor):
         esmc_logits = output.sequence_logits[:, 1:-1, :]
 
         # Map to internal alphabet
-        return self._map_logits_to_internal(esmc_logits)
+        logits = self._map_logits_to_internal(esmc_logits)
+
+        return logits

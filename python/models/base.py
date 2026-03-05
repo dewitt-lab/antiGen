@@ -21,7 +21,6 @@ class BaseFitnessPredictor(nn.Module, ABC):
     def __init__(self, config: ModelConfig) -> None:
         super().__init__()
         self._config = config
-        self.logit_norm = nn.LayerNorm(config.alphabet.vocab_size)
 
     @property
     def config(self) -> ModelConfig:
@@ -55,7 +54,7 @@ class BaseFitnessPredictor(nn.Module, ABC):
             # One-hot input (backward compatible)
             x = torch.argmax(x, dim=-1)
 
-        return self.logit_norm(self._forward_impl(x))
+        return self._forward_impl(x)
 
     @abstractmethod
     def _forward_impl(self, x: torch.Tensor) -> torch.Tensor:

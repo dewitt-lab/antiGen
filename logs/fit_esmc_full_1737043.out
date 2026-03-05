@@ -1,0 +1,432 @@
+Job started at: Tue Mar  3 09:36:22 PM PST 2026
+Running on node: GPU389E
+Job ID: 1737043
+GPU: 0
+Alphabet size: 22
+Using device: cuda
+Loading tree...
+Reading JSONL header...
+  235015 total mutations in header
+  11650 spike mutations in dictionary
+Reading JSONL nodes...
+  ... loaded 500000 nodes
+  ... loaded 1000000 nodes
+  ... loaded 1500000 nodes
+  ... loaded 2000000 nodes
+  ... loaded 2500000 nodes
+  ... loaded 3000000 nodes
+  ... loaded 3500000 nodes
+  ... loaded 4000000 nodes
+  ... loaded 4500000 nodes
+  ... loaded 5000000 nodes
+  ... loaded 5500000 nodes
+  ... loaded 6000000 nodes
+  ... loaded 6500000 nodes
+  ... loaded 7000000 nodes
+  ... loaded 7500000 nodes
+  ... loaded 8000000 nodes
+  ... loaded 8500000 nodes
+  ... loaded 9000000 nodes
+  ... loaded 9500000 nodes
+  ... loaded 10000000 nodes
+  Total: 10250356 nodes, 634027 spike mutations
+Wiring children and parents...
+  Root: node_id=159118
+  ... processed 500000 nodes, 32352 examples generated
+  ... processed 1000000 nodes, 65703 examples generated
+  ... processed 1500000 nodes, 107346 examples generated
+  ... processed 2000000 nodes, 160897 examples generated
+  ... processed 2500000 nodes, 199388 examples generated
+  ... processed 3000000 nodes, 223372 examples generated
+  ... processed 3500000 nodes, 247124 examples generated
+  ... processed 4000000 nodes, 270757 examples generated
+  ... processed 4500000 nodes, 296514 examples generated
+  ... processed 5000000 nodes, 322872 examples generated
+  ... processed 5500000 nodes, 350743 examples generated
+  ... processed 6000000 nodes, 382249 examples generated
+  ... processed 6500000 nodes, 404537 examples generated
+  ... processed 7000000 nodes, 425366 examples generated
+  ... processed 7500000 nodes, 452148 examples generated
+  ... processed 8000000 nodes, 483272 examples generated
+  ... processed 8500000 nodes, 512943 examples generated
+  ... processed 9000000 nodes, 542138 examples generated
+  ... processed 9500000 nodes, 578617 examples generated
+  ... processed 10000000 nodes, 615266 examples generated
+  Done: 10250356 nodes processed, 634028 examples generated
+Generated 634028 training examples
+Sequence length: 1273
+Training examples: 5763, Testing examples: 112607
+Train batches per epoch: 721
+Model: ESM C (esmc_300m), freeze_backbone=False, finetune_layers=0
+Model: 332,997,186 trainable params
+Starting training...
+  Epoch 0, batch 0: train_loss=10.14054394, test_batch_loss=10.14032078
+  Epoch 0, batch 10: train_loss=10.13542557, test_batch_loss=10.13479805
+  Epoch 0, batch 20: train_loss=10.12562180, test_batch_loss=10.12546253
+  Epoch 0, batch 30: train_loss=10.11554527, test_batch_loss=10.11475468
+  Epoch 0, batch 40: train_loss=10.10407257, test_batch_loss=10.10878754
+  Epoch 0, batch 50: train_loss=10.09740734, test_batch_loss=10.09755325
+  Epoch 0, batch 60: train_loss=10.09513855, test_batch_loss=10.09557343
+  Epoch 0, batch 70: train_loss=10.26440525, test_batch_loss=10.09458923
+  Epoch 0, batch 80: train_loss=10.09425449, test_batch_loss=10.09436321
+  Epoch 0, batch 90: train_loss=10.09417152, test_batch_loss=10.09423828
+  Epoch 0, batch 100: train_loss=10.09410763, test_batch_loss=10.68896961
+  Epoch 0, batch 110: train_loss=10.09406757, test_batch_loss=10.09407616
+  Epoch 0, batch 120: train_loss=10.09401321, test_batch_loss=10.09412479
+  Epoch 0, batch 130: train_loss=10.73449135, test_batch_loss=10.09405327
+  Epoch 0, batch 140: train_loss=10.09395695, test_batch_loss=10.09402370
+  Epoch 0, batch 150: train_loss=10.09392071, test_batch_loss=10.09396935
+  Epoch 0, batch 160: train_loss=10.09391212, test_batch_loss=10.09398746
+  Epoch 0, batch 170: train_loss=10.09388065, test_batch_loss=10.09386730
+  Epoch 0, batch 180: train_loss=10.09385395, test_batch_loss=10.09386063
+  Epoch 0, batch 190: train_loss=10.09384727, test_batch_loss=10.09392834
+  Epoch 0, batch 200: train_loss=10.09382915, test_batch_loss=10.09392071
+  Epoch 0, batch 210: train_loss=10.09381294, test_batch_loss=10.09717941
+  Epoch 0, batch 220: train_loss=10.09381008, test_batch_loss=10.09382915
+  Epoch 0, batch 230: train_loss=10.09382057, test_batch_loss=10.09389400
+  Epoch 0, batch 240: train_loss=10.09390163, test_batch_loss=10.09404755
+  Epoch 0, batch 250: train_loss=10.09395409, test_batch_loss=10.09408760
+  Epoch 0, batch 260: train_loss=10.09403324, test_batch_loss=10.09419918
+  Epoch 0, batch 270: train_loss=10.09399891, test_batch_loss=10.09411430
+  Epoch 0, batch 280: train_loss=10.09407616, test_batch_loss=10.09410858
+  Epoch 0, batch 290: train_loss=10.09408379, test_batch_loss=10.09422207
+  Epoch 0, batch 300: train_loss=10.09407234, test_batch_loss=10.09431171
+  Epoch 0, batch 310: train_loss=10.09408092, test_batch_loss=10.09426403
+  Epoch 0, batch 320: train_loss=10.09403896, test_batch_loss=10.09410191
+  Epoch 0, batch 330: train_loss=10.09399986, test_batch_loss=10.09413528
+  Epoch 0, batch 340: train_loss=10.09397316, test_batch_loss=10.09404850
+  Epoch 0, batch 350: train_loss=10.09785843, test_batch_loss=10.09424877
+  Epoch 0, batch 360: train_loss=10.09392548, test_batch_loss=10.09397316
+  Epoch 0, batch 370: train_loss=10.09390163, test_batch_loss=10.09403801
+  Epoch 0, batch 380: train_loss=10.09390259, test_batch_loss=10.09398937
+  Epoch 0, batch 390: train_loss=10.09387207, test_batch_loss=10.09393692
+  Epoch 0, batch 400: train_loss=10.09386444, test_batch_loss=10.09393787
+  Epoch 0, batch 410: train_loss=10.36648273, test_batch_loss=10.09391403
+  Epoch 0, batch 420: train_loss=10.09385300, test_batch_loss=10.09712219
+  Epoch 0, batch 430: train_loss=10.09550667, test_batch_loss=10.09387970
+  Epoch 0, batch 440: train_loss=10.09386158, test_batch_loss=10.09392166
+  Epoch 0, batch 450: train_loss=10.09386063, test_batch_loss=10.09666538
+  Epoch 0, batch 460: train_loss=10.09385204, test_batch_loss=10.09395981
+  Epoch 0, batch 470: train_loss=10.09383965, test_batch_loss=10.09385967
+  Epoch 0, batch 480: train_loss=10.09384060, test_batch_loss=10.09390068
+  Epoch 0, batch 490: train_loss=10.09393501, test_batch_loss=10.09407139
+  Epoch 0, batch 500: train_loss=10.09393787, test_batch_loss=10.09402847
+  Epoch 0, batch 510: train_loss=10.09579182, test_batch_loss=10.09395885
+  Epoch 0, batch 520: train_loss=10.09391403, test_batch_loss=10.09537220
+  Epoch 0, batch 530: train_loss=10.09389591, test_batch_loss=10.09393311
+  Epoch 0, batch 540: train_loss=10.09391117, test_batch_loss=10.09393978
+  Epoch 0, batch 550: train_loss=10.09389114, test_batch_loss=10.09781170
+  Epoch 0, batch 560: train_loss=10.09387207, test_batch_loss=10.09388733
+  Epoch 0, batch 570: train_loss=10.09387016, test_batch_loss=10.09396935
+  Epoch 0, batch 580: train_loss=10.09388828, test_batch_loss=10.09392357
+  Epoch 0, batch 590: train_loss=10.09388161, test_batch_loss=10.09398651
+  Epoch 0, batch 600: train_loss=10.09387207, test_batch_loss=10.09393501
+  Epoch 0, batch 610: train_loss=10.09387016, test_batch_loss=10.09387016
+  Epoch 0, batch 620: train_loss=10.09385681, test_batch_loss=10.09388924
+  Epoch 0, batch 630: train_loss=10.09384727, test_batch_loss=10.09393883
+  Epoch 0, batch 640: train_loss=10.09383583, test_batch_loss=10.09388924
+  Epoch 0, batch 650: train_loss=10.09384632, test_batch_loss=10.09387302
+  Epoch 0, batch 660: train_loss=10.09387493, test_batch_loss=10.09398365
+  Epoch 0, batch 670: train_loss=10.09396935, test_batch_loss=10.09402847
+  Epoch 0, batch 680: train_loss=10.09397125, test_batch_loss=10.09407616
+  Epoch 0, batch 690: train_loss=10.09394741, test_batch_loss=10.09394169
+  Epoch 0, batch 700: train_loss=10.09394360, test_batch_loss=10.09398556
+  Epoch 0, batch 710: train_loss=10.70949268, test_batch_loss=10.09399700
+  Epoch 0, batch 720: train_loss=10.09400463, test_batch_loss=10.09401512
+Epoch 0: avg_train_loss=10.11468850
+  Epoch 1, batch 0: train_loss=10.68153286, test_batch_loss=10.09405136
+  Epoch 1, batch 10: train_loss=10.09397602, test_batch_loss=10.09408760
+  Epoch 1, batch 20: train_loss=10.09396172, test_batch_loss=10.09402466
+  Epoch 1, batch 30: train_loss=10.09403133, test_batch_loss=10.09409237
+  Epoch 1, batch 40: train_loss=10.09403896, test_batch_loss=10.09415531
+  Epoch 1, batch 50: train_loss=10.09400177, test_batch_loss=10.09402943
+  Epoch 1, batch 60: train_loss=10.09399033, test_batch_loss=10.09399891
+  Epoch 1, batch 70: train_loss=10.09392834, test_batch_loss=10.09394932
+  Epoch 1, batch 80: train_loss=10.09390163, test_batch_loss=10.09400082
+  Epoch 1, batch 90: train_loss=10.09389210, test_batch_loss=10.09392643
+  Epoch 1, batch 100: train_loss=10.09388065, test_batch_loss=10.09399128
+  Epoch 1, batch 110: train_loss=10.09387398, test_batch_loss=10.09386349
+  Epoch 1, batch 120: train_loss=10.09385586, test_batch_loss=10.09393692
+  Epoch 1, batch 130: train_loss=10.09386253, test_batch_loss=10.09388638
+  Epoch 1, batch 140: train_loss=10.09384441, test_batch_loss=10.09389210
+  Epoch 1, batch 150: train_loss=10.09384632, test_batch_loss=10.09392834
+  Epoch 1, batch 160: train_loss=10.09391403, test_batch_loss=10.09849930
+  Epoch 1, batch 170: train_loss=10.09392071, test_batch_loss=10.09392834
+  Epoch 1, batch 180: train_loss=10.09391117, test_batch_loss=10.09399128
+  Epoch 1, batch 190: train_loss=10.09392262, test_batch_loss=10.09399128
+  Epoch 1, batch 200: train_loss=10.09384346, test_batch_loss=10.09396553
+  Epoch 1, batch 210: train_loss=10.09388733, test_batch_loss=10.09391117
+  Epoch 1, batch 220: train_loss=10.09388542, test_batch_loss=10.09397697
+  Epoch 1, batch 230: train_loss=10.09387112, test_batch_loss=10.09388733
+  Epoch 1, batch 240: train_loss=10.09385300, test_batch_loss=10.09390163
+  Epoch 1, batch 250: train_loss=10.09385586, test_batch_loss=10.09389877
+  Epoch 1, batch 260: train_loss=10.09385300, test_batch_loss=10.09390354
+  Epoch 1, batch 270: train_loss=10.31080341, test_batch_loss=10.09387684
+  Epoch 1, batch 280: train_loss=10.09386253, test_batch_loss=10.09386349
+  Epoch 1, batch 290: train_loss=10.09388351, test_batch_loss=10.09398460
+  Epoch 1, batch 300: train_loss=10.09390259, test_batch_loss=10.09395218
+  Epoch 1, batch 310: train_loss=10.09388065, test_batch_loss=10.09396744
+  Epoch 1, batch 320: train_loss=10.09389210, test_batch_loss=10.09390736
+  Epoch 1, batch 330: train_loss=10.09389114, test_batch_loss=10.09388351
+  Epoch 1, batch 340: train_loss=10.70272636, test_batch_loss=10.09399128
+  Epoch 1, batch 350: train_loss=10.09395981, test_batch_loss=10.09399319
+  Epoch 1, batch 360: train_loss=10.09392357, test_batch_loss=10.09391689
+  Epoch 1, batch 370: train_loss=10.09389782, test_batch_loss=10.09398556
+  Epoch 1, batch 380: train_loss=10.09389400, test_batch_loss=10.09393120
+  Epoch 1, batch 390: train_loss=10.09414387, test_batch_loss=10.09390354
+  Epoch 1, batch 400: train_loss=10.09390736, test_batch_loss=10.46082115
+  Epoch 1, batch 410: train_loss=10.09388351, test_batch_loss=10.09387398
+  Epoch 1, batch 420: train_loss=10.09387875, test_batch_loss=10.09396839
+  Epoch 1, batch 430: train_loss=10.09387493, test_batch_loss=10.09390736
+  Epoch 1, batch 440: train_loss=10.09389210, test_batch_loss=10.09394646
+  Epoch 1, batch 450: train_loss=10.09390831, test_batch_loss=10.09393120
+  Epoch 1, batch 460: train_loss=10.09388542, test_batch_loss=10.09396076
+  Epoch 1, batch 470: train_loss=10.09383869, test_batch_loss=10.09394741
+  Epoch 1, batch 480: train_loss=10.09388351, test_batch_loss=10.09797764
+  Epoch 1, batch 490: train_loss=10.09386826, test_batch_loss=10.09394360
+  Epoch 1, batch 500: train_loss=10.09392834, test_batch_loss=10.09843159
+  Epoch 1, batch 510: train_loss=10.09399319, test_batch_loss=10.09402847
+  Epoch 1, batch 520: train_loss=10.09399033, test_batch_loss=10.09401035
+  Epoch 1, batch 530: train_loss=10.09396839, test_batch_loss=11.09119797
+  Epoch 1, batch 540: train_loss=10.09394836, test_batch_loss=10.09403992
+  Epoch 1, batch 550: train_loss=10.09392452, test_batch_loss=10.09397507
+  Epoch 1, batch 560: train_loss=10.09393597, test_batch_loss=10.09812546
+  Epoch 1, batch 570: train_loss=10.09413242, test_batch_loss=10.09414005
+  Epoch 1, batch 580: train_loss=10.09422493, test_batch_loss=10.09431553
+  Epoch 1, batch 590: train_loss=10.13719845, test_batch_loss=10.09430313
+  Epoch 1, batch 600: train_loss=10.09422970, test_batch_loss=10.09427834
+  Epoch 1, batch 610: train_loss=10.09415913, test_batch_loss=10.09420395
+  Epoch 1, batch 620: train_loss=10.09412766, test_batch_loss=10.09421539
+  Epoch 1, batch 630: train_loss=10.09405422, test_batch_loss=10.09415054
+  Epoch 1, batch 640: train_loss=10.09400368, test_batch_loss=10.09402275
+  Epoch 1, batch 650: train_loss=10.09399796, test_batch_loss=10.09400558
+  Epoch 1, batch 660: train_loss=10.09395409, test_batch_loss=10.09396935
+  Epoch 1, batch 670: train_loss=10.09395409, test_batch_loss=10.09395027
+  Epoch 1, batch 680: train_loss=10.09394073, test_batch_loss=10.09394932
+  Epoch 1, batch 690: train_loss=10.09393215, test_batch_loss=10.09402657
+  Epoch 1, batch 700: train_loss=10.09393787, test_batch_loss=10.09397984
+  Epoch 1, batch 710: train_loss=10.09391117, test_batch_loss=10.09401703
+  Epoch 1, batch 720: train_loss=10.09394360, test_batch_loss=10.09398937
+Epoch 1: avg_train_loss=10.11266080
+  Epoch 2, batch 0: train_loss=10.09393787, test_batch_loss=10.09392834
+  Epoch 2, batch 10: train_loss=10.09393501, test_batch_loss=10.09394169
+  Epoch 2, batch 20: train_loss=10.09391880, test_batch_loss=10.09392643
+  Epoch 2, batch 30: train_loss=10.09390259, test_batch_loss=10.09389019
+  Epoch 2, batch 40: train_loss=10.09752083, test_batch_loss=10.09387779
+  Epoch 2, batch 50: train_loss=10.09380436, test_batch_loss=10.09703922
+  Epoch 2, batch 60: train_loss=10.09372139, test_batch_loss=10.09713650
+  Epoch 2, batch 70: train_loss=10.09345055, test_batch_loss=10.09340477
+  Epoch 2, batch 80: train_loss=10.09317398, test_batch_loss=10.09318447
+  Epoch 2, batch 90: train_loss=10.09312344, test_batch_loss=10.09311199
+  Epoch 2, batch 100: train_loss=10.09309006, test_batch_loss=10.09312248
+  Epoch 2, batch 110: train_loss=10.09310627, test_batch_loss=10.09314919
+  Epoch 2, batch 120: train_loss=10.09309387, test_batch_loss=10.09313679
+  Epoch 2, batch 130: train_loss=10.09312248, test_batch_loss=10.09320259
+  Epoch 2, batch 140: train_loss=10.09325027, test_batch_loss=10.09332657
+  Epoch 2, batch 150: train_loss=10.09326553, test_batch_loss=10.09338570
+  Epoch 2, batch 160: train_loss=10.09324074, test_batch_loss=10.09488201
+  Epoch 2, batch 170: train_loss=10.09325790, test_batch_loss=10.09319782
+  Epoch 2, batch 180: train_loss=10.09336281, test_batch_loss=10.09341717
+  Epoch 2, batch 190: train_loss=10.09446716, test_batch_loss=10.09341431
+  Epoch 2, batch 200: train_loss=10.09332657, test_batch_loss=10.09333134
+  Epoch 2, batch 210: train_loss=10.09329605, test_batch_loss=10.09338951
+  Epoch 2, batch 220: train_loss=10.09325886, test_batch_loss=10.09333706
+  Epoch 2, batch 230: train_loss=10.09327984, test_batch_loss=10.09338188
+  Epoch 2, batch 240: train_loss=10.09325123, test_batch_loss=10.09326935
+  Epoch 2, batch 250: train_loss=10.09319878, test_batch_loss=10.09320068
+  Epoch 2, batch 260: train_loss=10.24752998, test_batch_loss=10.09315968
+  Epoch 2, batch 270: train_loss=10.09299374, test_batch_loss=10.09309196
+  Epoch 2, batch 280: train_loss=10.09273434, test_batch_loss=10.09294415
+  Epoch 2, batch 290: train_loss=10.09282494, test_batch_loss=10.09295368
+  Epoch 2, batch 300: train_loss=10.09272385, test_batch_loss=10.09302235
+  Epoch 2, batch 310: train_loss=10.09257030, test_batch_loss=10.09262562
+  Epoch 2, batch 320: train_loss=10.09252167, test_batch_loss=10.09264469
+  Epoch 2, batch 330: train_loss=10.09247303, test_batch_loss=10.09254456
+  Epoch 2, batch 340: train_loss=10.09248447, test_batch_loss=10.09255791
+  Epoch 2, batch 350: train_loss=10.09256363, test_batch_loss=10.09265327
+  Epoch 2, batch 360: train_loss=10.65361023, test_batch_loss=10.09269047
+  Epoch 2, batch 370: train_loss=10.09261322, test_batch_loss=10.09273720
+  Epoch 2, batch 380: train_loss=10.09259892, test_batch_loss=10.09276676
+  Epoch 2, batch 390: train_loss=10.09258556, test_batch_loss=10.38157558
+  Epoch 2, batch 400: train_loss=10.09259415, test_batch_loss=10.09274101
+  Epoch 2, batch 410: train_loss=10.09257221, test_batch_loss=10.09270191
+  Epoch 2, batch 420: train_loss=10.09254837, test_batch_loss=10.09267712
+  Epoch 2, batch 430: train_loss=10.09251881, test_batch_loss=10.09270573
+  Epoch 2, batch 440: train_loss=10.09254837, test_batch_loss=10.09251881
+  Epoch 2, batch 450: train_loss=10.09246159, test_batch_loss=10.09255505
+  Epoch 2, batch 460: train_loss=10.09247208, test_batch_loss=10.09520721
+  Epoch 2, batch 470: train_loss=10.09243965, test_batch_loss=10.09255791
+  Epoch 2, batch 480: train_loss=10.09243774, test_batch_loss=10.09249020
+  Epoch 2, batch 490: train_loss=10.09242249, test_batch_loss=10.09243965
+  Epoch 2, batch 500: train_loss=10.09243011, test_batch_loss=10.09255791
+  Epoch 2, batch 510: train_loss=10.09243011, test_batch_loss=10.09254456
+  Epoch 2, batch 520: train_loss=10.09242725, test_batch_loss=10.09441471
+  Epoch 2, batch 530: train_loss=10.09242821, test_batch_loss=10.09257412
+  Epoch 2, batch 540: train_loss=10.09243107, test_batch_loss=10.09249687
+  Epoch 2, batch 550: train_loss=10.09241104, test_batch_loss=10.09249973
+  Epoch 2, batch 560: train_loss=10.09240723, test_batch_loss=10.09254074
+  Epoch 2, batch 570: train_loss=10.09246635, test_batch_loss=10.09248829
+  Epoch 2, batch 580: train_loss=10.09242153, test_batch_loss=10.09248543
+  Epoch 2, batch 590: train_loss=10.09242058, test_batch_loss=10.09243202
+  Epoch 2, batch 600: train_loss=10.09244061, test_batch_loss=10.09244156
+  Epoch 2, batch 610: train_loss=10.09242439, test_batch_loss=10.09247303
+  Epoch 2, batch 620: train_loss=10.09240723, test_batch_loss=10.09253502
+  Epoch 2, batch 630: train_loss=10.09241199, test_batch_loss=10.09244633
+  Epoch 2, batch 640: train_loss=10.09240055, test_batch_loss=10.09247208
+  Epoch 2, batch 650: train_loss=10.09239674, test_batch_loss=10.09247589
+  Epoch 2, batch 660: train_loss=10.09240246, test_batch_loss=10.09246635
+  Epoch 2, batch 670: train_loss=10.09244156, test_batch_loss=10.09256363
+  Epoch 2, batch 680: train_loss=10.63476849, test_batch_loss=10.09254265
+  Epoch 2, batch 690: train_loss=10.31076622, test_batch_loss=10.09252357
+  Epoch 2, batch 700: train_loss=10.09255028, test_batch_loss=10.09266853
+  Epoch 2, batch 710: train_loss=10.09255886, test_batch_loss=10.09260941
+  Epoch 2, batch 720: train_loss=10.09255123, test_batch_loss=10.09262371
+Epoch 2: avg_train_loss=10.11106409
+  Epoch 3, batch 0: train_loss=10.09257603, test_batch_loss=10.09275913
+  Epoch 3, batch 10: train_loss=10.09262848, test_batch_loss=10.09286308
+  Epoch 3, batch 20: train_loss=10.09279156, test_batch_loss=10.09287739
+  Epoch 3, batch 30: train_loss=10.09278870, test_batch_loss=10.09284973
+  Epoch 3, batch 40: train_loss=10.09267330, test_batch_loss=10.09633446
+  Epoch 3, batch 50: train_loss=10.09262276, test_batch_loss=10.09272861
+  Epoch 3, batch 60: train_loss=10.09255219, test_batch_loss=10.09263039
+  Epoch 3, batch 70: train_loss=10.09256840, test_batch_loss=10.09257603
+  Epoch 3, batch 80: train_loss=10.09257221, test_batch_loss=10.09275055
+  Epoch 3, batch 90: train_loss=10.09276390, test_batch_loss=10.09290218
+  Epoch 3, batch 100: train_loss=10.09272861, test_batch_loss=10.09292507
+  Epoch 3, batch 110: train_loss=10.09283829, test_batch_loss=10.09279156
+  Epoch 3, batch 120: train_loss=10.09654808, test_batch_loss=10.09737968
+  Epoch 3, batch 130: train_loss=10.09262657, test_batch_loss=10.09266758
+  Epoch 3, batch 140: train_loss=10.09267616, test_batch_loss=10.09290409
+  Epoch 3, batch 150: train_loss=10.09733105, test_batch_loss=10.09294224
+  Epoch 3, batch 160: train_loss=10.09271145, test_batch_loss=10.09287262
+  Epoch 3, batch 170: train_loss=10.09268951, test_batch_loss=10.09565449
+  Epoch 3, batch 180: train_loss=10.09266949, test_batch_loss=10.09271717
+  Epoch 3, batch 190: train_loss=10.09271049, test_batch_loss=10.09285545
+  Epoch 3, batch 200: train_loss=10.09267998, test_batch_loss=10.09287643
+  Epoch 3, batch 210: train_loss=10.09265137, test_batch_loss=10.09289646
+  Epoch 3, batch 220: train_loss=10.09265900, test_batch_loss=10.09290981
+  Epoch 3, batch 230: train_loss=10.09262085, test_batch_loss=10.09262753
+  Epoch 3, batch 240: train_loss=10.09261513, test_batch_loss=10.09288979
+  Epoch 3, batch 250: train_loss=10.09262466, test_batch_loss=10.09271717
+  Epoch 3, batch 260: train_loss=10.09265900, test_batch_loss=10.09708786
+  Epoch 3, batch 270: train_loss=10.09266663, test_batch_loss=10.09278965
+  Epoch 3, batch 280: train_loss=10.09263611, test_batch_loss=10.09270096
+  Epoch 3, batch 290: train_loss=10.09263134, test_batch_loss=10.09270859
+  Epoch 3, batch 300: train_loss=10.22710133, test_batch_loss=10.09280968
+  Epoch 3, batch 310: train_loss=10.09282494, test_batch_loss=10.09312057
+  Epoch 3, batch 320: train_loss=10.09282303, test_batch_loss=10.09297276
+  Epoch 3, batch 330: train_loss=10.09281063, test_batch_loss=10.09284592
+  Epoch 3, batch 340: train_loss=10.09275436, test_batch_loss=10.09299088
+  Epoch 3, batch 350: train_loss=10.09278584, test_batch_loss=10.09283638
+  Epoch 3, batch 360: train_loss=10.09271717, test_batch_loss=10.09283924
+  Epoch 3, batch 370: train_loss=10.09269428, test_batch_loss=10.09273243
+  Epoch 3, batch 380: train_loss=10.09267616, test_batch_loss=10.09285069
+  Epoch 3, batch 390: train_loss=10.09266376, test_batch_loss=10.09275532
+  Epoch 3, batch 400: train_loss=10.09265137, test_batch_loss=10.09286499
+  Epoch 3, batch 410: train_loss=10.09263611, test_batch_loss=10.09282875
+  Epoch 3, batch 420: train_loss=10.09263325, test_batch_loss=10.09422874
+  Epoch 3, batch 430: train_loss=10.09260845, test_batch_loss=10.09278488
+  Epoch 3, batch 440: train_loss=10.09260559, test_batch_loss=10.09280968
+  Epoch 3, batch 450: train_loss=10.09260941, test_batch_loss=10.09276962
+  Epoch 3, batch 460: train_loss=10.09258461, test_batch_loss=10.09273911
+  Epoch 3, batch 470: train_loss=10.09260941, test_batch_loss=10.09267139
+  Epoch 3, batch 480: train_loss=10.09260559, test_batch_loss=10.09273243
+  Epoch 3, batch 490: train_loss=10.09259796, test_batch_loss=10.09263802
+  Epoch 3, batch 500: train_loss=10.09262085, test_batch_loss=10.09260750
+  Epoch 3, batch 510: train_loss=10.09263039, test_batch_loss=10.09274578
+  Epoch 3, batch 520: train_loss=10.09263515, test_batch_loss=10.09276867
+  Epoch 3, batch 530: train_loss=10.09261417, test_batch_loss=10.09269524
+  Epoch 3, batch 540: train_loss=10.09261322, test_batch_loss=10.09273624
+  Epoch 3, batch 550: train_loss=10.09262657, test_batch_loss=10.09276199
+  Epoch 3, batch 560: train_loss=10.09263134, test_batch_loss=10.09274673
+  Epoch 3, batch 570: train_loss=10.09261608, test_batch_loss=10.09273052
+  Epoch 3, batch 580: train_loss=10.09261322, test_batch_loss=10.09278774
+  Epoch 3, batch 590: train_loss=10.09260845, test_batch_loss=10.09280586
+  Epoch 3, batch 600: train_loss=10.09260559, test_batch_loss=10.09268761
+  Epoch 3, batch 610: train_loss=10.09261131, test_batch_loss=10.09274864
+  Epoch 3, batch 620: train_loss=10.09260273, test_batch_loss=10.09271622
+  Epoch 3, batch 630: train_loss=10.09257984, test_batch_loss=10.09274101
+  Epoch 3, batch 640: train_loss=10.09259796, test_batch_loss=10.09266853
+  Epoch 3, batch 650: train_loss=10.09258652, test_batch_loss=10.09269333
+  Epoch 3, batch 660: train_loss=10.09261513, test_batch_loss=10.09261036
+  Epoch 3, batch 670: train_loss=10.09259224, test_batch_loss=10.09277534
+  Epoch 3, batch 680: train_loss=10.09257984, test_batch_loss=10.09256935
+  Epoch 3, batch 690: train_loss=10.09257889, test_batch_loss=10.09264660
+  Epoch 3, batch 700: train_loss=10.09601307, test_batch_loss=10.09259033
+  Epoch 3, batch 710: train_loss=10.09260178, test_batch_loss=10.09257889
+  Epoch 3, batch 720: train_loss=10.09257030, test_batch_loss=10.09263229
+Epoch 3: avg_train_loss=10.10734724
+  Epoch 4, batch 0: train_loss=10.09256935, test_batch_loss=10.09265804
+  Epoch 4, batch 10: train_loss=10.09256363, test_batch_loss=10.09260082
+  Epoch 4, batch 20: train_loss=10.09255695, test_batch_loss=10.09255028
+  Epoch 4, batch 30: train_loss=10.09255219, test_batch_loss=10.09274006
+  Epoch 4, batch 40: train_loss=10.09256172, test_batch_loss=10.09259701
+  Epoch 4, batch 50: train_loss=10.09254169, test_batch_loss=10.58725929
+  Epoch 4, batch 60: train_loss=10.09255600, test_batch_loss=10.09258556
+  Epoch 4, batch 70: train_loss=10.09253502, test_batch_loss=10.09258652
+  Epoch 4, batch 80: train_loss=10.09254360, test_batch_loss=10.09258080
+  Epoch 4, batch 90: train_loss=10.09255123, test_batch_loss=10.09362602
+  Epoch 4, batch 100: train_loss=10.09263706, test_batch_loss=10.09268856
+  Epoch 4, batch 110: train_loss=10.09255314, test_batch_loss=10.09255981
+  Epoch 4, batch 120: train_loss=10.09637260, test_batch_loss=10.09271908
+  Epoch 4, batch 130: train_loss=10.09255219, test_batch_loss=10.09263611
+  Epoch 4, batch 140: train_loss=10.09253788, test_batch_loss=10.09269524
+  Epoch 4, batch 150: train_loss=10.09255314, test_batch_loss=10.09271240
+  Epoch 4, batch 160: train_loss=10.37647438, test_batch_loss=11.01806831
+  Epoch 4, batch 170: train_loss=10.09266853, test_batch_loss=10.09270287
+  Epoch 4, batch 180: train_loss=10.09270954, test_batch_loss=10.09283161
+  Epoch 4, batch 190: train_loss=10.09270763, test_batch_loss=10.09278297
+  Epoch 4, batch 200: train_loss=10.09272003, test_batch_loss=10.09283066
+  Epoch 4, batch 210: train_loss=10.09266090, test_batch_loss=10.09289837
+  Epoch 4, batch 220: train_loss=10.09266949, test_batch_loss=10.09277344
+  Epoch 4, batch 230: train_loss=10.09263325, test_batch_loss=10.09271240
+  Epoch 4, batch 240: train_loss=10.09263515, test_batch_loss=10.09271622
+  Epoch 4, batch 250: train_loss=10.09263420, test_batch_loss=10.09280109
+  Epoch 4, batch 260: train_loss=10.09263229, test_batch_loss=10.09278774
+  Epoch 4, batch 270: train_loss=10.09280586, test_batch_loss=10.09300518
+  Epoch 4, batch 280: train_loss=10.09282875, test_batch_loss=10.09292030
+  Epoch 4, batch 290: train_loss=10.09282017, test_batch_loss=10.09302425
+  Epoch 4, batch 300: train_loss=10.09301567, test_batch_loss=10.09286690
+  Epoch 4, batch 310: train_loss=10.09271812, test_batch_loss=10.09283829
+  Epoch 4, batch 320: train_loss=10.09271526, test_batch_loss=10.09275150
+  Epoch 4, batch 330: train_loss=10.09267712, test_batch_loss=10.09287643
+  Epoch 4, batch 340: train_loss=10.09726429, test_batch_loss=10.09267998
+  Epoch 4, batch 350: train_loss=10.18891621, test_batch_loss=10.09281254
+  Epoch 4, batch 360: train_loss=10.09623528, test_batch_loss=10.09276962
+  Epoch 4, batch 370: train_loss=10.09277439, test_batch_loss=10.09288597
+  Epoch 4, batch 380: train_loss=10.09277916, test_batch_loss=10.09289742
+  Epoch 4, batch 390: train_loss=10.09279156, test_batch_loss=10.09690571
+  Epoch 4, batch 400: train_loss=10.09279156, test_batch_loss=10.09509563
+  Epoch 4, batch 410: train_loss=10.09275436, test_batch_loss=10.09286880
+  Epoch 4, batch 420: train_loss=10.09273815, test_batch_loss=10.09279251
+  Epoch 4, batch 430: train_loss=10.09274292, test_batch_loss=10.09286308
+  Epoch 4, batch 440: train_loss=10.09273624, test_batch_loss=10.09286022
+  Epoch 4, batch 450: train_loss=10.09271431, test_batch_loss=10.09289551
+  Epoch 4, batch 460: train_loss=10.09271049, test_batch_loss=10.09869957
+  Epoch 4, batch 470: train_loss=10.09272289, test_batch_loss=10.09282207
+  Epoch 4, batch 480: train_loss=10.09271622, test_batch_loss=10.09277916
+  Epoch 4, batch 490: train_loss=10.09270000, test_batch_loss=10.09286785
+  Epoch 4, batch 500: train_loss=10.09270573, test_batch_loss=10.09278202
+  Epoch 4, batch 510: train_loss=10.09268856, test_batch_loss=10.09270954
+  Epoch 4, batch 520: train_loss=10.09269714, test_batch_loss=10.09287834
+  Epoch 4, batch 530: train_loss=10.09268665, test_batch_loss=10.09648895
+  Epoch 4, batch 540: train_loss=10.09269810, test_batch_loss=10.09285259
+  Epoch 4, batch 550: train_loss=10.09269333, test_batch_loss=10.09283161
+  Epoch 4, batch 560: train_loss=10.09267902, test_batch_loss=10.09276485
+  Epoch 4, batch 570: train_loss=10.09267235, test_batch_loss=10.09269714
+  Epoch 4, batch 580: train_loss=10.09270668, test_batch_loss=10.09770012
+  Epoch 4, batch 590: train_loss=10.09271240, test_batch_loss=10.09286022
+  Epoch 4, batch 600: train_loss=10.09272671, test_batch_loss=10.09285164
+  Epoch 4, batch 610: train_loss=10.09274292, test_batch_loss=10.09287643
+  Epoch 4, batch 620: train_loss=10.09276009, test_batch_loss=10.09294415
+  Epoch 4, batch 630: train_loss=10.09274387, test_batch_loss=10.09286785
+  Epoch 4, batch 640: train_loss=10.09273338, test_batch_loss=10.09283161
+  Epoch 4, batch 650: train_loss=10.09273911, test_batch_loss=10.09280968
+  Epoch 4, batch 660: train_loss=10.09272575, test_batch_loss=10.09288025
+  Epoch 4, batch 670: train_loss=10.09274197, test_batch_loss=10.09274101
+  Epoch 4, batch 680: train_loss=10.09273720, test_batch_loss=10.09284782
+  Epoch 4, batch 690: train_loss=10.09272861, test_batch_loss=10.09282494
+  Epoch 4, batch 700: train_loss=10.09273243, test_batch_loss=10.09285069
+  Epoch 4, batch 710: train_loss=10.09272861, test_batch_loss=10.09278965
+  Epoch 4, batch 720: train_loss=10.09272099, test_batch_loss=10.09282303
+Epoch 4: avg_train_loss=10.10570093

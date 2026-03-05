@@ -36,9 +36,13 @@ class Tree:
 
 @dataclass
 class Example:
-    aa_idx: None     
+    aa_idx: None
     mat: None
     last_mutation_time: float # Time of last mutation away from starting strain
+    parent_id: int = None # ID of parent example
+    parent_mutation: tuple = None # (pos, alt_idx) mutation that created this from parent
+    tip_count: None = None
+    subtree_tip_count: None = None
 
 
 
@@ -192,6 +196,7 @@ def mutate(aa_idx, allowed_aas, mut):
 def generate_training_examples(tree, root_seq_file, allowed_aas):
 
     training_examples = {}
+    example_parent = {}
     next_example_id = 0
 
     root_seq = read_fasta(root_seq_file)
@@ -199,20 +204,22 @@ def generate_training_examples(tree, root_seq_file, allowed_aas):
     root_example = Example(
         aa_idx=tokenize(root_seq, allowed_aas),
         mat=empty_mutation_tensor.clone(),
-        last_mutation_time=0.0
+        last_mutation_time=0.0,
+        tip_count=empty_mutation_tensor.clone()
     )
 
     training_examples[next_example_id] = root_example
     next_example_id += 1
 
-    # Stack holds (node, parent_example_id)
-    stack = [(tree.nodes[tree.root_id], 0)]
+    # Stack holds (node, parent_example_id, genotype_ancestor_id, last_mutation_info)
+    stack = [(tree.nodes[tree.root_id], 0, None, None)]
     nodes_processed = 0
+    n_tips_with_ancestor = 0
 
     visited = set()
 
     while stack:
-        node, parent_example_id = stack.pop()
+        node, parent_example_id, genotype_ancestor_id, last_mutation_info = stack.pop()
 
         if node.node_id in visited:
             raise ValueError(f"Cycle detected: node_id={node.node_id} visited twice")
@@ -239,22 +246,67 @@ def generate_training_examples(tree, root_seq_file, allowed_aas):
                 new_example = Example(
                     aa_idx=mutate(training_examples[ancestral_seq_id].aa_idx, allowed_aas, mut),
                     mat=empty_mutation_tensor.clone(),
-                    last_mutation_time=mut_time
+                    last_mutation_time=mut_time,
+                    parent_id=ancestral_seq_id,
+                    parent_mutation=(mut.pos, allowed_aas.index(mut.alt)),
+                    tip_count=empty_mutation_tensor.clone()
                 )
                 training_examples[next_example_id] = new_example
+                example_parent[next_example_id] = ancestral_seq_id
+                genotype_ancestor_id = ancestral_seq_id
+                last_mutation_info = (mut.pos, allowed_aas.index(mut.alt))
                 next_example_id += 1
 
         last_id = parent_example_id if first else next_example_id - 1
 
+        # Update tip_count if this node is a tip
+        if len(node.child_ids) == 0 and genotype_ancestor_id is not None:
+            pos, alt_idx = last_mutation_info
+            training_examples[genotype_ancestor_id].tip_count[pos, alt_idx] += 1
+            n_tips_with_ancestor += 1
+
         # Push children onto stack
         for child_id in node.child_ids:
-            stack.append((tree.nodes[child_id], last_id))
+            stack.append((tree.nodes[child_id], last_id, genotype_ancestor_id, last_mutation_info))
 
         nodes_processed += 1
         if nodes_processed % 500000 == 0:
             print(f"  ... processed {nodes_processed} nodes, {next_example_id} examples generated")
 
     print(f"  Done: {nodes_processed} nodes processed, {next_example_id} examples generated")
+
+    # Populate subtree_tip_count matrix for each example
+    seq_len, alphabet_size = len(root_seq), len(allowed_aas)
+    for eid, ex in training_examples.items():
+        ex.subtree_tip_count = ex.tip_count.clone()
+
+    for eid in range(next_example_id - 1, 0, -1):
+        parent_id = example_parent[eid]
+        training_examples[parent_id].subtree_tip_count += training_examples[eid].subtree_tip_count
+
+    # Verify tip_count
+    total_tip_count_sum = sum(ex.tip_count.sum().item() for ex in training_examples.values())
+    assert total_tip_count_sum == n_tips_with_ancestor, \
+        f"Total tip_count sum {total_tip_count_sum} != number of leaves {n_tips_with_ancestor}"
+    print(f"  tip_count verification passed ({n_tips_with_ancestor} leaves)")
+
+    # Verify subtree_tip_count
+    children_count = {eid: 0 for eid in training_examples}
+    for eid, pid in example_parent.items():
+        children_count[pid] += 1
+
+    for eid, ex in training_examples.items():
+        assert ex.subtree_tip_count.shape == (seq_len, alphabet_size), \
+            f"Example {eid}: subtree_tip_count shape {ex.subtree_tip_count.shape} != ({seq_len}, {alphabet_size})"
+        if children_count[eid] == 0:
+            assert torch.equal(ex.subtree_tip_count, ex.tip_count), \
+                f"Example {eid}: leaf subtree_tip_count != tip_count"
+
+    total_tip_count = sum(ex.tip_count.sum() for ex in training_examples.values())
+    assert torch.isclose(training_examples[0].subtree_tip_count.sum(), total_tip_count), \
+        f"Root subtree_tip_count sum {training_examples[0].subtree_tip_count.sum()} != total tip_count sum {total_tip_count}"
+
+    print(f"  subtree_tip_count verification passed")
 
     return list(training_examples.values())
         

@@ -16,6 +16,9 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from collections import defaultdict
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 from config import ModelConfig, ModelType, TransformerConfig, AlphabetConfig, ESM2Config, ESMCConfig, VespaGConfig
 from models.factory import create_model
 from parse_tree import parse_big_tree
@@ -37,19 +40,60 @@ class MutationDataset(Dataset):
 
 # ── Loss helper ───────────────────────────────────────────────────────────────
 
-def compute_loss(logits, target_batch, aa_batch):
-    """Compute masked multinomial NLL, ignoring wild-type positions."""
+def compute_probs(logits, target_batch, aa_batch):
     wt_mask = torch.ones_like(logits, dtype=torch.bool)
     wt_mask.scatter_(2, aa_batch.unsqueeze(-1), False)
-
-    probs = torch.sigmoid(logits)
+ 
+    #probs = torch.sigmoid(logits)
+    probs = torch.softmax(logits.flatten(), dim=0).reshape(logits.shape)
     probs = probs * wt_mask  # zero out wild-type before normalizing
     probs = probs / probs.sum(dim=(1, 2), keepdim=True)  # per-example normalization
     probs = probs.clamp(1e-8, 1 - 1e-8)
+    return probs
 
+def compute_loss(logits, target_batch, aa_batch):
+    """Compute masked multinomial NLL, ignoring wild-type positions."""
+
+    probs = compute_probs(logits, target_batch, aa_batch)
     loss = -(target_batch * torch.log(probs))
     n_mutations = target_batch.sum().clamp(min=1)
     return loss.sum() / n_mutations
+
+
+@torch.no_grad()
+def evaluate_boundary(model, boundary_examples, device, batch_size=32, qtile=0.1, pandemic_freq=100):
+    """Per-example eval: proportion of top-decile predictions with subtree_tip_count >= pandemic_freq."""
+    model.eval()
+    proportions = []
+    stc_sums = []
+
+    for start in range(0, len(boundary_examples), batch_size):
+        batch = boundary_examples[start:start + batch_size]
+        aa_batch = torch.stack([ex.aa_idx for ex in batch]).to(device)
+        target_batch = torch.stack([ex.mat for ex in batch]).to(device)
+
+        logits = model(aa_batch)
+        probs = compute_probs(logits, target_batch, aa_batch)
+
+        for i, ex in enumerate(batch):
+            p = probs[i]
+            nonzero_mask = p > 1e-8
+            if nonzero_mask.sum() == 0:
+                proportions.append(0.0)
+                stc_sums.append(ex.subtree_tip_count.sum().item())
+                continue
+            threshold = torch.quantile(p[nonzero_mask], 1.0 - qtile)
+            top_decile_mask = p >= threshold
+            n_top = top_decile_mask.sum().item()
+
+            stc = ex.subtree_tip_count
+            hits = (top_decile_mask.cpu() & (stc >= pandemic_freq)).sum().item()
+
+            proportions.append(hits / max(n_top, 1))
+            stc_sums.append(stc.sum().item())
+
+    model.train()
+    return proportions, stc_sums
 
 
 @torch.no_grad()
@@ -132,20 +176,31 @@ def main():
 
     training_examples = []
     testing_examples = []
+    boundary_examples = []  # testing examples whose parent is in the training set
     total_mutations_train = 0.0
 
-    for example in all_examples:
+    training_ids = set()
+    for i, example in enumerate(all_examples):
         if args.ignore_dead_ends:
             if example.mat.sum() < 0.5:
                 continue
 
         if example.last_mutation_time <= args.cutoff:
             training_examples.append(example)
+            training_ids.add(i)
             total_mutations_train += example.mat.sum()
         else:
             testing_examples.append(example)
 
-    print(f"Training examples: {len(training_examples)}, Testing examples: {len(testing_examples)}")
+    # Number of tips in testing set
+    n_tips_downstream = 0
+    for example in testing_examples:
+        if example.parent_id is not None and example.parent_id in training_ids:
+            boundary_examples.append(example)
+            n_tips_downstream += example.subtree_tip_count.sum().item()
+
+    print(f"Training examples: {len(training_examples)}, Testing examples: {len(testing_examples)}, Boundary examples: {len(boundary_examples)}")
+    print(f"Number of tips in testng dataset: {n_tips_downstream}")
 
     train_dataset = MutationDataset(training_examples)
     test_dataset = MutationDataset(testing_examples)
@@ -289,6 +344,24 @@ def main():
 
     avg_test_loss = evaluate_full(model, test_loader, device)
     print(f"Final test loss: {avg_test_loss:.8f}")
+
+    if boundary_examples:
+        proportions, stc_sums = evaluate_boundary(model, boundary_examples, device, batch_size=args.batch_size)
+        avg_prop = sum(proportions) / len(proportions)
+        print(f"Boundary eval: avg proportion = {avg_prop:.4f} ({len(proportions)} examples)")
+
+        plots_dir = os.path.join(args.output_dir, 'plots')
+        os.makedirs(plots_dir, exist_ok=True)
+        fig, ax = plt.subplots(figsize=(8, 6))
+        ax.scatter(stc_sums, proportions, alpha=0.3, s=10)
+        ax.set_xlabel('Sum of subtree_tip_count')
+        ax.set_ylabel('Proportion of top-decile predictions with subtree_tip_count >= 100')
+        ax.set_title('Boundary examples: prediction quality vs. subtree size')
+        fig.tight_layout()
+        plot_path = os.path.join(plots_dir, 'boundary_eval.png')
+        fig.savefig(plot_path, dpi=150)
+        plt.close(fig)
+        print(f"Saved boundary eval plot to {plot_path}")
 
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     if args.model_type == 'esm2':

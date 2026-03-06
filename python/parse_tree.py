@@ -43,6 +43,7 @@ class Example:
     parent_id: int = None # ID of parent example
     parent_mutation: tuple = None # (pos, alt_idx) mutation that created this from parent
     is_testing_root: bool = False
+    is_descended_from_variant: bool = False
 
 
 def load_tree(jsonl_path):
@@ -287,7 +288,8 @@ def generate_training_examples(tree, root_seq_file, variant_seq_file, allowed_aa
                     last_mutation_time=mut_time,
                     parent_id=ancestral_seq_id,
                     parent_mutation=(mut.pos, allowed_aas.index(mut.alt)),
-                    is_testing_root = is_testing_root
+                    is_testing_root = is_testing_root,
+                    is_descended_from_variant = is_descended_from_variant
                 )
                 training_examples[next_example_id] = new_example
                 example_parent[next_example_id] = ancestral_seq_id

@@ -127,7 +127,6 @@ def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10):
         masked_baselines = {}
         for name, baseline_probs_2d in baselines:
             bp = baseline_probs_2d.unsqueeze(0).expand(batch_size, -1, -1).clone()
-            bp[bp < 0] = 0  # zero out sentinel values (e.g. -1 for *, -)
             bp = bp * wt_mask
             bp = bp / bp.sum(dim=(1, 2), keepdim=True).clamp(min=1e-8)
             bp = bp.clamp(1e-8, 1 - 1e-8)
@@ -407,13 +406,14 @@ def main():
         baselines.append((baseline_name, baseline_tensor))
         print(f"Loaded baseline: {baseline_name} ({baseline_tensor.shape})")
 
-    avg_test_loss, hit_rate_by_qtile, baseline_hits = evaluate_full(
-        model, test_loader, device, baselines=baselines, n_buckets=n_buckets
-    )
-    print(f"Final test loss: {avg_test_loss:.8f}")
-    for i in range(len(hit_rate_by_qtile)):
-        pct = (i + 1) * 100 / n_buckets
-        print(f"Hit rate for top {pct:.1f}%: {hit_rate_by_qtile[i]:.8f}")
+    # Fix sentinel values and break ties with small noise for reproducible quantile computation
+    tiebreak_rng = np.random.RandomState(args.seed)
+    for i in range(len(baselines)):
+        name, tensor = baselines[i]
+        tensor = tensor.clone()
+        tensor[tensor < 0] = 0
+        tensor += torch.tensor(tiebreak_rng.uniform(0, 1e-9, size=tensor.shape), dtype=tensor.dtype)
+        baselines[i] = (name, tensor)
 
     # Build run-specific prefix for output files
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -427,33 +427,56 @@ def main():
     else:
         run_prefix = f"simple_d{args.d_model}_n{args.num_layers}_lr{args.lr}_{timestamp}"
 
-    # Write hit rates CSV: rows = models, columns = quantiles
     qtile_labels = [f"top_{(i+1)*100/n_buckets:.1f}%" for i in range(n_buckets - 1)]
-    csv_path = os.path.join(args.output_dir, f"hit_rates_{run_prefix}.csv")
-    with open(csv_path, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["model"] + qtile_labels)
-        writer.writerow(["trained"] + [f"{v:.8f}" for v in hit_rate_by_qtile])
-        for name, _ in baselines:
-            writer.writerow([name] + [f"{v:.8f}" for v in baseline_hits[name]])
-    print(f"Hit rates written to {csv_path}")
-
-    # Plot hit rate vs quantile for all models
     qtile_pcts = [(i + 1) * 100 / n_buckets for i in range(n_buckets - 1)]
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.plot(qtile_pcts, hit_rate_by_qtile, marker='o', label="trained")
-    for name, _ in baselines:
-        ax.plot(qtile_pcts, baseline_hits[name], marker='o', label=name)
-    ax.set_xlabel("Top quantile (%)")
-    ax.set_ylabel("Hit rate")
-    ax.set_title("Hit rate by quantile")
-    ax.legend(fontsize="small")
-    ax.grid(True, alpha=0.3)
-    fig.tight_layout()
-    plot_path = os.path.join(args.output_dir, f"hit_rates_{run_prefix}.png")
-    fig.savefig(plot_path, dpi=150)
-    plt.close(fig)
-    print(f"Hit rate plot saved to {plot_path}")
+
+    def run_hit_rate_eval(loader, label, file_suffix):
+        """Run hit-rate eval on a dataloader, write CSV and plot."""
+        avg_loss, hit_rate_by_qtile, baseline_hits = evaluate_full(
+            model, loader, device, baselines=baselines, n_buckets=n_buckets
+        )
+        print(f"{label} test loss: {avg_loss:.8f}")
+        for i in range(len(hit_rate_by_qtile)):
+            pct = (i + 1) * 100 / n_buckets
+            print(f"  {label} hit rate for top {pct:.1f}%: {hit_rate_by_qtile[i]:.8f}")
+
+        csv_path = os.path.join(args.output_dir, f"quantile_hit_rates_{file_suffix}_{run_prefix}.csv")
+        with open(csv_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["model"] + qtile_labels)
+            writer.writerow(["trained"] + [f"{v:.8f}" for v in hit_rate_by_qtile])
+            for name, _ in baselines:
+                writer.writerow([name] + [f"{v:.8f}" for v in baseline_hits[name]])
+        print(f"{label} hit rates written to {csv_path}")
+
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.plot(qtile_pcts, hit_rate_by_qtile, marker='o', label="trained")
+        for name, _ in baselines:
+            ax.plot(qtile_pcts, baseline_hits[name], marker='o', label=name)
+        ax.set_xlabel("Top quantile (%)")
+        ax.set_ylabel("Hit rate")
+        ax.set_title(f"{label} hit rate by quantile")
+        ax.legend(fontsize="small")
+        ax.grid(True, alpha=0.3)
+        fig.tight_layout()
+        plot_path = os.path.join(args.output_dir, f"quantile_hit_rates_{file_suffix}_{run_prefix}.png")
+        fig.savefig(plot_path, dpi=150)
+        plt.close(fig)
+        print(f"{label} hit rate plot saved to {plot_path}")
+
+    # All testing examples
+    run_hit_rate_eval(test_loader, "All", "all")
+
+    # Variant-descended testing examples only
+    variant_testing_examples = [e for e in testing_examples if e.is_descended_from_variant]
+    print(f"Variant-descended testing examples: {len(variant_testing_examples)}")
+    if variant_testing_examples:
+        variant_test_loader = DataLoader(
+            MutationDataset(variant_testing_examples),
+            batch_size=args.batch_size, shuffle=True,
+            num_workers=4, pin_memory=True, drop_last=False,
+        )
+        run_hit_rate_eval(variant_test_loader, "Variant-descended", "variant")
 
     # ── Testing-root eval ────────────────────────────────────────────────────
     testing_root_examples = [e for e in all_examples if e.is_testing_root]
@@ -505,11 +528,10 @@ def main():
         baseline_variant_hits = {}
         for name, baseline_probs_2d in baselines:
             bp_rbd = baseline_probs_2d[RBD_RANGE, :].clone()
-            bp_rbd[bp_rbd < 0] = 0
             baseline_variant_hits[name] = variant_hit_rates(bp_rbd, wt_mask_2d, pssm_variant_rbd_list)
 
         # Write CSV: rows = time steps, columns = model + baselines
-        variant_csv_path = os.path.join(args.output_dir, f"variant_hit_rates_{file_suffix}_{run_prefix}.csv")
+        variant_csv_path = os.path.join(args.output_dir, f"variant_emergence_{file_suffix}_{run_prefix}.csv")
         with open(variant_csv_path, "w", newline="") as f:
             writer = csv.writer(f)
             header = ["step", "trained"] + [name for name, _ in baselines]
@@ -533,7 +555,7 @@ def main():
         ax.legend(fontsize="small")
         ax.grid(True, alpha=0.3)
         fig.tight_layout()
-        variant_plot_path = os.path.join(args.output_dir, f"variant_hit_rates_{file_suffix}_{run_prefix}.png")
+        variant_plot_path = os.path.join(args.output_dir, f"variant_emergence_{file_suffix}_{run_prefix}.png")
         fig.savefig(variant_plot_path, dpi=150)
         plt.close(fig)
         print(f"{label} variant hit rate plot saved to {variant_plot_path}")

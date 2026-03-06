@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/ivan.specht/fitness-inference/python/train.py", line 485, in <module>
+    main()
+  File "/home/ivan.specht/fitness-inference/python/train.py", line 401, in main
+    assert header == expected, (
+AssertionError: Baseline Omicron_BA1_bind: column names ['V1', 'V2', 'V3', 'V4', 'V5', 'V6', 'V7', 'V8', 'V9', 'V10', 'V11', 'V12', 'V13', 'V14', 'V15', 'V16', 'V17', 'V18', 'V19', 'V20', 'V21', 'V22'] do not match allowed_aas ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y', '*', '-']

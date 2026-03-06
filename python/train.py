@@ -8,6 +8,7 @@ import os
 import random
 import math
 
+import csv
 import argparse
 import numpy as np
 from datetime import datetime
@@ -51,66 +52,107 @@ def compute_probs(logits, target_batch, aa_batch):
     probs = probs.clamp(1e-8, 1 - 1e-8)
     return probs
 
-def compute_loss(logits, target_batch, aa_batch):
+def compute_loss_batch(probs, target_batch):
     """Compute masked multinomial NLL, ignoring wild-type positions."""
+    target_batch = target_batch.to(probs.device)
 
-    probs = compute_probs(logits, target_batch, aa_batch)
     loss = -(target_batch * torch.log(probs))
     n_mutations = target_batch.sum().clamp(min=1)
     return loss.sum() / n_mutations
 
+def compute_loss_full(probs, target_batch):
+    """Compute masked multinomial NLL, ignoring wild-type positions."""
+    target_batch = target_batch.to(probs.device)
+
+    loss = -(target_batch * torch.log(probs))
+    n_mutations = target_batch.sum().clamp(min=1)
+    return loss.sum(), n_mutations
+
+RBD_RANGE = list(range(330, 531))  # 0-indexed, inclusive
+
+def compute_hit_rate(probs, target_batch, qtile=0.1):
+    target_batch = target_batch.to(probs.device)
+
+    # Subset to RBD range
+    target_batch = target_batch[:, RBD_RANGE, :]
+    if probs.shape[1] != len(RBD_RANGE):
+        probs = probs[:, RBD_RANGE, :]
+
+    # Vectorized: compute per-example quantile thresholds in one call
+    B = probs.shape[0]
+    p_flat = probs.reshape(B, -1)
+    thresholds = torch.quantile(p_flat, 1.0 - qtile, dim=1)  # (B,)
+    top_qtile_mask = probs >= thresholds.view(B, 1, 1)
+
+    n_hits = (top_qtile_mask * target_batch).sum().item()
+    n_mutations = target_batch.sum().item()
+
+    return n_hits, n_mutations
+        
 
 @torch.no_grad()
-def evaluate_boundary(model, boundary_examples, device, batch_size=32, qtile=0.1, pandemic_freq=100):
-    """Per-example eval: proportion of top-decile predictions with subtree_tip_count >= pandemic_freq."""
-    model.eval()
-    proportions = []
-    stc_sums = []
+def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10):
+    """Evaluate loss and hit rates over the entire dataloader.
 
-    for start in range(0, len(boundary_examples), batch_size):
-        batch = boundary_examples[start:start + batch_size]
-        aa_batch = torch.stack([ex.aa_idx for ex in batch]).to(device)
-        target_batch = torch.stack([ex.mat for ex in batch]).to(device)
+    baselines: list of (name, probs_2d) where probs_2d is a (seq_len, E) tensor
+               used as a fixed baseline for all examples.
+    """
+    if baselines is None:
+        baselines = []
 
-        logits = model(aa_batch)
-        probs = compute_probs(logits, target_batch, aa_batch)
-
-        for i, ex in enumerate(batch):
-            p = probs[i]
-            nonzero_mask = p > 1e-8
-            if nonzero_mask.sum() == 0:
-                proportions.append(0.0)
-                stc_sums.append(ex.subtree_tip_count.sum().item())
-                continue
-            threshold = torch.quantile(p[nonzero_mask], 1.0 - qtile)
-            top_decile_mask = p >= threshold
-            n_top = top_decile_mask.sum().item()
-
-            stc = ex.subtree_tip_count
-            hits = (top_decile_mask.cpu() & (stc >= pandemic_freq)).sum().item()
-
-            proportions.append(hits / max(n_top, 1))
-            stc_sums.append(stc.sum().item())
-
-    model.train()
-    return proportions, stc_sums
-
-
-@torch.no_grad()
-def evaluate_full(model, dataloader, device):
-    """Evaluate loss over the entire dataloader. Returns mean loss."""
     model.eval()
     total_loss = 0.0
-    n_batches = 0
-    for aa_batch, target_batch in dataloader:
+    total_hits_by_qtile = [0] * (n_buckets - 1)
+    baseline_hits_by_qtile = {name: [0] * (n_buckets - 1) for name, _ in baselines}
+    total_n_mutations = 0
+    total_rbd_mutations = 0
+    n_total_batches = len(dataloader)
+    for batch_idx, (aa_batch, target_batch) in enumerate(dataloader):
+        if batch_idx % 10 == 0:
+            print(f"  [evaluate_full] batch {batch_idx}/{n_total_batches}", flush=True)
         aa_batch = aa_batch.to(device)
         target_batch = target_batch.to(device)
         logits = model(aa_batch)
-        loss = compute_loss(logits, target_batch, aa_batch)
+        probs = compute_probs(logits, target_batch, aa_batch)
+        loss, n_mutations = compute_loss_full(probs, target_batch)
         total_loss += loss.item()
-        n_batches += 1
+        total_n_mutations += n_mutations.item()
+
+        batch_size = aa_batch.shape[0]
+
+        # Mask and normalize baseline probs per example (zero out wild-type, re-normalize)
+        wt_mask = torch.ones(batch_size, aa_batch.shape[1], baselines[0][1].shape[-1], dtype=torch.bool) if baselines else None
+        if wt_mask is not None:
+            wt_mask.scatter_(2, aa_batch.cpu().unsqueeze(-1), False)
+        masked_baselines = {}
+        for name, baseline_probs_2d in baselines:
+            bp = baseline_probs_2d.unsqueeze(0).expand(batch_size, -1, -1).clone()
+            bp[bp < 0] = 0  # zero out sentinel values (e.g. -1 for *, -)
+            bp = bp * wt_mask
+            bp = bp / bp.sum(dim=(1, 2), keepdim=True).clamp(min=1e-8)
+            bp = bp.clamp(1e-8, 1 - 1e-8)
+            masked_baselines[name] = bp
+
+        for i in range(n_buckets - 1):
+            qtile = (i + 1) / n_buckets
+            hits, rbd_muts = compute_hit_rate(probs, target_batch, qtile)
+            total_hits_by_qtile[i] += hits
+            if i == 0:
+                total_rbd_mutations += rbd_muts
+
+            for name, _ in baselines:
+                b_hits, _ = compute_hit_rate(masked_baselines[name], target_batch, qtile)
+                baseline_hits_by_qtile[name][i] += b_hits
+
+    print(f"  [evaluate_full] done ({n_total_batches} batches, {total_n_mutations:.0f} mutations)", flush=True)
     model.train()
-    return total_loss / max(n_batches, 1)
+
+    for i in range(n_buckets - 1):
+        total_hits_by_qtile[i] /= total_rbd_mutations
+        for name, _ in baselines:
+            baseline_hits_by_qtile[name][i] /= total_rbd_mutations
+
+    return total_loss / max(total_n_mutations, 1), total_hits_by_qtile, baseline_hits_by_qtile
 
 
 # ── Args ──────────────────────────────────────────────────────────────────────
@@ -141,6 +183,8 @@ def parse_args():
     parser.add_argument('--warmup-steps', type=int, default=0, help='LR warmup steps')
     parser.add_argument('--output-dir', type=str, default='.', help='Output directory')
     parser.add_argument('--seed', type=int, default=42, help='Random seed')
+    parser.add_argument('--hit-rate-buckets', type=int, default=10,
+                        help='Number of quantile buckets for hit-rate evaluation')
     parser.add_argument('--dms-eval-dir', type=str, default=None,
                         help='Directory with DMS TSV files for evaluation')
     return parser.parse_args()
@@ -165,10 +209,12 @@ def main():
     print(f"Using device: {device}")
 
     print("Loading tree...")
-    all_examples = parse_big_tree(
+    all_examples, pssm_root, pssm_variant = parse_big_tree(
         "/home/ivan.specht/fitness-inference-data/covid.jsonl",
         "/home/ivan.specht/fitness-inference/data/test_sequences/root.txt",
-        allowed_aas
+        "/home/ivan.specht/fitness-inference/data/test_sequences/BA.2.txt",
+        allowed_aas,
+        args.cutoff
     )
 
     seq_len_aa = len(all_examples[0].aa_idx)
@@ -176,7 +222,6 @@ def main():
 
     training_examples = []
     testing_examples = []
-    boundary_examples = []  # testing examples whose parent is in the training set
     total_mutations_train = 0.0
 
     training_ids = set()
@@ -192,15 +237,10 @@ def main():
         else:
             testing_examples.append(example)
 
-    # Number of tips in testing set
-    n_tips_downstream = 0
-    for example in testing_examples:
-        if example.parent_id is not None and example.parent_id in training_ids:
-            boundary_examples.append(example)
-            n_tips_downstream += example.subtree_tip_count.sum().item()
 
-    print(f"Training examples: {len(training_examples)}, Testing examples: {len(testing_examples)}, Boundary examples: {len(boundary_examples)}")
-    print(f"Number of tips in testng dataset: {n_tips_downstream}")
+    print(f"Training examples: {len(training_examples)}, Testing examples: {len(testing_examples)}")
+
+
 
     train_dataset = MutationDataset(training_examples)
     test_dataset = MutationDataset(testing_examples)
@@ -307,7 +347,8 @@ def main():
             target_batch = target_batch.to(device)
 
             logits = model(aa_batch)
-            loss = compute_loss(logits, target_batch, aa_batch)
+            probs = compute_probs(logits, target_batch, aa_batch)
+            loss = compute_loss_batch(probs, target_batch)
             loss.backward()
 
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
@@ -327,7 +368,8 @@ def main():
                 test_aa = test_aa.to(device)
                 test_target = test_target.to(device)
                 test_logits = model(test_aa)
-                test_batch_loss_val = compute_loss(test_logits, test_target, test_aa).item()
+                test_probs = compute_probs(test_logits, test_target, test_aa)
+                test_batch_loss_val = compute_loss_batch(test_probs, test_target).item()
 
             if batch_num % 10 == 0:
                 print(f"  Epoch {epoch}, batch {batch_num}: train_loss={train_loss_val:.8f}, test_batch_loss={test_batch_loss_val:.8f}")
@@ -342,49 +384,174 @@ def main():
         if args.max_batches is not None and global_step >= args.max_batches:
             break
 
-    avg_test_loss = evaluate_full(model, test_loader, device)
+    n_buckets = args.hit_rate_buckets
+
+    baselines = [("pssm_root", pssm_root)]
+
+    # Load additional baselines from CSV files
+    import glob as glob_mod
+    baseline_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "baselines")
+    for csv_file in sorted(glob_mod.glob(os.path.join(baseline_dir, "*.csv"))):
+        baseline_name = os.path.splitext(os.path.basename(csv_file))[0]
+        with open(csv_file, "r") as f:
+            reader = csv.reader(f)
+            header = next(reader)
+            expected = list(allowed_aas)
+            #assert header == expected, (
+            #    f"Baseline {baseline_name}: column names {header} do not match allowed_aas {expected}"
+            #)
+            rows = []
+            for row in reader:
+                rows.append([float(x) for x in row])
+        baseline_tensor = torch.tensor(rows, dtype=torch.float32)
+        baselines.append((baseline_name, baseline_tensor))
+        print(f"Loaded baseline: {baseline_name} ({baseline_tensor.shape})")
+
+    avg_test_loss, hit_rate_by_qtile, baseline_hits = evaluate_full(
+        model, test_loader, device, baselines=baselines, n_buckets=n_buckets
+    )
     print(f"Final test loss: {avg_test_loss:.8f}")
+    for i in range(len(hit_rate_by_qtile)):
+        pct = (i + 1) * 100 / n_buckets
+        print(f"Hit rate for top {pct:.1f}%: {hit_rate_by_qtile[i]:.8f}")
 
-    if boundary_examples:
-        proportions, stc_sums = evaluate_boundary(model, boundary_examples, device, batch_size=args.batch_size)
-        avg_prop = sum(proportions) / len(proportions)
-        print(f"Boundary eval: avg proportion = {avg_prop:.4f} ({len(proportions)} examples)")
-
-        plots_dir = os.path.join(args.output_dir, 'plots')
-        os.makedirs(plots_dir, exist_ok=True)
-        fig, ax = plt.subplots(figsize=(8, 6))
-        ax.scatter(stc_sums, proportions, alpha=0.3, s=10)
-        ax.set_xlabel('Sum of subtree_tip_count')
-        ax.set_ylabel('Proportion of top-decile predictions with subtree_tip_count >= 100')
-        ax.set_title('Boundary examples: prediction quality vs. subtree size')
-        fig.tight_layout()
-        plot_path = os.path.join(plots_dir, 'boundary_eval.png')
-        fig.savefig(plot_path, dpi=150)
-        plt.close(fig)
-        print(f"Saved boundary eval plot to {plot_path}")
-
+    # Build run-specific prefix for output files
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     if args.model_type == 'esm2':
         model_name_short = args.esm2_model_name.split('/')[-1]
-        output_path = os.path.join(
-            args.output_dir,
-            f"fitness_esm2_{model_name_short}_lr{args.lr}_{timestamp}.pt",
-        )
+        run_prefix = f"esm2_{model_name_short}_lr{args.lr}_{timestamp}"
     elif args.model_type == 'esmc':
-        output_path = os.path.join(
-            args.output_dir,
-            f"fitness_esmc_{args.esmc_model_name}_lr{args.lr}_{timestamp}.pt",
-        )
+        run_prefix = f"esmc_{args.esmc_model_name}_lr{args.lr}_{timestamp}"
     elif args.model_type == 'vespag':
-        output_path = os.path.join(
-            args.output_dir,
-            f"fitness_vespag_lr{args.lr}_{timestamp}.pt",
-        )
+        run_prefix = f"vespag_lr{args.lr}_{timestamp}"
     else:
-        output_path = os.path.join(
-            args.output_dir,
-            f"fitness_simple_d{args.d_model}_n{args.num_layers}_lr{args.lr}_{timestamp}.pt",
-        )
+        run_prefix = f"simple_d{args.d_model}_n{args.num_layers}_lr{args.lr}_{timestamp}"
+
+    # Write hit rates CSV: rows = models, columns = quantiles
+    qtile_labels = [f"top_{(i+1)*100/n_buckets:.1f}%" for i in range(n_buckets - 1)]
+    csv_path = os.path.join(args.output_dir, f"hit_rates_{run_prefix}.csv")
+    with open(csv_path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["model"] + qtile_labels)
+        writer.writerow(["trained"] + [f"{v:.8f}" for v in hit_rate_by_qtile])
+        for name, _ in baselines:
+            writer.writerow([name] + [f"{v:.8f}" for v in baseline_hits[name]])
+    print(f"Hit rates written to {csv_path}")
+
+    # Plot hit rate vs quantile for all models
+    qtile_pcts = [(i + 1) * 100 / n_buckets for i in range(n_buckets - 1)]
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(qtile_pcts, hit_rate_by_qtile, marker='o', label="trained")
+    for name, _ in baselines:
+        ax.plot(qtile_pcts, baseline_hits[name], marker='o', label=name)
+    ax.set_xlabel("Top quantile (%)")
+    ax.set_ylabel("Hit rate")
+    ax.set_title("Hit rate by quantile")
+    ax.legend(fontsize="small")
+    ax.grid(True, alpha=0.3)
+    fig.tight_layout()
+    plot_path = os.path.join(args.output_dir, f"hit_rates_{run_prefix}.png")
+    fig.savefig(plot_path, dpi=150)
+    plt.close(fig)
+    print(f"Hit rate plot saved to {plot_path}")
+
+    # ── Testing-root eval ────────────────────────────────────────────────────
+    testing_root_examples = [e for e in all_examples if e.is_testing_root]
+    assert len(testing_root_examples) == 1, (
+        f"Expected exactly 1 example with is_testing_root=True, found {len(testing_root_examples)}"
+    )
+    testing_root_example = testing_root_examples[0]
+
+    with torch.no_grad():
+        model.eval()
+        aa_input = testing_root_example.aa_idx.unsqueeze(0).to(device)
+        target_input = testing_root_example.mat.unsqueeze(0).to(device)
+        logits = model(aa_input)
+        testing_root_probs = compute_probs(logits, target_input, aa_input)
+        print(f"Testing root probs shape: {testing_root_probs.shape}")
+
+    # Remove batch dim -> (seq_len, E), then subset to RBD
+    testing_root_probs_2d = testing_root_probs.squeeze(0).cpu()[RBD_RANGE, :]
+
+    # Build wild-type mask for the testing root sequence (RBD only)
+    wt_idx = testing_root_example.aa_idx[RBD_RANGE]  # (rbd_len,)
+    rbd_len, E_size = testing_root_probs_2d.shape
+    wt_mask_2d = torch.ones(rbd_len, E_size, dtype=torch.bool)
+    wt_mask_2d.scatter_(1, wt_idx.unsqueeze(-1), False)
+
+    # Subset pssm_variant to RBD
+    pssm_variant_rbd = [pv[RBD_RANGE, :] for pv in pssm_variant]
+
+    # Helper: mask wild-type, re-normalize, return top-decile hit rate vs pssm_variant
+    def variant_hit_rates(prob_2d, wt_mask, pssm_variant_list, threshold_count=100):
+        p = prob_2d * wt_mask.float()
+        p = p / p.sum().clamp(min=1e-8)
+        threshold = torch.quantile(p[wt_mask], 0.9)
+        top_decile_mask = (p >= threshold) & wt_mask
+        hit_rates = []
+        for pv in pssm_variant_list:
+            high_count_mask = pv >= threshold_count
+            n_top = top_decile_mask.sum().item()
+            n_hits = (top_decile_mask & high_count_mask).sum().item()
+            hit_rates.append(n_hits / max(n_top, 1))
+        return hit_rates
+
+    def run_variant_eval(pssm_variant_rbd_list, label, file_suffix):
+        """Run variant hit rate eval and write CSV + plot."""
+        # Compute for model
+        model_hits = variant_hit_rates(testing_root_probs_2d, wt_mask_2d, pssm_variant_rbd_list)
+
+        # Compute for each baseline (subset to RBD, zero out sentinels)
+        baseline_variant_hits = {}
+        for name, baseline_probs_2d in baselines:
+            bp_rbd = baseline_probs_2d[RBD_RANGE, :].clone()
+            bp_rbd[bp_rbd < 0] = 0
+            baseline_variant_hits[name] = variant_hit_rates(bp_rbd, wt_mask_2d, pssm_variant_rbd_list)
+
+        # Write CSV: rows = time steps, columns = model + baselines
+        variant_csv_path = os.path.join(args.output_dir, f"variant_hit_rates_{file_suffix}_{run_prefix}.csv")
+        with open(variant_csv_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            header = ["step", "trained"] + [name for name, _ in baselines]
+            writer.writerow(header)
+            for i in range(len(pssm_variant_rbd_list)):
+                row = [i, f"{model_hits[i]:.8f}"]
+                for name, _ in baselines:
+                    row.append(f"{baseline_variant_hits[name][i]:.8f}")
+                writer.writerow(row)
+        print(f"{label} variant hit rates written to {variant_csv_path}")
+
+        # Plot variant hit rates over time
+        time_years = [(i + 1) * 0.1 for i in range(len(pssm_variant_rbd_list))]
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.plot(time_years, model_hits, marker='o', label="trained")
+        for name, _ in baselines:
+            ax.plot(time_years, baseline_variant_hits[name], marker='o', label=name)
+        ax.set_xlabel("Years since beginning of pandemic")
+        ax.set_ylabel("Hit rate")
+        ax.set_title(f"{label} variant mutation hit rate over time")
+        ax.legend(fontsize="small")
+        ax.grid(True, alpha=0.3)
+        fig.tight_layout()
+        variant_plot_path = os.path.join(args.output_dir, f"variant_hit_rates_{file_suffix}_{run_prefix}.png")
+        fig.savefig(variant_plot_path, dpi=150)
+        plt.close(fig)
+        print(f"{label} variant hit rate plot saved to {variant_plot_path}")
+
+    # (1) All variants
+    run_variant_eval(pssm_variant_rbd, "All", "all")
+
+    # (2) Never-before-seen variants only: mask out positions that are non-zero in pssm_root
+    pssm_root_rbd = pssm_root[RBD_RANGE, :]
+    seen_mask = pssm_root_rbd != 0  # positions seen in training root PSSM
+    pssm_variant_rbd_unseen = []
+    for pv in pssm_variant_rbd:
+        pv_masked = pv.clone()
+        pv_masked[seen_mask] = 0
+        pssm_variant_rbd_unseen.append(pv_masked)
+    run_variant_eval(pssm_variant_rbd_unseen, "Unseen", "unseen")
+
+    output_path = os.path.join(args.output_dir, f"fitness_{run_prefix}.pt")
 
     print(f"Saving model to {output_path}...")
     checkpoint = {

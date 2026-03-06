@@ -4,10 +4,11 @@ Load taxonium JSONL, extract training examples
 
 import json
 from copy import copy
-import hashlib
-from dataclasses import dataclass, field
-from datetime import datetime
+from dataclasses import dataclass
+
 import torch
+import torch.nn.functional
+
 
 
 # ── Data classes ──────────────────────────────────────────────────────────────
@@ -41,9 +42,7 @@ class Example:
     last_mutation_time: float # Time of last mutation away from starting strain
     parent_id: int = None # ID of parent example
     parent_mutation: tuple = None # (pos, alt_idx) mutation that created this from parent
-    tip_count: None = None
-    subtree_tip_count: None = None
-
+    is_testing_root: bool = False
 
 
 def load_tree(jsonl_path):
@@ -145,8 +144,9 @@ def load_tree(jsonl_path):
     print(f"  Root: node_id={root_id}")
 
     # Step 6: converting times to years since beginning of pandemic
+    root_time = nodes[root_id].time
     for nid, node in nodes.items():
-        node.time -= nodes[root_id].time
+        node.time -= root_time
         if(node.time < 0):
             raise ValueError("Times should never be earlier than the root")
         
@@ -170,7 +170,7 @@ def read_fasta(path):
     return ''.join(seq_parts)
 
 
-# –– Training example generation –––––––––––––––––––––––––––––––––––––––––––––––
+# ── Training example generation ─────────────────────────────────────────────────
 
 def tokenize(aa_seq, allowed_aas):
     aa_idx = torch.tensor(
@@ -180,12 +180,13 @@ def tokenize(aa_seq, allowed_aas):
 
 def mutate(aa_idx, allowed_aas, mut):
     aa_idx = aa_idx.clone()
-    before_idx = allowed_aas.index(mut.ref)
-    after_idx = allowed_aas.index(mut.alt)
-    curr_idx = aa_idx[mut.pos]
 
     if mut.pos < 0 or mut.pos >= len(aa_idx):
         raise ValueError("Pos out of bounds")
+
+    before_idx = allowed_aas.index(mut.ref)
+    after_idx = allowed_aas.index(mut.alt)
+    curr_idx = aa_idx[mut.pos]
 
     if curr_idx != before_idx:
         raise ValueError("mutation mismatch")
@@ -193,33 +194,47 @@ def mutate(aa_idx, allowed_aas, mut):
     aa_idx[mut.pos] = after_idx
     return aa_idx
 
-def generate_training_examples(tree, root_seq_file, allowed_aas):
+def generate_training_examples(tree, root_seq_file, variant_seq_file, allowed_aas, cutoff, timestep = 0.1, n_steps = 60):
 
     training_examples = {}
     example_parent = {}
     next_example_id = 0
+
+    
 
     root_seq = read_fasta(root_seq_file)
     empty_mutation_tensor = torch.zeros(len(root_seq), len(allowed_aas), dtype=torch.float32)
     root_example = Example(
         aa_idx=tokenize(root_seq, allowed_aas),
         mat=empty_mutation_tensor.clone(),
-        last_mutation_time=0.0,
-        tip_count=empty_mutation_tensor.clone()
+        last_mutation_time=0.0
     )
 
     training_examples[next_example_id] = root_example
     next_example_id += 1
 
-    # Stack holds (node, parent_example_id, genotype_ancestor_id, last_mutation_info)
-    stack = [(tree.nodes[tree.root_id], 0, None, None)]
+    # Stack holds (node, parent_example_id, genotype_ancestor_id, last_mutation_info, is_descended_from_variant)
+    stack = [(tree.nodes[tree.root_id], 0, None, None, False)]
     nodes_processed = 0
-    n_tips_with_ancestor = 0
 
     visited = set()
 
+    # PSSM from root thru cutoff
+    pssm_root = empty_mutation_tensor.clone()
+
+    # PSSM variant emergence thru various timepoints
+    pssm_variant = []
+    for step in range(n_steps):
+        pssm_variant.append(empty_mutation_tensor.clone())
+
+    # Sequence of the variant
+    variant_seq = read_fasta(variant_seq_file)
+    variant_seq_idx = tokenize(variant_seq, allowed_aas)
+
+
+
     while stack:
-        node, parent_example_id, genotype_ancestor_id, last_mutation_info = stack.pop()
+        node, parent_example_id, genotype_ancestor_id, last_mutation_info, is_descended_from_variant = stack.pop()
 
         if node.node_id in visited:
             raise ValueError(f"Cycle detected: node_id={node.node_id} visited twice")
@@ -243,13 +258,36 @@ def generate_training_examples(tree, root_seq_file, allowed_aas):
                     training_examples[ancestral_seq_id].last_mutation_time, mut_time
                 )
 
+                new_seq = mutate(training_examples[ancestral_seq_id].aa_idx, allowed_aas, mut)
+                is_testing_root = False
+
+                # Check if descended from variant
+                if not is_descended_from_variant:
+                    matches_variant = False
+
+                    # Debug: check match ignoring gap/stop positions
+                    non_gap_mask = torch.tensor(
+                        [c not in ('-', '*') for c in variant_seq], dtype=torch.bool
+                    )
+                    matches_non_gap = (new_seq[non_gap_mask] == variant_seq_idx[non_gap_mask]).all()
+                    if matches_non_gap:
+                        matches_variant = True
+
+                    if matches_variant:
+                        print("Hooray! We found the variant")
+                        print(f"Variant node time: {node.time}")
+                        print(f"Variant parent time: {tree.nodes[node.parent_id].time}")
+                        is_testing_root = True
+                        is_descended_from_variant = True
+
+
                 new_example = Example(
-                    aa_idx=mutate(training_examples[ancestral_seq_id].aa_idx, allowed_aas, mut),
+                    aa_idx=new_seq,
                     mat=empty_mutation_tensor.clone(),
                     last_mutation_time=mut_time,
                     parent_id=ancestral_seq_id,
                     parent_mutation=(mut.pos, allowed_aas.index(mut.alt)),
-                    tip_count=empty_mutation_tensor.clone()
+                    is_testing_root = is_testing_root
                 )
                 training_examples[next_example_id] = new_example
                 example_parent[next_example_id] = ancestral_seq_id
@@ -259,15 +297,21 @@ def generate_training_examples(tree, root_seq_file, allowed_aas):
 
         last_id = parent_example_id if first else next_example_id - 1
 
-        # Update tip_count if this node is a tip
+        # Update pssm(s) if this node is a tip
         if len(node.child_ids) == 0 and genotype_ancestor_id is not None:
-            pos, alt_idx = last_mutation_info
-            training_examples[genotype_ancestor_id].tip_count[pos, alt_idx] += 1
-            n_tips_with_ancestor += 1
+            one_hot = torch.nn.functional.one_hot(training_examples[last_id].aa_idx, num_classes=len(allowed_aas)).float()
+            if node.time < cutoff:
+                pssm_root += one_hot
+
+            if is_descended_from_variant:
+                for step in range(n_steps):
+                    step_cutoff = (step + 1) * timestep
+                    if node.time < step_cutoff:
+                        pssm_variant[step] += one_hot
 
         # Push children onto stack
         for child_id in node.child_ids:
-            stack.append((tree.nodes[child_id], last_id, genotype_ancestor_id, last_mutation_info))
+            stack.append((tree.nodes[child_id], last_id, genotype_ancestor_id, last_mutation_info, is_descended_from_variant))
 
         nodes_processed += 1
         if nodes_processed % 500000 == 0:
@@ -275,40 +319,7 @@ def generate_training_examples(tree, root_seq_file, allowed_aas):
 
     print(f"  Done: {nodes_processed} nodes processed, {next_example_id} examples generated")
 
-    # Populate subtree_tip_count matrix for each example
-    seq_len, alphabet_size = len(root_seq), len(allowed_aas)
-    for eid, ex in training_examples.items():
-        ex.subtree_tip_count = ex.tip_count.clone()
-
-    for eid in range(next_example_id - 1, 0, -1):
-        parent_id = example_parent[eid]
-        training_examples[parent_id].subtree_tip_count += training_examples[eid].subtree_tip_count
-
-    # Verify tip_count
-    total_tip_count_sum = sum(ex.tip_count.sum().item() for ex in training_examples.values())
-    assert total_tip_count_sum == n_tips_with_ancestor, \
-        f"Total tip_count sum {total_tip_count_sum} != number of leaves {n_tips_with_ancestor}"
-    print(f"  tip_count verification passed ({n_tips_with_ancestor} leaves)")
-
-    # Verify subtree_tip_count
-    children_count = {eid: 0 for eid in training_examples}
-    for eid, pid in example_parent.items():
-        children_count[pid] += 1
-
-    for eid, ex in training_examples.items():
-        assert ex.subtree_tip_count.shape == (seq_len, alphabet_size), \
-            f"Example {eid}: subtree_tip_count shape {ex.subtree_tip_count.shape} != ({seq_len}, {alphabet_size})"
-        if children_count[eid] == 0:
-            assert torch.equal(ex.subtree_tip_count, ex.tip_count), \
-                f"Example {eid}: leaf subtree_tip_count != tip_count"
-
-    total_tip_count = sum(ex.tip_count.sum() for ex in training_examples.values())
-    assert torch.isclose(training_examples[0].subtree_tip_count.sum(), total_tip_count), \
-        f"Root subtree_tip_count sum {training_examples[0].subtree_tip_count.sum()} != total tip_count sum {total_tip_count}"
-
-    print(f"  subtree_tip_count verification passed")
-
-    return list(training_examples.values())
+    return list(training_examples.values()), pssm_root, pssm_variant
         
 
 
@@ -318,15 +329,13 @@ def generate_training_examples(tree, root_seq_file, allowed_aas):
 def parse_big_tree(
     jsonl_path,
     root_seq_file,
-    allowed_aas
+    variant_seq_file,
+    allowed_aas,
+    cutoff
 ):
 
 
     tree = load_tree(jsonl_path)
-    training_examples = generate_training_examples(tree, root_seq_file, allowed_aas)
-
-    print(f"Generated {len(training_examples)} training examples")
-
-    return training_examples
+    return generate_training_examples(tree, root_seq_file, variant_seq_file, allowed_aas, cutoff)
 
     

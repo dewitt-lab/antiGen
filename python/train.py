@@ -128,8 +128,6 @@ def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10):
         for name, baseline_probs_2d in baselines:
             bp = baseline_probs_2d.unsqueeze(0).expand(batch_size, -1, -1).clone()
             bp = bp * wt_mask
-            bp = bp / bp.sum(dim=(1, 2), keepdim=True).clamp(min=1e-8)
-            bp = bp.clamp(1e-8, 1 - 1e-8)
             masked_baselines[name] = bp
 
         for i in range(n_buckets - 1):
@@ -508,7 +506,6 @@ def main():
     # Helper: mask wild-type, re-normalize, return top-decile hit rate vs pssm_variant
     def variant_hit_rates(prob_2d, wt_mask, pssm_variant_list, threshold_count=100):
         p = prob_2d * wt_mask.float()
-        p = p / p.sum().clamp(min=1e-8)
         threshold = torch.quantile(p[wt_mask], 0.9)
         top_decile_mask = (p >= threshold) & wt_mask
         hit_rates = []

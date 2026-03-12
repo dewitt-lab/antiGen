@@ -1,0 +1,8 @@
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]Fetching 4 files: 100%|██████████| 4/4 [00:00<00:00, 44620.26it/s]
+Traceback (most recent call last):
+  File "/home/ivan.specht/fitness-inference/python/train.py", line 645, in <module>
+    
+  File "/home/ivan.specht/fitness-inference/python/train.py", line 624, in main
+    writer = csv.writer(f)
+               ^^^^^^^^^^^^
+TypeError: Got unsupported ScalarType BFloat16

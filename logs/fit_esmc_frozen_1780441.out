@@ -1,0 +1,124 @@
+Job started at: Tue Mar 10 06:04:01 PM PDT 2026
+Running on node: GPU389E
+Job ID: 1780441
+GPU: 0
+Alphabet size: 22
+Using device: cuda
+Loading tree...
+Reading JSONL header...
+  235015 total mutations in header
+  11650 spike mutations in dictionary
+Reading JSONL nodes...
+  ... loaded 500000 nodes
+  ... loaded 1000000 nodes
+  ... loaded 1500000 nodes
+  ... loaded 2000000 nodes
+  ... loaded 2500000 nodes
+  ... loaded 3000000 nodes
+  ... loaded 3500000 nodes
+  ... loaded 4000000 nodes
+  ... loaded 4500000 nodes
+  ... loaded 5000000 nodes
+  ... loaded 5500000 nodes
+  ... loaded 6000000 nodes
+  ... loaded 6500000 nodes
+  ... loaded 7000000 nodes
+  ... loaded 7500000 nodes
+  ... loaded 8000000 nodes
+  ... loaded 8500000 nodes
+  ... loaded 9000000 nodes
+  ... loaded 9500000 nodes
+  ... loaded 10000000 nodes
+  Total: 10250356 nodes, 634027 spike mutations
+Wiring children and parents...
+  Root: node_id=159118
+Hooray! We found the variant
+Variant node time: 1.990965003952361
+Variant parent time: 1.8816394087375767
+  ... processed 500000 nodes, 32352 examples generated
+  ... processed 1000000 nodes, 65703 examples generated
+  ... processed 1500000 nodes, 107346 examples generated
+  ... processed 2000000 nodes, 160897 examples generated
+  ... processed 2500000 nodes, 199388 examples generated
+  ... processed 3000000 nodes, 223372 examples generated
+  ... processed 3500000 nodes, 247124 examples generated
+  ... processed 4000000 nodes, 270757 examples generated
+  ... processed 4500000 nodes, 296514 examples generated
+  ... processed 5000000 nodes, 322872 examples generated
+  ... processed 5500000 nodes, 350743 examples generated
+  ... processed 6000000 nodes, 382249 examples generated
+  ... processed 6500000 nodes, 404537 examples generated
+  ... processed 7000000 nodes, 425366 examples generated
+  ... processed 7500000 nodes, 452148 examples generated
+  ... processed 8000000 nodes, 483272 examples generated
+  ... processed 8500000 nodes, 512943 examples generated
+  ... processed 9000000 nodes, 542138 examples generated
+  ... processed 9500000 nodes, 578617 examples generated
+  ... processed 10000000 nodes, 615266 examples generated
+  Done: 10250356 nodes processed, 634028 examples generated
+Sequence length: 1273
+Training examples: 5763, Testing examples: 112607
+Train batches per epoch: 181
+Model: ESM C (esmc_300m), freeze_backbone=True, finetune_layers=0
+Model: 985,984 trainable params
+Starting training...
+  Epoch 0, batch 0: train_loss=10.49554825, test_batch_loss=10.74814415
+  Epoch 0, batch 10: train_loss=10.33601379, test_batch_loss=10.11207485
+  Epoch 0, batch 20: train_loss=9.95048904, test_batch_loss=10.68310452
+  Epoch 0, batch 30: train_loss=10.01968670, test_batch_loss=9.87367821
+  Epoch 0, batch 40: train_loss=9.91999054, test_batch_loss=9.93466759
+  Epoch 0, batch 50: train_loss=9.67516613, test_batch_loss=9.68102932
+  Epoch 0, batch 60: train_loss=10.01899624, test_batch_loss=9.69423008
+  Epoch 0, batch 70: train_loss=9.65002060, test_batch_loss=10.15581799
+  Epoch 0, batch 80: train_loss=9.50858688, test_batch_loss=9.84331894
+  Epoch 0, batch 90: train_loss=9.18969059, test_batch_loss=9.42838287
+  Epoch 0, batch 100: train_loss=9.45586491, test_batch_loss=9.36388493
+  Epoch 0, batch 110: train_loss=9.17970181, test_batch_loss=9.63024330
+  Epoch 0, batch 120: train_loss=9.32672405, test_batch_loss=9.50560570
+  Epoch 0, batch 130: train_loss=9.15331459, test_batch_loss=9.46740341
+  Epoch 0, batch 140: train_loss=8.88543320, test_batch_loss=9.55400753
+  Epoch 0, batch 150: train_loss=9.29625797, test_batch_loss=9.48915005
+  Epoch 0, batch 160: train_loss=8.89869785, test_batch_loss=9.18121529
+  Epoch 0, batch 170: train_loss=8.72861099, test_batch_loss=9.65484524
+  Epoch 0, batch 180: train_loss=8.77823257, test_batch_loss=9.48270130
+Epoch 0: avg_train_loss=9.54301629
+  Epoch 1, batch 0: train_loss=9.20368290, test_batch_loss=9.09063339
+  Epoch 1, batch 10: train_loss=8.85334682, test_batch_loss=9.09401989
+  Epoch 1, batch 20: train_loss=8.89969921, test_batch_loss=9.26609993
+  Epoch 1, batch 30: train_loss=8.91292763, test_batch_loss=8.98233128
+  Epoch 1, batch 40: train_loss=8.48345184, test_batch_loss=9.47529602
+  Epoch 1, batch 50: train_loss=8.97046757, test_batch_loss=9.35133362
+  Epoch 1, batch 60: train_loss=8.62543964, test_batch_loss=8.95472240
+  Epoch 1, batch 70: train_loss=8.63258362, test_batch_loss=8.91783237
+  Epoch 1, batch 80: train_loss=8.48928356, test_batch_loss=9.07119656
+  Epoch 1, batch 90: train_loss=8.67055035, test_batch_loss=8.99843597
+  Epoch 1, batch 100: train_loss=8.59859753, test_batch_loss=8.99535561
+  Epoch 1, batch 110: train_loss=8.38008595, test_batch_loss=9.37786961
+  Epoch 1, batch 120: train_loss=8.41140652, test_batch_loss=8.82649040
+  Epoch 1, batch 130: train_loss=8.21532345, test_batch_loss=9.34661961
+  Epoch 1, batch 140: train_loss=9.05027199, test_batch_loss=8.68731403
+  Epoch 1, batch 150: train_loss=9.01370239, test_batch_loss=8.94882202
+  Epoch 1, batch 160: train_loss=8.41505814, test_batch_loss=9.28124046
+  Epoch 1, batch 170: train_loss=8.49344349, test_batch_loss=8.81177998
+  Epoch 1, batch 180: train_loss=9.57636261, test_batch_loss=8.91583157
+Epoch 1: avg_train_loss=8.63401650
+  Epoch 2, batch 0: train_loss=8.23978806, test_batch_loss=9.23637486
+  Epoch 2, batch 10: train_loss=8.47225666, test_batch_loss=8.60677910
+  Epoch 2, batch 20: train_loss=8.38690090, test_batch_loss=8.94074535
+  Epoch 2, batch 30: train_loss=8.20581245, test_batch_loss=9.18846989
+  Epoch 2, batch 40: train_loss=8.46685123, test_batch_loss=8.75579643
+  Epoch 2, batch 50: train_loss=8.15248013, test_batch_loss=8.78363228
+  Epoch 2, batch 60: train_loss=8.28110027, test_batch_loss=9.40352440
+  Epoch 2, batch 70: train_loss=8.29315758, test_batch_loss=8.89191914
+  Epoch 2, batch 80: train_loss=8.21883965, test_batch_loss=8.95195770
+  Epoch 2, batch 90: train_loss=7.48198700, test_batch_loss=9.13945293
+  Epoch 2, batch 100: train_loss=8.33189297, test_batch_loss=9.12054253
+  Epoch 2, batch 110: train_loss=8.51979733, test_batch_loss=9.20193100
+  Epoch 2, batch 120: train_loss=7.56889009, test_batch_loss=8.70547867
+  Epoch 2, batch 130: train_loss=8.22386837, test_batch_loss=8.79711246
+  Epoch 2, batch 140: train_loss=8.19585705, test_batch_loss=8.47716808
+  Epoch 2, batch 150: train_loss=8.16298389, test_batch_loss=9.09499454
+  Epoch 2, batch 160: train_loss=8.31028748, test_batch_loss=8.58740330
+  Epoch 2, batch 170: train_loss=8.21239471, test_batch_loss=8.74497604
+  Epoch 2, batch 180: train_loss=8.32359505, test_batch_loss=8.56053162
+Epoch 2: avg_train_loss=8.20768238

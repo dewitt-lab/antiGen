@@ -1,968 +1,782 @@
+#!/usr/bin/env python
+"""
+Simple fitness training: predict which mutations were observed from each ancestral sequence.
+"""
+
 import sys
-import csv
 import os
+import gc
 import random
-import pandas as pd
+import math
+
+import csv
+import argparse
 import numpy as np
-import json
-from Bio import SeqIO
+from datetime import datetime
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import csv
-import math
-from helpers import *
-from config import ModelConfig, ModelType, ESM2Config, TransformerConfig, VespaGConfig, ExperimentConfig, TrainingConfig, DataConfig
-from models.factory import create_model, save_checkpoint
-from dataset import FitnessTrainingDataset, collate_fn
-from torch.utils.data import DataLoader
-from parse_tree_nextstrain import generate_training_examples_nextstrain
-from parse_tree import *
+from torch.utils.data import Dataset, DataLoader
+from collections import defaultdict
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from config import ModelConfig, ModelType, TransformerConfig, AlphabetConfig, ESM2Config, ESMCConfig, VespaGConfig
+from models.factory import create_model
+from parse_tree import parse_big_tree
 
 
+# ── Dataset ───────────────────────────────────────────────────────────────────
 
-# FitnessPredictor moved to models/fitness_predictor.py
-    
-    
-# q: BATCH_SIZE x N x D
-# lam: scalar
-# f: BATCH_SIZE x N x D
-# gam: scalar
-# psi: scalar
-def dq_dt(q, lam, f, gam, psi):
-    return -(lam*f + gam + psi)*q + (lam*f*q*q) + gam
+class MutationDataset(Dataset):
+    def __init__(self, training_examples):
+        self.aa_indices_list = [e.aa_idx for e in training_examples]
+        self.mutation_matrices = [e.mat for e in training_examples]
 
-def update_q_RK4(q_i, lam_i, f, gam, psi, dt):
-    k1 = dq_dt(q_i, lam_i, f, gam, psi)
-    k2 = dq_dt(q_i + (dt * k1 / 2), lam_i, f, gam, psi)
-    k3 = dq_dt(q_i + (dt * k2 / 2), lam_i, f, gam, psi)
-    k4 = dq_dt(q_i + (dt * k3), lam_i, f, gam, psi)
+    def __len__(self):
+        return len(self.aa_indices_list)
 
-    return q_i + (k1 + (2*k2) + (2*k3) + k4) * dt / 6
-
-# p: BATCH_SIZE
-# lam: scalar
-# f: BATCH_SIZE (fitness for genotypes on tree in batch)
-# gam: scalar
-# psi: scalar
-# mu: scalar
-# q: BATCH_SIZE x N x D
-# is_mutation: BATCH_SIZE x N x D, whether each change is actually different than the sequence on the tree
-
-def dp_dt(p, lam, f, gam, psi, mu, q, is_mutation, N, D):
-    return -(lam * f + gam + psi + mu*N) * p + (lam * f * p * p) + gam + (mu / (D-1)) * (q * is_mutation).sum(dim=(1, 2))
-
-def update_p_RK4(p_i, lam_i, f, gam, psi, mu, q_i, q_i_plus_one, is_mutation, N, D, dt):
-
-    q_midpoint = (q_i + q_i_plus_one) / 2
-
-    # Approximate q via linear interpolation
-    k1 = dp_dt(p_i, lam_i, f, gam, psi, mu, q_i, is_mutation, N, D)
-    k2 = dp_dt(p_i + (dt * k1 / 2), lam_i, f, gam, psi, mu, q_midpoint, is_mutation, N, D)
-    k3 = dp_dt(p_i + (dt * k2 / 2), lam_i, f, gam, psi, mu, q_midpoint, is_mutation, N, D)
-    k4 = dp_dt(p_i + (dt * k3), lam_i, f, gam, psi, mu, q_i_plus_one, is_mutation, N, D)
-
-    return p_i + (k1 + (2*k2) + (2*k3) + k4) * dt / 6
+    def __getitem__(self, idx):
+        return self.aa_indices_list[idx], self.mutation_matrices[idx]
 
 
-# Debug helper — defined at module level to avoid closure-based retention
-def check_tensor(name, t):
-    has_nan = torch.isnan(t.float()).any().item()
-    has_inf = torch.isinf(t.float()).any().item()
-    if has_nan or has_inf:
-        print(f"   DEBUG {name}: nan={has_nan} inf={has_inf} shape={t.shape} dtype={t.dtype}")
-        return True
-    return False
+# ── Loss helper ───────────────────────────────────────────────────────────────
 
+def compute_probs(logits, target_batch, aa_batch):
+    wt_mask = torch.ones_like(logits, dtype=torch.bool)
+    wt_mask.scatter_(2, aa_batch.unsqueeze(-1), False)
+ 
+    #probs = torch.sigmoid(logits)
+    probs = torch.softmax(logits.flatten(), dim=0).reshape(logits.shape)
+    probs = probs * wt_mask  # zero out wild-type before normalizing
+    probs = probs / probs.sum(dim=(1, 2), keepdim=True)  # per-example normalization
+    probs = probs.clamp(1e-8, 1 - 1e-8)
+    return probs
+
+def compute_loss_batch(probs, target_batch):
+    """Compute masked multinomial NLL, ignoring wild-type positions."""
+    target_batch = target_batch.to(probs.device)
+
+    loss = -(target_batch * torch.log(probs))
+    n_mutations = target_batch.sum().clamp(min=1)
+    return loss.sum() / n_mutations
+
+def compute_loss_full(probs, target_batch):
+    """Compute masked multinomial NLL, ignoring wild-type positions."""
+    target_batch = target_batch.to(probs.device)
+
+    loss = -(target_batch * torch.log(probs))
+    n_mutations = target_batch.sum().clamp(min=1)
+    return loss.sum(), n_mutations
+
+RBD_RANGE = list(range(330, 531))  # 0-indexed, inclusive
+
+def compute_hit_rate(probs, target_batch, aa_batch, qtile=0.1):
+    target_batch = target_batch.to(probs.device)
+    aa_batch = aa_batch.to(probs.device)
+
+    # Subset to RBD range
+    target_batch = target_batch[:, RBD_RANGE, :]
+    aa_batch_rbd = aa_batch[:, RBD_RANGE]
+    if probs.shape[1] != len(RBD_RANGE):
+        probs = probs[:, RBD_RANGE, :]
+
+    # Mask wild-type positions to NaN so they don't affect quantile thresholds
+    probs = probs.clone()
+    probs.scatter_(2, aa_batch_rbd.unsqueeze(-1), float('nan'))
+
+    # Vectorized: compute per-example quantile thresholds in one call
+    B = probs.shape[0]
+    p_flat = probs.reshape(B, -1).float()
+    thresholds = torch.nanquantile(p_flat, 1.0 - qtile, dim=1)  # (B,)
+    top_qtile_mask = probs >= thresholds.view(B, 1, 1)
+
+    n_hits = (top_qtile_mask * target_batch).sum().item()
+    n_mutations = target_batch.sum().item()
+
+    return n_hits, n_mutations
+        
+
+@torch.no_grad()
+def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10, seen_mask=None):
+    """Evaluate loss and hit rates over the entire dataloader.
+
+    baselines: list of (name, probs_2d) where probs_2d is a (seq_len, E) tensor
+               used as a fixed baseline for all examples.
+    seen_mask: optional (seq_len, E) bool tensor; True = previously seen mutation to exclude.
+    """
+    if baselines is None:
+        baselines = []
+
+    model.eval()
+    total_loss = 0.0
+    total_hits_by_qtile = [0] * (n_buckets - 1)
+    baseline_hits_by_qtile = {name: [0] * (n_buckets - 1) for name, _ in baselines}
+    total_n_mutations = 0
+    total_rbd_mutations = 0
+    n_total_batches = len(dataloader)
+    for batch_idx, (aa_batch, target_batch) in enumerate(dataloader):
+        if batch_idx % 10 == 0:
+            print(f"  [evaluate_full] batch {batch_idx}/{n_total_batches}", flush=True)
+        aa_batch = aa_batch.to(device)
+        target_batch = target_batch.to(device)
+        logits = model(aa_batch).float()
+        probs = compute_probs(logits, target_batch, aa_batch)
+        loss, n_mutations = compute_loss_full(probs, target_batch)
+        total_loss += loss.item()
+        total_n_mutations += n_mutations.item()
+
+        batch_size = aa_batch.shape[0]
+
+        # Mask and normalize baseline probs per example (zero out wild-type, re-normalize)
+        wt_mask = torch.ones(batch_size, aa_batch.shape[1], baselines[0][1].shape[-1], dtype=torch.bool) if baselines else None
+        if wt_mask is not None:
+            wt_mask.scatter_(2, aa_batch.cpu().unsqueeze(-1), False)
+        masked_baselines = {}
+        for name, baseline_probs_2d in baselines:
+            bp = baseline_probs_2d.unsqueeze(0).expand(batch_size, -1, -1).clone()
+            bp[~wt_mask] = float('nan')
+            masked_baselines[name] = bp
+
+        # Mask previously seen mutations if requested
+        if seen_mask is not None:
+            sm = seen_mask.unsqueeze(0).expand(batch_size, -1, -1)
+            probs = probs.clone()
+            probs[sm.to(device)] = float('nan')
+            target_batch = target_batch.clone()
+            target_batch[sm.to(device)] = 0
+            for name in masked_baselines:
+                masked_baselines[name][sm] = float('nan')
+
+        for i in range(n_buckets - 1):
+            qtile = (i + 1) / n_buckets
+            hits, rbd_muts = compute_hit_rate(probs, target_batch, aa_batch, qtile)
+            total_hits_by_qtile[i] += hits
+            if i == 0:
+                total_rbd_mutations += rbd_muts
+
+            for name, _ in baselines:
+                b_hits, _ = compute_hit_rate(masked_baselines[name], target_batch, aa_batch, qtile)
+                baseline_hits_by_qtile[name][i] += b_hits
+
+        # Prevent gradual memory buildup over long eval loops
+        if batch_idx % 100 == 0:
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+
+    print(f"  [evaluate_full] done ({n_total_batches} batches, {total_n_mutations:.0f} mutations)", flush=True)
+    model.train()
+
+    for i in range(n_buckets - 1):
+        total_hits_by_qtile[i] /= total_rbd_mutations
+        for name, _ in baselines:
+            baseline_hits_by_qtile[name][i] /= total_rbd_mutations
+
+    return total_loss / max(total_n_mutations, 1), total_hits_by_qtile, baseline_hits_by_qtile
+
+
+# ── Args ──────────────────────────────────────────────────────────────────────
 
 def parse_args():
-    """Parse command line arguments."""
-    import argparse
-    parser = argparse.ArgumentParser(description='Train fitness prediction model')
-    parser.add_argument('tree_file', help='Path to Nextstrain JSON tree file')
-    parser.add_argument('root_seq_file', help='Path to root sequence FASTA file')
-    parser.add_argument('--config', type=str, default=None,
-                        help='Path to YAML config file (overrides other args)')
-    parser.add_argument('--model', choices=['transformer', 'esm2', 'potts', 'vespag'], default=None,
-                        help='Model type: transformer (from scratch), esm2 (pretrained), potts (ESM2 + Potts couplings), or vespag (ESM2-3B + FNN)')
-    parser.add_argument('--lr', type=float, default=None,
-                        help='Learning rate')
-    parser.add_argument('--epochs', type=int, default=None,
-                        help='Number of training epochs')
-    parser.add_argument('--batch-size', type=int, default=None,
-                        help='Batch size')
-    parser.add_argument('--d-model', type=int, default=None,
-                        help='Model dimension (transformer only)')
-    parser.add_argument('--num-layers', type=int, default=None,
-                        help='Number of layers (transformer only)')
-    parser.add_argument('--output', type=str, default=None,
-                        help='Output model path (default: auto-generated)')
-    parser.add_argument('--output-dir', type=str, default=None,
-                        help='Output directory for checkpoints')
-    parser.add_argument('--freeze-esm', action='store_true', default=None,
-                        help='Freeze ESM-2 backbone')
-    parser.add_argument('--no-freeze-esm', action='store_true',
-                        help='Fine-tune ESM-2 backbone')
-    parser.add_argument('--warmup-steps', type=int, default=None,
-                        help='Number of warmup steps for learning rate')
-    parser.add_argument('--save-every', type=int, default=None,
-                        help='Save checkpoint every N batches (0 = only at end)')
-    parser.add_argument('--seed', type=int, default=None,
-                        help='Random seed for reproducibility')
+    parser = argparse.ArgumentParser(description='Train fitness model on observed mutations')
+    parser.add_argument('--cutoff', type=float, default=1.0, help='Train/test cutoff (years since MRCA)')
+    parser.add_argument('--ignore-dead-ends', action='store_true', default=False, help='Do not make examples for sequences with no downstream mutants')
+
+    parser.add_argument('--model-type', type=str, default='transformer', choices=['transformer', 'esm2', 'esmc', 'vespag'],
+                        help='Model architecture: from-scratch transformer, ESM-2 finetune, ESM C finetune, or VespaG')
+    parser.add_argument('--d-model', type=int, default=512, help='Model dimension (transformer only)')
+    parser.add_argument('--num-layers', type=int, default=4, help='Number of transformer layers (transformer only)')
+    parser.add_argument('--esm2-model-name', type=str, default='facebook/esm2_t12_35M_UR50D',
+                        help='HuggingFace ESM-2 model name (esm2 only)')
+    parser.add_argument('--esmc-model-name', type=str, default='esmc_300m',
+                        help='ESM C model name: esmc_300m, esmc_600m, esmc_6b (esmc only)')
+    parser.add_argument('--freeze-backbone', action='store_true', default=False,
+                        help='Freeze pretrained backbone, only train output head (esm2/esmc/vespag)')
+    parser.add_argument('--finetune-layers', type=int, default=0,
+                        help='Number of last encoder layers to unfreeze (requires --freeze-backbone, esm2/esmc)')
+    parser.add_argument('--load-pretrained', action='store_true', default=False,
+                        help='Load pretrained VespaG FNN weights (vespag only)')
+    parser.add_argument('--lr', type=float, default=0.0001, help='Learning rate')
+    parser.add_argument('--epochs', type=int, default=10, help='Number of epochs')
+    parser.add_argument('--batch-size', type=int, default=32, help='Batch size')
+    parser.add_argument('--max-batches', type=int, default=None, help='Stop after N batches total')
+    parser.add_argument('--warmup-steps', type=int, default=0, help='LR warmup steps')
+    parser.add_argument('--output-dir', type=str, default='.', help='Output directory')
+    parser.add_argument('--seed', type=int, default=42, help='Random seed')
+    parser.add_argument('--hit-rate-buckets', type=int, default=10,
+                        help='Number of quantile buckets for hit-rate evaluation')
     parser.add_argument('--dms-eval-dir', type=str, default=None,
-                        help='Directory with DMS TSV files for evaluation at end of each epoch')
+                        help='Directory with DMS TSV files for evaluation')
     return parser.parse_args()
 
 
-def generate_model_name(config: ExperimentConfig):
-    """Generate descriptive model filename from config."""
-    from datetime import datetime
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    model_type = "esm2" if config.model.model_type == ModelType.ESM2_FITNESS_PREDICTOR else "transformer"
-    d_model = config.model.transformer.d_model
-    num_layers = config.model.transformer.num_layers
-    lr = config.training.learning_rate
-    bs = config.training.batch_size
-    name = f"fitness_{model_type}_d{d_model}_n{num_layers}_lr{lr}_bs{bs}_{timestamp}.pt"
-    return name
+# ── Mutation ordering eval ────────────────────────────────────────────────────
 
+@torch.no_grad()
+def evaluate_mutation_ordering(model, all_examples, testing_examples, testing_id_map,
+                                device, allowed_aas, output_dir, run_prefix):
+    """Evaluate whether the model predicts the correct order of two sequential mutations.
 
-def load_or_create_config(args) -> ExperimentConfig:
-    """Load config from YAML or create from CLI args."""
-    if args.config:
-        print(f"Loading config from {args.config}")
-        config = ExperimentConfig.from_yaml(args.config)
-    else:
-        # Create default config
-        model_type_str = args.model or 'transformer'
-        if model_type_str == 'esm2':
-            freeze = not args.no_freeze_esm if args.freeze_esm is None else args.freeze_esm
-            model_config = ModelConfig(
-                model_type=ModelType.ESM2_FITNESS_PREDICTOR,
-                esm2=ESM2Config(freeze_backbone=freeze),
-            )
-        elif model_type_str == 'potts':
-            freeze = not args.no_freeze_esm if args.freeze_esm is None else args.freeze_esm
-            model_config = ModelConfig(
-                model_type=ModelType.ESM2_POTTS_FITNESS,
-                esm2=ESM2Config(freeze_backbone=freeze),
-            )
-        elif model_type_str == 'vespag':
-            freeze = not args.no_freeze_esm if args.freeze_esm is None else args.freeze_esm
-            model_config = ModelConfig(
-                model_type=ModelType.VESPAG_FITNESS,
-                vespag=VespaGConfig(freeze_backbone=freeze),
-            )
-        else:
-            d_model = args.d_model or 128
-            num_layers = args.num_layers or 1
-            model_config = ModelConfig(
-                model_type=ModelType.FITNESS_PREDICTOR,
-                transformer=TransformerConfig(
-                    d_model=d_model,
-                    dim_feedforward=4 * d_model,
-                    num_layers = num_layers
-                ),
-            )
+    For each testing example S with parent P (also in testing set), and each child
+    mutation M2 from S.mat, compare:
+        p_actual  = P(P->S) * P(S->C)
+        p_swapped = P(P->NEW) * P(NEW->C)
+    where NEW applies M2 to P first instead of M1.
 
-        config = ExperimentConfig(
-            model=model_config,
-            training=TrainingConfig(
-                batch_size=args.batch_size or 64,
-                epochs=args.epochs or 1,
-                learning_rate=args.lr or 0.005,
-                warmup_steps=args.warmup_steps or 0,
-                save_every=args.save_every or 0,
-                seed=args.seed or 42,
-            ),
-            output_dir=args.output_dir or "/large_storage/hielab/gbrixi/fitness",
-        )
-
-    # CLI overrides (if provided)
-    if args.lr is not None:
-        config = ExperimentConfig(
-            model=config.model,
-            training=TrainingConfig(
-                batch_size=config.training.batch_size,
-                epochs=config.training.epochs,
-                learning_rate=args.lr,
-                warmup_steps=config.training.warmup_steps,
-                save_every=config.training.save_every,
-                seed=config.training.seed,
-            ),
-            data=config.data,
-            output_dir=config.output_dir,
-        )
-    if args.output_dir is not None:
-        config = ExperimentConfig(
-            model=config.model,
-            training=config.training,
-            data=config.data,
-            output_dir=args.output_dir,
-        )
-
-    return config
-
-
-def train_one_batch(
-    batch_data, fitness_model, unique_nuc_indices, unique_aa_indices,
-    log_lam, log_gam, log_psi, log_mu, log_f0,
-    codon_to_aa, allowed_aas, config,
-    N, D, E, N_GRID, DT, seq_len_aa, device,
-):
-    """Run forward pass and backward for a single batch.
-
-    Returns (loss_val, mu_val, psi_val, r0_val) or (None, ...) if batch should be skipped.
-    All local tensors go out of scope when this function returns, freeing the graph.
+    testing_id_map: dict mapping id(example) -> index in all_examples for testing examples.
     """
-    (
-        nuc_uid_batch,
-        aa_uid_batch,
-        ancestral_aa_uid_batch,
-        has_ancestral_batch,
-        start_times_batch,
-        end_times_batch,
-        event_types_batch,
-    ) = batch_data
+    model.eval()
+    testing_ids = set(testing_id_map.values())
 
-    # Move to device
-    nuc_uid_batch = nuc_uid_batch.to(device)
-    aa_uid_batch = aa_uid_batch.to(device)
-    ancestral_aa_uid_batch = ancestral_aa_uid_batch.to(device)
-    has_ancestral_batch = has_ancestral_batch.to(device)
-    start_times_batch = start_times_batch.to(device)
-    end_times_batch = end_times_batch.to(device)
-    event_types_batch = event_types_batch.to(device)
+    def forward_one(aa_idx_tensor):
+        """Run a single sequence through the model, return per-mutation probs (seq_len, E)."""
+        aa_batch = aa_idx_tensor.unsqueeze(0).to(device)
+        logits = model(aa_batch).float()
+        probs = compute_probs(logits, None, aa_batch)
+        return probs.squeeze(0)  # (seq_len, E)
 
-    # Dereference UIDs
-    nuc_indices_batch = unique_nuc_indices[nuc_uid_batch]
-    aa_indices_batch = unique_aa_indices[aa_uid_batch]
-    ancestral_aa_indices_batch = unique_aa_indices[ancestral_aa_uid_batch]
-    ancestral_aa_indices_batch[~has_ancestral_batch] = 0
+    NEW_BATCH_SIZE = 64  # sub-batch NEW sequences to avoid OOM
+    rows = []
+    n_correct = 0
+    n_total = 0
+    n_examples = len(testing_examples)
 
-    actual_batch_size = nuc_indices_batch.shape[0]
+    for s_num, s_example in enumerate(testing_examples):
+        if s_num % 100 == 0:
+            print(f"  [mutation_ordering] example {s_num}/{n_examples}", flush=True)
 
-    # Count event types in this batch
-    n_mutation = (event_types_batch == 1).sum().item()
-    n_birth = (event_types_batch == 2).sum().item()
-    n_sample = (event_types_batch == 3).sum().item()
-    n_nothing = actual_batch_size - n_mutation - n_birth - n_sample
-    event_counts = (n_birth, n_mutation, n_sample, n_nothing)
+        # Skip root examples
+        if s_example.parent_id is None or s_example.parent_mutation is None:
+            continue
 
-    # Transform parameters
-    lam = torch.exp(log_lam)
-    gam = torch.exp(log_gam)
-    psi = torch.exp(log_psi)
-    mu = torch.exp(log_mu)
-    f0 = torch.exp(log_f0)
-    r0 = f0 * lam[len(lam) - 1] / gam
+        # Parent must also be in testing set
+        if s_example.parent_id not in testing_ids:
+            continue
 
-    print(f"   mu: {mu}")
-    print(f"   psi: {psi}")
-    print(f"   R0: {r0}")
+        s_idx = testing_id_map[id(s_example)]
 
-    # Fitness tensor for ancestral sequences
-    ancestral_fitness = get_fitnesses_from_indices(
-        fitness_model, ancestral_aa_indices_batch, allowed_aas, device
-    )
-    assert (ancestral_fitness >= 0).all(), \
-        f"Negative ancestral fitness detected! min={ancestral_fitness.min().item():.6f}"
+        p_example = all_examples[s_example.parent_id]
+        pos1, alt1 = s_example.parent_mutation
 
-    # Mutation position finding
-    mutated_positions = find_mutation_positions_batched(
-        aa_indices_batch, ancestral_aa_indices_batch, has_ancestral_batch
-    )
+        # Collect child mutations from S.mat
+        child_mutations = []
+        nz = s_example.mat.nonzero(as_tuple=False)  # (N, 2)
+        for row in nz:
+            pos2, alt2 = row[0].item(), row[1].item()
+            if pos2 != pos1:
+                child_mutations.append((pos2, alt2))
 
-    # Fitness of genotype on tree
-    fitness_of_G = f0.expand(actual_batch_size).clone()
+        if not child_mutations:
+            continue
 
-    batch_indices = torch.arange(actual_batch_size, device=device)
-    mutated_aa_indices = aa_indices_batch[batch_indices, mutated_positions]
+        # Forward pass on P and S (cached across child mutations)
+        parent_probs = forward_one(p_example.aa_idx)   # (seq_len, E)
+        seq_probs = forward_one(s_example.aa_idx)       # (seq_len, E)
 
-    fitness_at_mutation = ancestral_fitness[
-        batch_indices, mutated_positions, mutated_aa_indices
-    ]
-    fitness_of_G = torch.where(has_ancestral_batch, fitness_at_mutation, fitness_of_G)
+        p_parent_to_s = parent_probs[pos1, alt1].item()
 
-    # Fitness tensor for present AA sequences
-    fitness = get_fitnesses_from_indices(
-        fitness_model, aa_indices_batch, allowed_aas, device
-    )
-    assert (fitness >= 0).all(), \
-        f"Negative child fitness detected! min={fitness.min().item():.6f}"
+        # Batch forward passes for all NEW sequences, sub-batched to limit memory
+        all_new_probs = []
+        for batch_start in range(0, len(child_mutations), NEW_BATCH_SIZE):
+            batch_muts = child_mutations[batch_start:batch_start + NEW_BATCH_SIZE]
+            new_aa_list = []
+            for pos2, alt2 in batch_muts:
+                new_aa = p_example.aa_idx.clone()
+                new_aa[pos2] = alt2
+                new_aa_list.append(new_aa)
 
-    fitness = fitness.repeat_interleave(3, dim=1)
+            new_aa_batch = torch.stack(new_aa_list).to(device)
+            new_logits = model(new_aa_batch).float()
+            new_probs = compute_probs(new_logits, None, new_aa_batch)  # (B, seq_len, E)
+            all_new_probs.append(new_probs)
 
-    default_fitness = fitness_of_G.unsqueeze(1).expand(actual_batch_size, N)
-    fitness_by_mutation = torch.cat([fitness, default_fitness.unsqueeze(2)], dim=2)
+        all_new_probs = torch.cat(all_new_probs, dim=0)  # (N_children, seq_len, E)
 
-    aa_idx = get_aa_idx_vectorized_batched(
-        nuc_indices_batch, aa_indices_batch, codon_to_aa, E, device
-    )
-    fitness_by_mutation = torch.gather(fitness_by_mutation, dim=2, index=aa_idx)
+        for i, (pos2, alt2) in enumerate(child_mutations):
+            p_s_to_c = seq_probs[pos2, alt2].item()
+            p_parent_to_new = parent_probs[pos2, alt2].item()
+            p_new_to_c = all_new_probs[i, pos1, alt1].item()
 
-    all_nucs = torch.arange(D, device=device)
-    is_mutation = (all_nucs.view(1, 1, D) != nuc_indices_batch.unsqueeze(-1)).float()
+            p_actual = p_parent_to_s * p_s_to_c
+            p_swapped = p_parent_to_new * p_new_to_c
 
-    # ODE integration
-    q_after = torch.ones(actual_batch_size, N, D, device=device)
-    p_after = torch.ones(actual_batch_size, device=device)
+            score = p_actual / (p_actual + p_swapped) if (p_actual + p_swapped) > 0 else 0.5
 
-    loss = torch.tensor(0.0, device=device)
+            rows.append((s_example.parent_id, s_idx, pos2, alt2, score))
+            n_total += 1
+            if score > 0.5:
+                n_correct += 1
 
-    for interval in range(N_GRID):
-        q_before = q_after
-        q_after = update_q_RK4(q_before, lam[interval], fitness_by_mutation, gam, psi, DT)
+    # Write CSV
+    csv_path = os.path.join(output_dir, f"mutation_ordering_{run_prefix}.csv")
+    with open(csv_path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["parent_idx", "seq_idx", "child_pos", "child_aa", "score"])
+        for parent_idx, seq_idx, pos2, alt2, score in rows:
+            writer.writerow([parent_idx, seq_idx, pos2, alt2, f"{score:.8f}"])
 
-        p_before = p_after
-        p_after = update_p_RK4(p_before, lam[interval], fitness_of_G, gam, psi, mu, q_before, q_after, is_mutation, N, D, DT)
+    # Summary
+    if n_total > 0:
+        mean_score = sum(r[4] for r in rows) / n_total
+        accuracy = n_correct / n_total
+        print(f"Mutation ordering eval: {n_total} triples, mean score={mean_score:.4f}, accuracy={accuracy:.4f}")
+    else:
+        print("Mutation ordering eval: no valid triples found")
 
-        # Warn and bail if ODE diverges
-        if torch.isinf(q_after).any() or torch.isinf(p_after).any() or torch.isnan(q_after).any() or torch.isnan(p_after).any():
-            q_fin = q_after[torch.isfinite(q_after)]
-            p_fin = p_after[torch.isfinite(p_after)]
-            print(f"   WARNING: ODE diverged at interval {interval}/{N_GRID} (nan/inf detected), skipping batch")
-            print(f"     q_after: nan={torch.isnan(q_after).sum().item()}, inf={torch.isinf(q_after).sum().item()}, "
-                  f"finite range=[{q_fin.min().item():.6f}, {q_fin.max().item():.6f}]" if len(q_fin) > 0 else "all bad")
-            print(f"     p_after: nan={torch.isnan(p_after).sum().item()}, inf={torch.isinf(p_after).sum().item()}, "
-                  f"finite range=[{p_fin.min().item():.6f}, {p_fin.max().item():.6f}]" if len(p_fin) > 0 else "all bad")
-            print(f"     q_before range: [{q_before.min().item():.6f}, {q_before.max().item():.6f}]")
-            print(f"     p_before range: [{p_before.min().item():.6f}, {p_before.max().item():.6f}]")
-            print(f"     lam[{interval}]={lam[interval].item():.6f}, gam={gam.item():.6f}, psi={psi.item():.6f}, mu={mu.item():.6f}")
-            print(f"     fitness_by_mutation range: [{fitness_by_mutation.min().item():.6f}, {fitness_by_mutation.max().item():.6f}]")
-            print(f"     fitness_of_G range: [{fitness_of_G.min().item():.6f}, {fitness_of_G.max().item():.6f}]")
-            # Check RK4 intermediates to see where blowup starts
-            k1_q = dq_dt(q_before, lam[interval], fitness_by_mutation, gam, psi)
-            k1_p = dp_dt(p_before, lam[interval], fitness_of_G, gam, psi, mu, q_before, is_mutation, N, D)
-            print(f"     RK4 k1_q range: [{k1_q.min().item():.6f}, {k1_q.max().item():.6f}]")
-            print(f"     RK4 k1_p range: [{k1_p.min().item():.6f}, {k1_p.max().item():.6f}]")
-            q_mid = q_before + DT * k1_q / 2
-            p_mid = p_before + DT * k1_p / 2
-            print(f"     After k1 half-step: q range=[{q_mid.min().item():.6f}, {q_mid.max().item():.6f}], "
-                  f"p range=[{p_mid.min().item():.6f}, {p_mid.max().item():.6f}]")
-            if torch.isinf(q_mid).any() or torch.isinf(p_mid).any():
-                print(f"     >>> Blowup occurs at k1 half-step already!")
-            else:
-                q_midpoint_interp = (q_before + q_after) / 2  # will contain inf, use q_mid instead
-                k2_q = dq_dt(q_mid, lam[interval], fitness_by_mutation, gam, psi)
-                print(f"     RK4 k2_q range: [{k2_q.min().item():.6f}, {k2_q.max().item():.6f}]")
-                q_mid2 = q_before + DT * k2_q / 2
-                print(f"     After k2 half-step: q range=[{q_mid2.min().item():.6f}, {q_mid2.max().item():.6f}]")
-                if torch.isinf(q_mid2).any():
-                    print(f"     >>> Blowup occurs at k2 half-step!")
-                else:
-                    k3_q = dq_dt(q_mid2, lam[interval], fitness_by_mutation, gam, psi)
-                    print(f"     RK4 k3_q range: [{k3_q.min().item():.6f}, {k3_q.max().item():.6f}]")
-                    q_full = q_before + DT * k3_q
-                    print(f"     After k3 full-step: q range=[{q_full.min().item():.6f}, {q_full.max().item():.6f}]")
-                    if torch.isinf(q_full).any():
-                        print(f"     >>> Blowup occurs at k3 full-step!")
-            return None, mu.item(), psi.item(), r0.item(), event_counts
-
-        # Interval matching
-        start_times_fudged = start_times_batch.clone()
-        end_times_fudged = end_times_batch.clone()
-        non_zero_mask = (start_times_batch != end_times_batch)
-        start_times_fudged = torch.where(non_zero_mask, start_times_batch + 0.00000001, start_times_batch)
-        end_times_fudged = torch.where(non_zero_mask, end_times_batch - 0.00000001, end_times_batch)
-
-        in_interval = ((start_times_fudged / DT).long() == interval)
-
-        if in_interval.any():
-            interval_indices = torch.where(in_interval)[0]
-
-            start_t = start_times_fudged[interval_indices]
-            end_t = end_times_fudged[interval_indices]
-            p_before_interval = p_before[interval_indices]
-            p_after_interval = p_after[interval_indices]
-            fitness_of_G_interval = fitness_of_G[interval_indices]
-            event_types_interval = event_types_batch[interval_indices]
-
-            approx_p_at_start = p_before_interval + (start_t - interval * DT) * (p_after_interval - p_before_interval) / DT
-            approx_p_at_end = p_before_interval + (end_t - interval * DT) * (p_after_interval - p_before_interval) / DT
-            approx_avg_p = (approx_p_at_start + approx_p_at_end) / 2.0
-
-            delta_t = end_t - start_t
-
-            loss_contrib = delta_t * ((mu * N) + (lam[interval] * fitness_of_G_interval * (1.0 - 2.0 * approx_avg_p)) + gam + psi)
-            loss = loss + loss_contrib.sum()
-
-            mutation_mask = (event_types_interval == 1)
-            # Removing this because if we fix mu, mu here drops out of likelihood
-            # if mutation_mask.any():
-                # loss = loss - mutation_mask.sum() * torch.log(mu / (D - 1))
-
-            if config.training.mutation_fitness_loss and mutation_mask.any():
-                mutation_batch_indices = interval_indices[mutation_mask]
-                has_anc_for_mutations = has_ancestral_batch[mutation_batch_indices]
-
-                if has_anc_for_mutations.any():
-                    nonsyn_batch_indices = mutation_batch_indices[has_anc_for_mutations]
-                    n_nonsyn = len(nonsyn_batch_indices)
-
-                    ancestral_fitness_nonsyn = ancestral_fitness[nonsyn_batch_indices]
-                    mut_positions_nonsyn = mutated_positions[nonsyn_batch_indices]
-                    mut_aa_nonsyn = mutated_aa_indices[nonsyn_batch_indices]
-
-                    nonsyn_idx = torch.arange(n_nonsyn, device=device)
-                    all_aa_fitness = ancestral_fitness_nonsyn[nonsyn_idx, mut_positions_nonsyn, :]
-
-                    log_probs = torch.log_softmax(all_aa_fitness, dim=-1)
-                    log_prob_observed = log_probs[nonsyn_idx, mut_aa_nonsyn]
-
-                    mutation_fitness_loss_term = -log_prob_observed.sum()
-                    loss = loss + config.training.mutation_fitness_weight * mutation_fitness_loss_term
-
-            birth_mask = (event_types_interval == 2)
-            if birth_mask.any():
-                # lambda also drops out as a constant factor when it's fixed
-                #loss = loss - torch.log(2.0 * lam[interval] * fitness_of_G_interval[birth_mask]).sum()
-                loss = loss - torch.log(fitness_of_G_interval[birth_mask]).sum()
+    print(f"Mutation ordering results written to {csv_path}")
+    model.train()
 
 
-            # Psi also drops out as constant when fixed
-            # sample_mask = (event_types_interval == 3)
-            # if sample_mask.any():
-            #    loss = loss - sample_mask.sum() * torch.log(psi)
-
-    # Extract scalars before backward
-    loss_val = loss.item()
-    mu_val = mu.item()
-    psi_val = psi.item()
-    r0_val = r0.item()
-
-    if math.isnan(loss_val) or math.isinf(loss_val):
-        print(f"   DEBUG FINAL LOSS is nan/inf! loss={loss_val}")
-        print(f"   DEBUG Skipping backward pass for this batch.")
-        return None, mu_val, psi_val, r0_val, event_counts
-
-    # Backpropagation
-    loss.backward()
-
-    return loss_val, mu_val, psi_val, r0_val, event_counts
-
+# ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-
-    """
-    Main runner function
-    """
-
     args = parse_args()
 
-    # Load or create experiment config
-    config = load_or_create_config(args)
-
-    # Set seeds for reproducibility
-    seed = config.training.seed
-    np.random.seed(seed)
-    random.seed(seed)
-    torch.manual_seed(seed)
+    np.random.seed(args.seed)
+    random.seed(args.seed)
+    torch.manual_seed(args.seed)
     if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
-
-    # Define alphabet
-    allowed_nucleotides = "ACGT-"
-    D = len(allowed_nucleotides)
+        torch.cuda.manual_seed_all(args.seed)
 
     allowed_aas = "ACDEFGHIKLMNPQRSTVWY*-"
     E = len(allowed_aas)
+    print(f"Alphabet size: {E}")
 
-    # Device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
 
-    # Input files from args
-    tree_file = args.tree_file
-    root_seq_file = args.root_seq_file
-
-    # Extract config values
-    learning_rate = config.training.learning_rate
-    model_type_str = "esm2" if config.model.model_type == ModelType.ESM2_FITNESS_PREDICTOR else "transformer"
-    freeze_esm = config.model.esm2.freeze_backbone
-
-    print(f"Model type: {model_type_str}")
-    print(f"Learning rate: {learning_rate}")
-    print(f"Output dir: {config.output_dir}")
-    if model_type_str == 'esm2':
-        print(f"Freeze ESM backbone: {freeze_esm}")
-    if config.training.mutation_fitness_loss:
-        print(f"Mutation fitness loss: ENABLED (weight={config.training.mutation_fitness_weight})")
-
-    # Loss logger
-    csv_filename = "training_loss.csv"
-    with open(csv_filename, 'w', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(['iter', 'loss', 'mu', 'psi', 'R0', 'n_birth', 'n_mutation', 'n_sample', 'n_nothing'])  # Header
-
-    # Set time discretization value from config
-    DT = config.data.dt
-
-    # Create training examples
-    start_pos = config.data.start_pos
-    end_pos = config.data.end_pos
-    N = end_pos - start_pos  # Number of nucleotides in sequence
-
-
-    USE_NEXTSTRAIN_TREE = False
-    nt_seqs = None
-    aa_seqs = None
-
-    if USE_NEXTSTRAIN_TREE:
-        training_examples, N_GRID, est_mu, est_psi = generate_training_examples_nextstrain(
-            allowed_nucleotides, 
-            allowed_aas,
-            DT,
-            root_seq_file,
-            start_pos,
-            end_pos,
-            tree_file
-        )
-    else:
-        all_training_examples, N_GRID, nt_seqs, aa_seqs = parse_big_tree(
-            "/home/ivan.specht/fitness-inference-data/covid.jsonl",
-            "/home/ivan.specht/fitness-inference-data/covid-chron-dates.tsv",
-            "/home/ivan.specht/fitness-inference/data/mutation-annotated-trees/NC_045512.2.fasta",
-            start_pos + 1, # 1-indexed
-            end_pos, # 1-indexed but inclusive
-            DT
-        )
-
-        est_mu = 0.001
-        est_psi = 1.0
-
-        cutoff = N_GRID * DT - 1 # 2 years of data
-        training_examples = []
-        for e in all_training_examples:
-            if (e[4] is not None) and (e[5] is not None):
-                if e[4] > cutoff:
-                    # move everything backwards towards time 0
-                    examp = (e[0], e[1], e[2], e[3], e[4] - cutoff, e[5] - cutoff, e[6])
-                    training_examples.append(examp)
-
-        # Recompute N_GRID for the truncated time range
-        max_time = max(e[5] for e in training_examples)
-        N_GRID = math.ceil(max_time / DT) + 1
-
-    print(f"Generated {len(training_examples)} training examples from tree")
-    
-    
-
-    # Build codon->AA lookup table for vectorized mutation mapping
-    codon_to_aa = build_codon_to_aa_table(allowed_nucleotides, allowed_aas, device)
-
-    # Count unique sequences (for info only)
-    unique_nuc = set(ex[0] for ex in training_examples)
-    unique_aa = set(ex[2] for ex in training_examples if ex[2] is not None)
-    print(f"Number of unique AA sequences on tree: {len(unique_aa)}")
-    print(f"Number of unique nucleotide sequences on tree: {len(unique_nuc)}")
-    print(f"Number of fitnesses modeled (approx.): {len(unique_aa) * E * (N // 3)}")
-
-    # --- Precomputation Phase: Deduplicated sequence storage ---
-    # Instead of storing one tensor per training example, we store only
-    # UNIQUE sequences and have each example reference them by index.
-    # This dramatically reduces memory when millions of examples share sequences.
-    print("Precomputing deduplicated tokenized tensors...")
-    num_examples = len(training_examples)
-    seq_len_aa = N // 3
-
-    # Step 1: Collect unique sequences and build lookup maps
-    # For the non-nextstrain path, we already have integer IDs from parse_big_tree.
-    # For the nextstrain path, we need to deduplicate by sequence content.
-
-    if USE_NEXTSTRAIN_TREE:
-        # Deduplicate by actual sequence strings
-        nuc_seq_to_uid = {}  # sequence string -> unique index
-        aa_seq_to_uid = {}
-
-        unique_nuc_seqs = []  # list of unique nuc sequence strings
-        unique_aa_seqs = []   # list of unique AA sequence strings
-
-        for example in training_examples:
-            nuc_seq, ancestral_nuc_seq, aa_seq, ancestral_aa_seq, _, _, _ = example
-
-            if nuc_seq not in nuc_seq_to_uid:
-                nuc_seq_to_uid[nuc_seq] = len(unique_nuc_seqs)
-                unique_nuc_seqs.append(nuc_seq)
-
-            if aa_seq not in aa_seq_to_uid:
-                aa_seq_to_uid[aa_seq] = len(unique_aa_seqs)
-                unique_aa_seqs.append(aa_seq)
-
-            if ancestral_nuc_seq is not None and ancestral_nuc_seq not in nuc_seq_to_uid:
-                nuc_seq_to_uid[ancestral_nuc_seq] = len(unique_nuc_seqs)
-                unique_nuc_seqs.append(ancestral_nuc_seq)
-
-            if ancestral_aa_seq is not None and ancestral_aa_seq not in aa_seq_to_uid:
-                aa_seq_to_uid[ancestral_aa_seq] = len(unique_aa_seqs)
-                unique_aa_seqs.append(ancestral_aa_seq)
-
-        n_unique_nuc = len(unique_nuc_seqs)
-        n_unique_aa = len(unique_aa_seqs)
-
-        print(f"Unique nucleotide sequences: {n_unique_nuc}")
-        print(f"Unique AA sequences: {n_unique_aa}")
-
-        # Step 2: Tokenize unique sequences into tensors
-        unique_nuc_indices = torch.zeros(n_unique_nuc, N, dtype=torch.long)
-        for uid, seq in enumerate(unique_nuc_seqs):
-            unique_nuc_indices[uid] = torch.tensor(
-                [allowed_nucleotides.index(c) for c in seq], dtype=torch.long
-            )
-
-        unique_aa_indices = torch.zeros(n_unique_aa, seq_len_aa, dtype=torch.long)
-        for uid, seq in enumerate(unique_aa_seqs):
-            unique_aa_indices[uid] = torch.tensor(
-                [allowed_aas.index(c) for c in seq], dtype=torch.long
-            )
-
-        # Step 3: Build per-example index arrays (just integers, very cheap)
-        example_nuc_uid = torch.zeros(num_examples, dtype=torch.long)
-        example_aa_uid = torch.zeros(num_examples, dtype=torch.long)
-        example_ancestral_aa_uid = torch.zeros(num_examples, dtype=torch.long)
-        all_has_ancestral = torch.zeros(num_examples, dtype=torch.bool)
-        all_start_times = torch.zeros(num_examples, dtype=torch.float32)
-        all_end_times = torch.zeros(num_examples, dtype=torch.float32)
-        all_event_types = torch.zeros(num_examples, dtype=torch.long)
-
-        for i, example in enumerate(training_examples):
-            nuc_seq, ancestral_nuc_seq, aa_seq, ancestral_aa_seq, start_time, end_time, event_type = example
-
-            example_nuc_uid[i] = nuc_seq_to_uid[nuc_seq]
-            example_aa_uid[i] = aa_seq_to_uid[aa_seq]
-
-            if ancestral_aa_seq is not None:
-                example_ancestral_aa_uid[i] = aa_seq_to_uid[ancestral_aa_seq]
-                all_has_ancestral[i] = True
-            else:
-                all_has_ancestral[i] = False
-
-            all_start_times[i] = round(start_time, 3)
-            all_end_times[i] = round(end_time, 3)
-            all_event_types[i] = encode_event_type(event_type)
-
-            if i % 10000 == 0:
-                print(f"Indexed {i} training examples")
-
-    else:
-        # Non-nextstrain path: examples already use integer sequence IDs
-        # The nt_seqs and aa_seqs objects provide get_seq() by ID.
-        # We collect the set of unique IDs actually used, tokenize each once,
-        # and remap to contiguous indices.
-
-        used_nuc_ids = set()
-        used_aa_ids = set()
-
-        for example in training_examples:
-            child_nuc_id, parent_nuc_id, child_aa_id, parent_aa_id, _, _, _ = example
-            used_nuc_ids.add(child_nuc_id)
-            used_aa_ids.add(child_aa_id)
-            if parent_nuc_id is not None:
-                used_nuc_ids.add(parent_nuc_id)
-            if parent_aa_id is not None:
-                used_aa_ids.add(parent_aa_id)
-
-        # Create contiguous mappings: original_id -> contiguous uid
-        nuc_id_to_uid = {orig_id: uid for uid, orig_id in enumerate(sorted(used_nuc_ids))}
-        aa_id_to_uid = {orig_id: uid for uid, orig_id in enumerate(sorted(used_aa_ids))}
-
-        n_unique_nuc = len(nuc_id_to_uid)
-        n_unique_aa = len(aa_id_to_uid)
-
-        print(f"Unique nucleotide sequences (used): {n_unique_nuc}")
-        print(f"Unique AA sequences (used): {n_unique_aa}")
-
-        # Tokenize unique sequences
-        unique_nuc_indices = torch.zeros(n_unique_nuc, N, dtype=torch.long)
-        for orig_id, uid in nuc_id_to_uid.items():
-            seq = nt_seqs.get_seq(orig_id).decode()
-            unique_nuc_indices[uid] = torch.tensor(
-                [allowed_nucleotides.index(c) for c in seq], dtype=torch.long
-            )
-            if uid % 10000 == 0:
-                print(f"Tokenized {uid} / {n_unique_nuc} unique nuc sequences")
-
-        unique_aa_indices = torch.zeros(n_unique_aa, seq_len_aa, dtype=torch.long)
-        for orig_id, uid in aa_id_to_uid.items():
-            seq = aa_seqs.get_seq(orig_id).decode()
-            unique_aa_indices[uid] = torch.tensor(
-                [allowed_aas.index(c) for c in seq], dtype=torch.long
-            )
-            if uid % 10000 == 0:
-                print(f"Tokenized {uid} / {n_unique_aa} unique AA sequences")
-
-        # Build per-example index arrays
-        example_nuc_uid = torch.zeros(num_examples, dtype=torch.long)
-        example_aa_uid = torch.zeros(num_examples, dtype=torch.long)
-        example_ancestral_aa_uid = torch.zeros(num_examples, dtype=torch.long)
-        all_has_ancestral = torch.zeros(num_examples, dtype=torch.bool)
-        all_start_times = torch.zeros(num_examples, dtype=torch.float32)
-        all_end_times = torch.zeros(num_examples, dtype=torch.float32)
-        all_event_types = torch.zeros(num_examples, dtype=torch.long)
-
-        n_neg_length = 0
-        for i, example in enumerate(training_examples):
-            child_nuc_id, parent_nuc_id, child_aa_id, parent_aa_id, start_time, end_time, event_type = example
-
-            if end_time < start_time:
-                n_neg_length += 1
-                end_time = start_time
-
-            example_nuc_uid[i] = nuc_id_to_uid[child_nuc_id]
-            example_aa_uid[i] = aa_id_to_uid[child_aa_id]
-
-            if parent_aa_id is not None:
-                example_ancestral_aa_uid[i] = aa_id_to_uid[parent_aa_id]
-                all_has_ancestral[i] = True
-            else:
-                all_has_ancestral[i] = False
-
-            all_start_times[i] = round(start_time, 3)
-            all_end_times[i] = round(end_time, 3)
-            all_event_types[i] = encode_event_type(event_type)
-
-            if i % 10000 == 0:
-                print(f"Indexed {i} training examples")
-
-        print(f"Warning: {n_neg_length} training examples with negative branch length (corrected to 0)")
-
-    print(f"Precomputation complete.")
-    print(f"  Unique nuc tensor: {unique_nuc_indices.shape} ({unique_nuc_indices.nelement() * unique_nuc_indices.element_size() / 1e6:.1f} MB)")
-    print(f"  Unique AA tensor:  {unique_aa_indices.shape} ({unique_aa_indices.nelement() * unique_aa_indices.element_size() / 1e6:.1f} MB)")
-    print(f"  Per-example indices: {num_examples} x 3 ints ({num_examples * 3 * 8 / 1e6:.1f} MB)")
-    print(f"  has_ancestral: {all_has_ancestral.sum().item()} / {num_examples} examples")
-
-    # Move unique sequence tables to device (they stay resident)
-    unique_nuc_indices = unique_nuc_indices.to(device)
-    unique_aa_indices = unique_aa_indices.to(device)
-
-    # Create dataset using the deduplicated references
-    dataset = FitnessTrainingDataset(
-        nuc_indices=example_nuc_uid,          # just indices into unique tables
-        aa_indices=example_aa_uid,            # just indices into unique tables
-        ancestral_aa_indices=example_ancestral_aa_uid,  # just indices into unique tables
-        has_ancestral=all_has_ancestral,
-        start_times=all_start_times,
-        end_times=all_end_times,
-        event_types=all_event_types,
+    print("Loading tree...")
+    all_examples, pssm_root, pssm_variant = parse_big_tree(
+        "/home/ivan.specht/fitness-inference-data/covid.jsonl",
+        "/home/ivan.specht/fitness-inference/data/test_sequences/root.txt",
+        "/home/ivan.specht/fitness-inference/data/test_sequences/BA.2.txt",
+        allowed_aas,
+        args.cutoff
     )
 
-    # Parameters of model: both pop gen and deep learning!
+    seq_len_aa = len(all_examples[0].aa_idx)
+    print(f"Sequence length: {seq_len_aa}")
 
-    GAMMA = 73.0
-    
-   
-    # Update model config with computed seq_len
-    model_config = ModelConfig(
-        model_type=config.model.model_type,
-        seq_len=N // 3,
-        alphabet=config.model.alphabet,
-        transformer=config.model.transformer,
-        esm2=config.model.esm2,
+    training_examples = []
+    testing_examples = []
+    total_mutations_train = 0.0
+
+    training_ids = set()
+    for i, example in enumerate(all_examples):
+        if args.ignore_dead_ends:
+            if example.mat.sum() < 0.5:
+                continue
+
+        if example.last_mutation_time <= args.cutoff:
+            training_examples.append(example)
+            training_ids.add(i)
+            total_mutations_train += example.mat.sum()
+        else:
+            testing_examples.append(example)
+
+
+    print(f"Training examples: {len(training_examples)}, Testing examples: {len(testing_examples)}")
+
+
+
+    train_dataset = MutationDataset(training_examples)
+    test_dataset = MutationDataset(testing_examples)
+
+    train_loader = DataLoader(
+        train_dataset, batch_size=args.batch_size, shuffle=True,
+        num_workers=4, pin_memory=True, drop_last=False,
     )
+    test_loader = DataLoader(
+        test_dataset, batch_size=args.batch_size, shuffle=True,
+        num_workers=4, pin_memory=True, drop_last=False,
+    )
+    # Infinite iterator for per-batch test minibatch sampling
+    def cycle(loader):
+        while True:
+            for batch in loader:
+                yield batch
+    test_iter = cycle(test_loader)
 
-    fitness_model = create_model(model_config, device)
-    d_model = model_config.transformer.d_model  # For compatibility with checkpoint saving
+    print(f"Train batches per epoch: {math.ceil(len(train_dataset) / args.batch_size)}")
 
-    print(f"Model created: {fitness_model.get_num_parameters(trainable_only=True):,} trainable params")
+    allowed_aas_str = allowed_aas
+    alphabet_config = AlphabetConfig(amino_acids=allowed_aas_str)
 
-    #est_mu = tree.get_total_nucleotide_mutations() / tree.get_total_evolutionary_time() / N
-    #est_psi = tree.get_total_samples() / tree.get_total_evolutionary_time()
-    #est_mu = 0.0025
-    #est_psi = 0.22
-    print(f"Estimate of mutation rate: {est_mu}")
-    print(f"Estimate of sampling rate: {est_psi}")
+    if args.model_type == 'esm2':
+        model_config = ModelConfig(
+            model_type=ModelType.ESM2_FITNESS_PREDICTOR,
+            seq_len=seq_len_aa,
+            alphabet=alphabet_config,
+            esm2=ESM2Config(
+                model_name=args.esm2_model_name,
+                freeze_backbone=args.freeze_backbone,
+                finetune_layers=args.finetune_layers,
+            ),
+        )
+        model = create_model(model_config, device)
+        print(f"Model: ESM-2 ({args.esm2_model_name}), freeze_backbone={args.freeze_backbone}, finetune_layers={args.finetune_layers}")
+    elif args.model_type == 'esmc':
+        model_config = ModelConfig(
+            model_type=ModelType.ESMC_FITNESS_PREDICTOR,
+            seq_len=seq_len_aa,
+            alphabet=alphabet_config,
+            esmc=ESMCConfig(
+                model_name=args.esmc_model_name,
+                freeze_backbone=args.freeze_backbone,
+                finetune_layers=args.finetune_layers,
+            ),
+        )
+        model = create_model(model_config, device)
+        print(f"Model: ESM C ({args.esmc_model_name}), freeze_backbone={args.freeze_backbone}, finetune_layers={args.finetune_layers}")
+    elif args.model_type == 'vespag':
+        model_config = ModelConfig(
+            model_type=ModelType.VESPAG_FITNESS,
+            seq_len=seq_len_aa,
+            alphabet=alphabet_config,
+            vespag=VespaGConfig(
+                freeze_backbone=args.freeze_backbone,
+                load_pretrained=args.load_pretrained,
+            ),
+        )
+        model = create_model(model_config, device)
+        print(f"Model: VespaG (ESM2-3B + FNN), freeze_backbone={args.freeze_backbone}, load_pretrained={args.load_pretrained}")
+    else:
+        model_config = ModelConfig(
+            model_type=ModelType.FITNESS_PREDICTOR,
+            seq_len=seq_len_aa,
+            alphabet=alphabet_config,
+            transformer=TransformerConfig(
+                d_model=args.d_model,
+                nhead=4,
+                dim_feedforward=4 * args.d_model,
+                num_layers=args.num_layers,
+            ),
+        )
+        model = create_model(model_config, device)
+    print(f"Model: {model.get_num_parameters(trainable_only=True):,} trainable params")
 
-    # Make parameters on GPU:
-    log_lam = torch.full((N_GRID,), math.log(GAMMA), requires_grad=True, device=device)
-    log_gam = torch.tensor(math.log(GAMMA), requires_grad=True, device=device)
-    log_psi = torch.tensor(math.log(est_psi), requires_grad=True, device=device)
-    log_mu = torch.tensor(math.log(est_mu), requires_grad=True, device=device)
+    optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
-    # We also need an unknown fitness for the wild type strain
-    # Setting this to 1 as default (log(1) = 0)
-    log_f0 = torch.tensor(0.0, requires_grad=True, device=device)
-
-    BATCH_SIZE = config.training.batch_size
-    N_EPOCHS = config.training.epochs
-    SAVE_EVERY = config.training.save_every
-
-    print(f"Using batch size {BATCH_SIZE}. {math.ceil(len(training_examples) / BATCH_SIZE)} batches per epoch are needed.")
-    print(f"Training for {N_EPOCHS} epoch(s)")
-    if SAVE_EVERY > 0:
-        print(f"Saving checkpoint every {SAVE_EVERY} batches")
-
-    # Create output directory
-    os.makedirs(config.output_dir, exist_ok=True)
-
-    optimizer = optim.Adam([
-        {'params': fitness_model.parameters(), 'lr': learning_rate} #,
-        # {'params': [log_f0], 'lr': learning_rate}, # Not learning mu, r0, or psi for now
-    ], lr=learning_rate)
-
-    # Learning rate warmup scheduler
-    warmup_steps = config.training.warmup_steps
-    if warmup_steps > 0:
+    if args.warmup_steps > 0:
         def warmup_fn(step):
-            if step < warmup_steps:
-                return float(step) / float(max(1, warmup_steps))
+            if step < args.warmup_steps:
+                return float(step) / float(max(1, args.warmup_steps))
             return 1.0
         scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=warmup_fn)
-        print(f"Using linear warmup over {warmup_steps} steps")
     else:
         scheduler = None
 
-    # Track global step for checkpointing
+
+    os.makedirs(args.output_dir, exist_ok=True)
+
     global_step = 0
+    epoch = 0
+    avg_train_loss = float('nan')
+    print("Starting training...")
 
-    print("Entering training loop...")
-    for epoch in range(N_EPOCHS):
+    for epoch in range(args.epochs):
+        total_train_loss = 0.0
+        n_batches = 0
 
-        # Create DataLoader with shuffling for this epoch
-        dataloader = DataLoader(
-            dataset,
-            batch_size=BATCH_SIZE,
-            shuffle=True,
-            num_workers=4,
-            pin_memory=True,
-            collate_fn=collate_fn,
-            drop_last=False,
-        )
-
-        # Track total loss
-        total_loss = 0.0
-
-        MAX_BATCHES = 100
-
-        # SGD loop using DataLoader
-        for batch_num, batch_data in enumerate(dataloader):
-
-            # Zero gradients FIRST — ensures no stale graph references from prior batch
+        for batch_num, (aa_batch, target_batch) in enumerate(train_loader):
+            model.train()
             optimizer.zero_grad()
 
-            try:
-                loss_val, mu_val, psi_val, r0_val, event_counts = train_one_batch(
-                    batch_data, fitness_model, unique_nuc_indices, unique_aa_indices,
-                    log_lam, log_gam, log_psi, log_mu, log_f0,
-                    codon_to_aa, allowed_aas, config,
-                    N, D, E, N_GRID, DT, seq_len_aa, device,
-                )
-            except (RuntimeError, torch.cuda.OutOfMemoryError) as e:
-                print(f"   ERROR on batch {batch_num}: {e}")
-                print(f"   Clearing cache and skipping batch.")
-                optimizer.zero_grad()
-                torch.cuda.empty_cache()
-                global_step += 1
-                continue
+            aa_batch = aa_batch.to(device)
+            target_batch = target_batch.to(device)
 
-            if loss_val is None:
-                # Batch was skipped (inf/nan loss or ODE diverged)
-                global_step += 1
-                continue
+            logits = model(aa_batch).float()
+            probs = compute_probs(logits, target_batch, aa_batch)
+            loss = compute_loss_batch(probs, target_batch)
+            loss.backward()
 
-            # Unpack event counts
-            n_birth, n_mutation, n_sample, n_nothing = event_counts
-
-            # Gradient clipping
-            torch.nn.utils.clip_grad_norm_(
-                list(fitness_model.parameters()) + [log_psi, log_mu, log_f0, log_lam, log_gam],
-                max_norm=1.0
-            )
-
-            # Step
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
             if scheduler is not None:
                 scheduler.step()
 
-            # Print batch loss
-            print(f"   Loss for batch {batch_num}: {loss_val}")
-            total_loss += loss_val
-
-            with open(csv_filename, 'a', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow([batch_num, loss_val, mu_val, psi_val, r0_val, n_birth, n_mutation, n_sample, n_nothing])
-
-            # Periodic checkpoint saving
+            train_loss_val = loss.item()
+            total_train_loss += train_loss_val
+            n_batches += 1
             global_step += 1
-            if SAVE_EVERY > 0 and global_step % SAVE_EVERY == 0:
-                ckpt_path = os.path.join(config.output_dir, f"checkpoint_step_{global_step}.pt")
-                save_checkpoint(
-                    path=ckpt_path,
-                    model=fitness_model,
-                    model_config=model_config,
-                    optimizer=optimizer,
-                    epoch=epoch,
-                    global_step=global_step,
-                    loss=loss_val,
-                    log_lam=log_lam,
-                    log_gam=log_gam,
-                    log_psi=log_psi,
-                    log_mu=log_mu,
-                    log_f0=log_f0,
-                    experiment_config=config,
-                )
-                print(f"   Saved checkpoint to {ckpt_path}")
 
-            # Memory monitoring (every 100 batches)
-            if batch_num % 100 == 0:
-                print(f"   GPU allocated: {torch.cuda.memory_allocated()/1e9:.2f} GB, reserved: {torch.cuda.memory_reserved()/1e9:.2f} GB")
+            # Test minibatch loss (cheap, per-batch monitoring)
+            test_aa, test_target = next(test_iter)
+            with torch.no_grad():
+                model.eval()
+                test_aa = test_aa.to(device)
+                test_target = test_target.to(device)
+                test_logits = model(test_aa).float()
+                test_probs = compute_probs(test_logits, test_target, test_aa)
+                test_batch_loss_val = compute_loss_batch(test_probs, test_target).item()
 
-            # Early termination
-            if MAX_BATCHES is not None and global_step >= MAX_BATCHES:
-                print(f"   Reached max batches ({MAX_BATCHES}), stopping training.")
+            if batch_num % 10 == 0:
+                print(f"  Epoch {epoch}, batch {batch_num}: train_loss={train_loss_val:.8f}, test_batch_loss={test_batch_loss_val:.8f}")
+
+            if args.max_batches is not None and global_step >= args.max_batches:
+                print(f"Reached max batches ({args.max_batches}), stopping.")
                 break
 
-        print(f"Loss for epoch {epoch}: {total_loss}")
+        avg_train_loss = total_train_loss / max(n_batches, 1)
+        print(f"Epoch {epoch}: avg_train_loss={avg_train_loss:.8f}")
 
-        # DMS evaluation at end of epoch (if configured)
-        if args.dms_eval_dir:
-            from eval.evaluate_dms import evaluate_model_on_dms_datasets
-            dms_results = evaluate_model_on_dms_datasets(
-                fitness_model, args.dms_eval_dir, device, verbose=False
-            )
-            if dms_results:
-                valid_scores = [s for s in dms_results.values() if not pd.isna(s)]
-                if valid_scores:
-                    mean_spearman = sum(valid_scores) / len(valid_scores)
-                    print(f"   DMS eval: mean Spearman = {mean_spearman:.3f} ({len(valid_scores)} datasets)")
+        if args.max_batches is not None and global_step >= args.max_batches:
+            break
 
-    # After training completes:
-    # Determine output filename
-    if args.output:
-        output_path = args.output
+    n_buckets = args.hit_rate_buckets
+
+    baselines = [("pssm_root", pssm_root)]
+
+    # Load additional baselines from CSV files
+    import glob as glob_mod
+    baseline_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "baselines")
+    for csv_file in sorted(glob_mod.glob(os.path.join(baseline_dir, "*.csv"))):
+        baseline_name = os.path.splitext(os.path.basename(csv_file))[0]
+        with open(csv_file, "r") as f:
+            reader = csv.reader(f)
+            header = next(reader)
+            expected = list(allowed_aas)
+            #assert header == expected, (
+            #    f"Baseline {baseline_name}: column names {header} do not match allowed_aas {expected}"
+            #)
+            rows = []
+            for row in reader:
+                rows.append([float(x) for x in row])
+        baseline_tensor = torch.tensor(rows, dtype=torch.float32)
+        baselines.append((baseline_name, baseline_tensor))
+        print(f"Loaded baseline: {baseline_name} ({baseline_tensor.shape})")
+
+    # Fix sentinel values and break ties with small noise for reproducible quantile computation
+    tiebreak_rng = np.random.RandomState(args.seed + 12345)
+    for i in range(len(baselines)):
+        name, tensor = baselines[i]
+        tensor = tensor.clone()
+        tensor[tensor < 0] = float('nan')
+        tensor += torch.tensor(tiebreak_rng.uniform(0, 1e-9, size=tensor.shape), dtype=tensor.dtype)
+        baselines[i] = (name, tensor)
+
+    # Build run-specific prefix for output files
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    if args.model_type == 'esm2':
+        model_name_short = args.esm2_model_name.split('/')[-1]
+        run_prefix = f"esm2_{model_name_short}_lr{args.lr}_{timestamp}"
+    elif args.model_type == 'esmc':
+        run_prefix = f"esmc_{args.esmc_model_name}_lr{args.lr}_{timestamp}"
+    elif args.model_type == 'vespag':
+        run_prefix = f"vespag_lr{args.lr}_{timestamp}"
     else:
-        output_path = os.path.join(config.output_dir, generate_model_name(config))
+        run_prefix = f"simple_d{args.d_model}_n{args.num_layers}_lr{args.lr}_{timestamp}"
 
-    print(f"Saving final model to {output_path}...")
-    save_checkpoint(
-        path=output_path,
-        model=fitness_model,
-        model_config=model_config,
-        optimizer=optimizer,
-        epoch=N_EPOCHS,
-        global_step=global_step,
-        loss=total_loss,
-        log_lam=log_lam,
-        log_gam=log_gam,
-        log_psi=log_psi,
-        log_mu=log_mu,
-        log_f0=log_f0,
-        experiment_config=config,
-        # Legacy keys for backward compatibility
-        N=N,
-        E=E,
-        D=D,
-        N_GRID=N_GRID,
-        DT=DT,
+    qtile_labels = [f"top_{(i+1)*100/n_buckets:.1f}%" for i in range(n_buckets - 1)]
+    qtile_pcts = [(i + 1) * 100 / n_buckets for i in range(n_buckets - 1)]
+
+    def run_hit_rate_eval(loader, label, file_suffix, seen_mask=None):
+        """Run hit-rate eval on a dataloader, write CSV and plot."""
+        avg_loss, hit_rate_by_qtile, baseline_hits = evaluate_full(
+            model, loader, device, baselines=baselines, n_buckets=n_buckets,
+            seen_mask=seen_mask
+        )
+        print(f"{label} test loss: {avg_loss:.8f}")
+        for i in range(len(hit_rate_by_qtile)):
+            pct = (i + 1) * 100 / n_buckets
+            print(f"  {label} hit rate for top {pct:.1f}%: {hit_rate_by_qtile[i]:.8f}")
+
+        csv_path = os.path.join(args.output_dir, f"quantile_hit_rates_{file_suffix}_{run_prefix}.csv")
+        with open(csv_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["model"] + qtile_labels)
+            writer.writerow(["trained"] + [f"{v:.8f}" for v in hit_rate_by_qtile])
+            for name, _ in baselines:
+                writer.writerow([name] + [f"{v:.8f}" for v in baseline_hits[name]])
+        print(f"{label} hit rates written to {csv_path}")
+
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.plot(qtile_pcts, hit_rate_by_qtile, marker='o', label="trained")
+        for name, _ in baselines:
+            ax.plot(qtile_pcts, baseline_hits[name], marker='o', label=name)
+        ax.set_xlabel("Top quantile (%)")
+        ax.set_ylabel("Hit rate")
+        ax.set_title(f"{label} hit rate by quantile")
+        ax.legend(fontsize="small")
+        ax.grid(True, alpha=0.3)
+        fig.tight_layout()
+        plot_path = os.path.join(args.output_dir, f"quantile_hit_rates_{file_suffix}_{run_prefix}.png")
+        fig.savefig(plot_path, dpi=150)
+        plt.close(fig)
+        print(f"{label} hit rate plot saved to {plot_path}")
+
+    # All testing examples
+    run_hit_rate_eval(test_loader, "All", "all")
+
+    # Variant-descended testing examples only
+    variant_testing_examples = [e for e in testing_examples if e.is_descended_from_variant]
+    print(f"Variant-descended testing examples: {len(variant_testing_examples)}")
+    if variant_testing_examples:
+        variant_test_loader = DataLoader(
+            MutationDataset(variant_testing_examples),
+            batch_size=args.batch_size, shuffle=True,
+            num_workers=4, pin_memory=True, drop_last=False,
+        )
+        run_hit_rate_eval(variant_test_loader, "Variant-descended", "variant")
+
+    # Unseen-mutation hit-rate eval: mask previously seen mutations according to pssm_root
+    hit_rate_seen_mask = pssm_root > 0  # (seq_len, E), True = seen
+    run_hit_rate_eval(test_loader, "Unseen-mutations", "unseen", seen_mask=hit_rate_seen_mask)
+
+    # ── Testing-root eval ────────────────────────────────────────────────────
+    testing_root_examples = [e for e in all_examples if e.is_testing_root]
+    assert len(testing_root_examples) == 1, (
+        f"Expected exactly 1 example with is_testing_root=True, found {len(testing_root_examples)}"
+    )
+    testing_root_example = testing_root_examples[0]
+
+    with torch.no_grad():
+        model.eval()
+        aa_input = testing_root_example.aa_idx.unsqueeze(0).to(device)
+        target_input = testing_root_example.mat.unsqueeze(0).to(device)
+        logits = model(aa_input).float()
+        testing_root_probs = compute_probs(logits, target_input, aa_input)
+        print(f"Testing root probs shape: {testing_root_probs.shape}")
+
+    # Remove batch dim -> (seq_len, E), then subset to RBD
+    testing_root_probs_2d = testing_root_probs.squeeze(0).cpu()[RBD_RANGE, :]
+
+    # Build wild-type mask for the testing root sequence (RBD only)
+    wt_idx = testing_root_example.aa_idx[RBD_RANGE]  # (rbd_len,)
+    rbd_len, E_size = testing_root_probs_2d.shape
+    wt_mask_2d = torch.ones(rbd_len, E_size, dtype=torch.bool)
+    wt_mask_2d.scatter_(1, wt_idx.unsqueeze(-1), False)
+
+    # Subset pssm_variant to RBD
+    pssm_variant_rbd = [pv[RBD_RANGE, :] for pv in pssm_variant]
+
+    # Helper: mask wild-type, re-normalize, return top-decile hit rate vs pssm_variant
+    def variant_hit_rates(prob_2d, wt_mask, pssm_variant_list, threshold_count=100):
+        p = prob_2d.clone()
+        p[~wt_mask] = float('nan')
+        threshold = torch.nanquantile(p.float(), 0.9)
+        top_decile_mask = (p >= threshold) & wt_mask
+        hit_rates = []
+        for pv in pssm_variant_list:
+            high_count_mask = pv >= threshold_count
+            n_top = top_decile_mask.sum().item()
+            n_hits = (top_decile_mask & high_count_mask).sum().item()
+            hit_rates.append(n_hits / max(n_top, 1))
+        return hit_rates
+
+    def run_variant_eval(pssm_variant_rbd_list, label, file_suffix, model_probs=None, baselines_rbd=None, threshold_count=100):
+        """Run variant hit rate eval and write CSV + plot."""
+        if model_probs is None:
+            model_probs = testing_root_probs_2d
+        if baselines_rbd is None:
+            baselines_rbd = [(name, bp[RBD_RANGE, :].clone()) for name, bp in baselines]
+
+        # Compute for model
+        model_hits = variant_hit_rates(model_probs, wt_mask_2d, pssm_variant_rbd_list, threshold_count=threshold_count)
+
+        # Compute for each baseline
+        baseline_variant_hits = {}
+        for name, bp_rbd in baselines_rbd:
+            baseline_variant_hits[name] = variant_hit_rates(bp_rbd, wt_mask_2d, pssm_variant_rbd_list, threshold_count=threshold_count)
+
+        # Write CSV: rows = time steps, columns = model + baselines
+        variant_csv_path = os.path.join(args.output_dir, f"variant_emergence_{file_suffix}_{run_prefix}.csv")
+        with open(variant_csv_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            header = ["step", "trained"] + [name for name, _ in baselines]
+            writer.writerow(header)
+            for i in range(len(pssm_variant_rbd_list)):
+                row = [i, f"{model_hits[i]:.8f}"]
+                for name, _ in baselines:
+                    row.append(f"{baseline_variant_hits[name][i]:.8f}")
+                writer.writerow(row)
+        print(f"{label} variant hit rates written to {variant_csv_path}")
+
+        # Plot variant hit rates over time
+        time_years = [(i + 1) * 0.1 for i in range(len(pssm_variant_rbd_list))]
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.plot(time_years, model_hits, marker='o', label="trained")
+        for name, _ in baselines:
+            ax.plot(time_years, baseline_variant_hits[name], marker='o', label=name)
+        ax.set_xlabel("Years since beginning of pandemic")
+        ax.set_ylabel("Hit rate")
+        ax.set_title(f"{label} variant mutation hit rate over time")
+        ax.legend(fontsize="small")
+        ax.grid(True, alpha=0.3)
+        fig.tight_layout()
+        variant_plot_path = os.path.join(args.output_dir, f"variant_emergence_{file_suffix}_{run_prefix}.png")
+        fig.savefig(variant_plot_path, dpi=150)
+        plt.close(fig)
+        print(f"{label} variant hit rate plot saved to {variant_plot_path}")
+
+    # (1) All variants
+    run_variant_eval(pssm_variant_rbd, "All", "all")
+
+    # (2) Never-before-seen variants only: mask out positions that are non-zero in pssm_root
+    pssm_root_rbd = pssm_root[RBD_RANGE, :]
+    seen_mask = pssm_root_rbd > 0  # positions seen in training root PSSM (exclude sentinels)
+    pssm_variant_rbd_unseen = []
+    for pv in pssm_variant_rbd:
+        pv_masked = pv.clone()
+        pv_masked[seen_mask] = float('nan')
+        pssm_variant_rbd_unseen.append(pv_masked)
+
+    # Mask seen mutations in model probs
+    unseen_model_probs = testing_root_probs_2d.clone()
+    unseen_model_probs[seen_mask] = float('nan')
+
+    # Mask seen mutations in baselines
+    unseen_baselines_rbd = []
+    for name, bp in baselines:
+        bp_rbd = bp[RBD_RANGE, :].clone()
+        bp_rbd[seen_mask] = float('nan')
+        unseen_baselines_rbd.append((name, bp_rbd))
+
+    run_variant_eval(pssm_variant_rbd_unseen, "Unseen", "unseen",
+                     model_probs=unseen_model_probs, baselines_rbd=unseen_baselines_rbd)
+
+    # Repeat variant evals with pandemic threshold of 1 instead of 100
+    run_variant_eval(pssm_variant_rbd, "All (threshold=1)", "all_thresh1", threshold_count=1)
+    run_variant_eval(pssm_variant_rbd_unseen, "Unseen (threshold=1)", "unseen_thresh1",
+                     model_probs=unseen_model_probs, baselines_rbd=unseen_baselines_rbd, threshold_count=1)
+
+    # ── Mutation ordering eval ──────────────────────────────────────────────────
+    testing_id_map = {}
+    for i, example in enumerate(all_examples):
+        if example.last_mutation_time > args.cutoff:
+            testing_id_map[id(example)] = i
+
+    evaluate_mutation_ordering(
+        model, all_examples, testing_examples, testing_id_map, device, allowed_aas,
+        args.output_dir, run_prefix,
     )
 
-    # Also save the config as YAML for reference
-    config_path = output_path.replace('.pt', '_config.yaml')
-    config.save_yaml(config_path)
+    # ── Save variant root predictions as CSV ────────────────────────────────────
+    testing_root_probs_full = testing_root_probs.squeeze(0).cpu()  # (seq_len, E)
+    variant_preds_path = os.path.join(args.output_dir, f"variant_root_predictions_{run_prefix}.csv")
+    with open(variant_preds_path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(list(allowed_aas))
+        for row in testing_root_probs_full.numpy():
+            writer.writerow([f"{v:.8f}" for v in row])
+    print(f"Variant root predictions ({testing_root_probs_full.shape[0]} x {testing_root_probs_full.shape[1]}) saved to {variant_preds_path}")
 
-    print(f"Model saved to {output_path}")
-    print(f"Config saved to {config_path}")
-    print("Done")
+    output_path = os.path.join(args.output_dir, f"fitness_{run_prefix}.pt")
 
-if __name__=="__main__":
+    print(f"Saving model to {output_path}...")
+    checkpoint = {
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'epoch': epoch,
+        'global_step': global_step,
+        'loss': avg_train_loss,
+    }
+    checkpoint['config'] = model_config.to_dict()
+    torch.save(checkpoint, output_path)
+
+    print("Done.")
+
+
+if __name__ == "__main__":
     main()

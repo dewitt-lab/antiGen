@@ -1,7 +1,10 @@
-pandas
 numpy
+pandas
 biopython
-torch
+torch~=2.7.0
+torchvision~=0.22.0
 transformers
+esm
 matplotlib
 pyyaml
+vespag @ git+https://github.com/JSchlensok/VespaG.git

@@ -61,9 +61,18 @@ class ESM2FitnessPredictor(BaseFitnessPredictor):
 
         # Freeze backbone (encoder) if configured, but keep LM head trainable
         if esm_config.freeze_backbone:
-            # Freeze only the encoder/embeddings, not the LM head
+            # Freeze entire encoder/embeddings (not the LM head)
             for param in self.esm.esm.parameters():
                 param.requires_grad = False
+
+            # Unfreeze last k encoder layers if requested
+            if esm_config.finetune_layers > 0:
+                encoder_layers = self.esm.esm.encoder.layer
+                n_layers = len(encoder_layers)
+                k = min(esm_config.finetune_layers, n_layers)
+                for layer in encoder_layers[n_layers - k:]:
+                    for param in layer.parameters():
+                        param.requires_grad = True
 
     def _build_alphabet_mapping(self) -> None:
         """Build bidirectional alphabet mappings.

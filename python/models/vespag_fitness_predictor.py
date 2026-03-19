@@ -196,9 +196,6 @@ class VespaGFitnessPredictor(BaseFitnessPredictor):
         for char in internal_alphabet:
             if char == '*':
                 to_esm.append(self.tokenizer.unk_token_id)
-            elif char == '-':
-                # Map gap to <pad> or <unk>
-                to_esm.append(self.tokenizer.pad_token_id or self.tokenizer.unk_token_id)
             else:
                 to_esm.append(self.tokenizer.convert_tokens_to_ids(char))
 

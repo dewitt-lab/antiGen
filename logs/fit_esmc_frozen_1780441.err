@@ -1,0 +1,2 @@
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]Fetching 4 files: 100%|██████████| 4/4 [00:00<00:00, 60133.39it/s]
+[2026-03-10T18:31:29.095] error: *** JOB 1780441 ON GPU389E CANCELLED AT 2026-03-10T18:31:29 DUE to SIGNAL Terminated ***

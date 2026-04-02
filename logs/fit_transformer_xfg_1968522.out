@@ -233,3 +233,14 @@ Starting training...
   Epoch 0, batch 190: train_loss=8.76552868, test_batch_loss=9.00877380
   Epoch 0, batch 200: train_loss=8.99903870, test_batch_loss=9.27965832
   Epoch 0, batch 210: train_loss=8.78869820, test_batch_loss=9.09862804
+  Epoch 0, batch 220: train_loss=8.80737686, test_batch_loss=9.08299446
+  Epoch 0, batch 230: train_loss=8.62848282, test_batch_loss=9.13698292
+  Epoch 0, batch 240: train_loss=8.74638176, test_batch_loss=8.95779800
+  Epoch 0, batch 250: train_loss=8.62368298, test_batch_loss=8.94297028
+  Epoch 0, batch 260: train_loss=8.93293285, test_batch_loss=9.30084515
+  Epoch 0, batch 270: train_loss=8.81445122, test_batch_loss=9.17562962
+  Epoch 0, batch 280: train_loss=8.78938580, test_batch_loss=8.59302425
+  Epoch 0, batch 290: train_loss=8.75517082, test_batch_loss=9.04531384
+  Epoch 0, batch 300: train_loss=8.47157288, test_batch_loss=8.67557907
+  Epoch 0, batch 310: train_loss=8.75165176, test_batch_loss=8.88633633
+  Epoch 0, batch 320: train_loss=8.49438381, test_batch_loss=9.15247536

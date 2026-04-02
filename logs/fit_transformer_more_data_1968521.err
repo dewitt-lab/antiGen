@@ -1,1 +1,2 @@
 Finished 'from_pb' in 39.4958 seconds
+[2026-04-02T11:44:49.943] error: *** JOB 1968521 ON GPU708E CANCELLED AT 2026-04-02T11:44:49 DUE to SIGNAL Terminated ***

@@ -199,7 +199,7 @@ def parse_pb_tree(pb_path, ref_fasta_path, variant_seq_file, allowed_aas, cutoff
                 max_leaf_time = max(max_leaf_time, t)
             counter += 1
             if counter % 100000 == 0:
-                print(f"   Processed times for {counter} nodes...")
+                print(f"   Processed {counter} nodes...")
 
     print(f"Leaf time range: {datetime.fromtimestamp(min_leaf_time).strftime('%Y-%m-%d')} to {datetime.fromtimestamp(max_leaf_time).strftime('%Y-%m-%d')}")
 
@@ -267,21 +267,63 @@ def parse_pb_tree(pb_path, ref_fasta_path, variant_seq_file, allowed_aas, cutoff
             child_dates = [node_times[c.id] for c in node.children if c.id in node_times]
             node_times[node.id] = min(child_dates) if child_dates else math.inf
 
+    # ----- Sequences -------
     # Get the root nuc seq, subset to spike
-    root_seq = read_fasta_region(ref_fasta_path, start_pos, end_pos)
+    root_nuc_seq = read_fasta_region(ref_fasta_path, start_pos, end_pos)
+    root_aa_seq = nuc_to_aa(root_nuc_seq)
+    nuc_seq_len = len(root_nuc_seq)
+    aa_seq_len = len(root_aa_seq)
 
-    root_aa_seq = nuc_to_aa(root_seq)
+    # Get the nuc seq everywhere on the tree
+    print("Assigning nucleotide sequences...")
+    node_id_to_nuc_seq = {}
+    counter = 0
+    for node in all_nodes:
+        counter += 1
+        if counter % 100000 == 0:
+            print(f"   Processed {counter} nodes...")
+        if node.parent is None:
+            node_id_to_nuc_seq[node.id] = root_nuc_seq.copy()
+            continue
 
-    # Precompute AA lookup for O(1) index lookups
-    aa_lookup = {c: i for i, c in enumerate(allowed_aas)}
+        new_node_seq = node_id_to_nuc_seq[node.parent.id].copy()
+        for mut in node.mutations:
+            ref, pos, alt = parse_mutation(mut)
+            pos -= start_pos
+            if 0 <= pos < nuc_seq_len:
+                if new_node_seq[pos] != ref:
+                    raise ValueError("Nuc mismatch")
+                new_node_seq[pos] = alt
+        node_id_to_nuc_seq[node.id] = new_node_seq
+
+    
+    # Convert to AA seq and AA mutations
+    print("Translating...")
+    node_id_to_aa_seq = {}
+    node_id_to_aa_muts = {}
+    counter = 0
+    for node in all_nodes:
+        counter += 1
+        if counter % 100000 == 0:
+            print(f"   Processed {counter} nodes...")
+        node_id_to_aa_seq[node.id] = nuc_to_aa(node_id_to_nuc_seq[node.id])
+        node_id_to_aa_muts[node.id] = []
+
+        if node.parent is None:
+            continue
+
+        for pos in range(aa_seq_len):
+            if node_id_to_aa_seq[node.parent.id][pos] != node_id_to_aa_seq[node.id][pos]:
+                node_id_to_aa_muts[node.id].append((node_id_to_aa_seq[node.parent.id][pos], pos, node_id_to_aa_seq[node.id][pos]))
+
+
+
 
     # Variant AA seq
     variant_aa_seq = read_fasta(variant_seq_file)
     variant_seq_idx = tokenize(variant_aa_seq, allowed_aas)
 
-    seq_len = len(root_aa_seq)
-    nuc_seq_len = len(root_seq)
-    empty_mutation_tensor = torch.zeros(seq_len, len(allowed_aas), dtype=torch.float32)
+    empty_mutation_tensor = torch.zeros(aa_seq_len, len(allowed_aas), dtype=torch.float32)
 
     # PSSM from root thru cutoff
     pssm_root = empty_mutation_tensor.clone()
@@ -293,8 +335,6 @@ def parse_pb_tree(pb_path, ref_fasta_path, variant_seq_file, allowed_aas, cutoff
 
     training_examples = {} # Dict from example ID to example
     node_id_to_example_id = {}
-    node_id_to_nuc_seq = {}
-    node_id_to_aa_idx = {}
     node_id_to_is_descended_from_variant = {}
 
     root_aa_idx = tokenize(root_aa_seq, allowed_aas)
@@ -305,27 +345,19 @@ def parse_pb_tree(pb_path, ref_fasta_path, variant_seq_file, allowed_aas, cutoff
     )
 
     node_id_to_example_id[all_nodes[0].id] = 0
-    node_id_to_nuc_seq[all_nodes[0].id] = root_seq
-    node_id_to_aa_idx[all_nodes[0].id] = root_aa_idx
     node_id_to_is_descended_from_variant[all_nodes[0].id] = False
+
     training_examples[0] = root_example
 
     next_example_id = 1
 
     # Precompute non-gap mask and variant index list for fast scalar access
     non_gap_mask = [c not in ('-', '*') for c in variant_aa_seq]
-    variant_seq_idx_list = variant_seq_idx.tolist()
 
     # Pre-order traversal
     found_variant_root = False
     nodes_processed = 0
-    # Precompute initial mismatch count (root vs variant at non-gap positions)
-    root_aa_list = root_aa_idx.tolist()
-    root_mismatches = sum(
-        1 for i in range(seq_len)
-        if non_gap_mask[i] and root_aa_list[i] != variant_seq_idx_list[i]
-    )
-    node_id_to_mismatch_count = {all_nodes[0].id: root_mismatches}
+
 
     for node in all_nodes:
 
@@ -341,65 +373,36 @@ def parse_pb_tree(pb_path, ref_fasta_path, variant_seq_file, allowed_aas, cutoff
 
         # Training example corresponding to the parent
         parent_example_id = node_id_to_example_id[parent_id]
-
-        # Filter mutations to spike region upfront
-        spike_muts = []
-        if node.mutations:
-            for mut in node.mutations:
-                ref, pos, alt = parse_mutation(mut)
-                pos -= start_pos
-                if 0 <= pos < nuc_seq_len:
-                    spike_muts.append((ref, pos, alt))
-
-        # Only copy parent state if this node has spike-region mutations
-        if spike_muts:
-            parent_nuc_seq = node_id_to_nuc_seq[parent_id].copy()
-            # Clone once; mutate in place per-mutation, snapshot when creating examples
-            parent_aa_idx = node_id_to_aa_idx[parent_id].clone()
-        else:
-            parent_nuc_seq = node_id_to_nuc_seq[parent_id]
-            parent_aa_idx = node_id_to_aa_idx[parent_id]
-
         parent_is_descended_from_variant = node_id_to_is_descended_from_variant[parent_id]
-        mismatch_count = node_id_to_mismatch_count[parent_id]
+
+        local_aa_seq = node_id_to_aa_seq[parent_id].copy()
+
+        
 
         # Create training example for each sequence
         # Each time we cross a mutation in the range of study, we want to create a new training example
-        if spike_muts:
-            for ref, pos, alt in random.sample(spike_muts, len(spike_muts)):
-                new_aa, changed = mutate_aa(parent_nuc_seq, ref, pos, alt)
+        if len(node_id_to_aa_muts[node.id]) > 0:
+            for ref, pos, alt in random.sample(node_id_to_aa_muts[node.id], len(node_id_to_aa_muts[node.id])):
 
-                # Update the nucleotide sequence regardless
-                parent_nuc_seq[pos] = alt
+                local_aa_seq[pos] = alt
+                local_aa_seq_tokenized = tokenize(local_aa_seq)
+                
 
-                if not changed:
-                    continue
 
-                # AA position
-                aa_pos = pos // 3
-                new_aa_int = aa_lookup[new_aa]
-
-                # Incremental aa_idx update (mutate in place)
-                old_aa_int = parent_aa_idx[aa_pos].item()
-                parent_aa_idx[aa_pos] = new_aa_int
 
                 # Incremental variant mismatch tracking
                 is_testing_root = False
-                if not found_variant_root and non_gap_mask[aa_pos]:
-                    variant_val = variant_seq_idx_list[aa_pos]
-                    was_match = (old_aa_int == variant_val)
-                    now_match = (new_aa_int == variant_val)
-                    if was_match and not now_match:
-                        mismatch_count += 1
-                    elif not was_match and now_match:
-                        mismatch_count -= 1
+                # Check if descended from variant
+                if not found_variant_root:
+   
+                    matches_variant = (local_aa_seq_tokenized[non_gap_mask] == variant_seq_idx[non_gap_mask]).all().item()
 
-                    if mismatch_count == 0:
-                        print("HOORAY!")
-                        print(node_times[node.id])
+                    if matches_variant:
+                        print("Hooray! We found the variant")
+                        print(f"Variant node time: {node.time}")
+                        print(f"Variant parent time: {tree.nodes[node.parent_id].time}")
                         is_testing_root = True
                         found_variant_root = True
-                        parent_is_descended_from_variant = True
 
                 # Check if the parent is in the training window
                 parent_is_train = training_examples[parent_example_id].time < cutoff
@@ -412,15 +415,15 @@ def parse_pb_tree(pb_path, ref_fasta_path, variant_seq_file, allowed_aas, cutoff
                 # If it crosses the boundary, skip
                 if parent_is_train == node_is_train:
                     # Update parent training example with the new mutation
-                    training_examples[parent_example_id].mat[aa_pos, new_aa_int] += 1.0
+                    training_examples[parent_example_id].mat[pos, allowed_aas.index(alt)] += 1.0
 
                 # Snapshot aa_idx for this example
                 new_example = Example(
-                    aa_idx = parent_aa_idx.clone(),
+                    aa_idx = local_aa_seq_tokenized,
                     mat = empty_mutation_tensor.clone(),
                     time = node_times[node.id],
                     parent_id = parent_example_id,
-                    parent_mutation = (aa_pos, new_aa_int),
+                    parent_mutation = (pos, alt),
                     is_testing_root = is_testing_root,
                     is_descended_from_variant = parent_is_descended_from_variant
                 )
@@ -431,10 +434,7 @@ def parse_pb_tree(pb_path, ref_fasta_path, variant_seq_file, allowed_aas, cutoff
                 next_example_id += 1
 
         node_id_to_example_id[node.id] = parent_example_id
-        node_id_to_nuc_seq[node.id] = parent_nuc_seq
-        node_id_to_aa_idx[node.id] = parent_aa_idx
         node_id_to_is_descended_from_variant[node.id] = parent_is_descended_from_variant
-        node_id_to_mismatch_count[node.id] = mismatch_count
 
         # Update pssm(s) if this node is a tip
         if node.is_leaf():

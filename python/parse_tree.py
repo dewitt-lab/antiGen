@@ -232,8 +232,6 @@ def generate_training_examples(tree, root_seq_file, variant_seq_file, allowed_aa
     variant_seq = read_fasta(variant_seq_file)
     variant_seq_idx = tokenize(variant_seq, allowed_aas)
 
-
-
     while stack:
         node, parent_example_id, genotype_ancestor_id, last_mutation_info, is_descended_from_variant = stack.pop()
 
@@ -264,15 +262,11 @@ def generate_training_examples(tree, root_seq_file, variant_seq_file, allowed_aa
 
                 # Check if descended from variant
                 if not is_descended_from_variant:
-                    matches_variant = False
-
-                    # Debug: check match ignoring gap/stop positions
+                    # Check match ignoring gap/stop positions
                     non_gap_mask = torch.tensor(
                         [c not in ('-', '*') for c in variant_seq], dtype=torch.bool
                     )
-                    matches_non_gap = (new_seq[non_gap_mask] == variant_seq_idx[non_gap_mask]).all()
-                    if matches_non_gap:
-                        matches_variant = True
+                    matches_variant = (new_seq[non_gap_mask] == variant_seq_idx[non_gap_mask]).all().item()
 
                     if matches_variant:
                         print("Hooray! We found the variant")

@@ -23,7 +23,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from config import ModelConfig, ModelType, TransformerConfig, AlphabetConfig, ESM2Config, ESMCConfig, VespaGConfig
 from models.factory import create_model
-from parse_tree import parse_big_tree
+from read_pb import parse_pb_tree
 
 
 # ── Dataset ───────────────────────────────────────────────────────────────────
@@ -160,7 +160,7 @@ def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10, seen_
                 baseline_hits_by_qtile[name][i] += b_hits
 
         # Prevent gradual memory buildup over long eval loops
-        if batch_idx % 100 == 0:
+        if batch_idx % 10 == 0:
             gc.collect()
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
@@ -169,9 +169,9 @@ def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10, seen_
     model.train()
 
     for i in range(n_buckets - 1):
-        total_hits_by_qtile[i] /= total_rbd_mutations
+        total_hits_by_qtile[i] /= max(total_rbd_mutations, 1)
         for name, _ in baselines:
-            baseline_hits_by_qtile[name][i] /= total_rbd_mutations
+            baseline_hits_by_qtile[name][i] /= max(total_rbd_mutations, 1)
 
     return total_loss / max(total_n_mutations, 1), total_hits_by_qtile, baseline_hits_by_qtile
 
@@ -208,6 +208,8 @@ def parse_args():
                         help='Number of quantile buckets for hit-rate evaluation')
     parser.add_argument('--dms-eval-dir', type=str, default=None,
                         help='Directory with DMS TSV files for evaluation')
+    parser.add_argument('--variant', type=str, default='BA.2',
+                        help='Variant name for test sequence file (e.g. BA.2, XFG)')
     return parser.parse_args()
 
 
@@ -250,7 +252,7 @@ def evaluate_mutation_ordering(model, all_examples, testing_examples, testing_id
         if s_example.parent_id is None or s_example.parent_mutation is None:
             continue
 
-        # Parent must also be in testing set
+        # Parent must also be in testing set (perhaps not strictly necessary but)
         if s_example.parent_id not in testing_ids:
             continue
 
@@ -346,11 +348,12 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
 
-    print("Loading tree...")
-    all_examples, pssm_root, pssm_variant = parse_big_tree(
-        "/home/ivan.specht/fitness-inference-data/covid.jsonl",
-        "/home/ivan.specht/fitness-inference/data/test_sequences/root.txt",
-        "/home/ivan.specht/fitness-inference/data/test_sequences/BA.2.txt",
+    variant_path = f"/home/ivan.specht/fitness-inference/data/test_sequences/{args.variant}.txt"
+    print(f"Loading tree (variant={args.variant})...")
+    all_examples, pssm_root, pssm_variant = parse_pb_tree(
+        "/home/ivan.specht/fitness-inference-data/sars-cov-2/public-latest.all.masked.pb",
+        "data/mutation-annotated-trees/NC_045512.2.fasta",
+        variant_path,
         allowed_aas,
         args.cutoff
     )
@@ -368,7 +371,7 @@ def main():
             if example.mat.sum() < 0.5:
                 continue
 
-        if example.last_mutation_time <= args.cutoff:
+        if example.time <= args.cutoff:
             training_examples.append(example)
             training_ids.add(i)
             total_mutations_train += example.mat.sum()
@@ -377,6 +380,7 @@ def main():
 
 
     print(f"Training examples: {len(training_examples)}, Testing examples: {len(testing_examples)}")
+    print(f"Total mutations in training set: {total_mutations_train:.0f}")
 
 
 
@@ -523,6 +527,14 @@ def main():
 
         if args.max_batches is not None and global_step >= args.max_batches:
             break
+
+    # Free training-only objects to reclaim memory before eval
+    optimizer_state = optimizer.state_dict()
+    del optimizer, scheduler, train_loader, train_dataset, training_examples
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    print("Freed training objects (optimizer, scheduler, train_loader, etc.) before eval")
 
     n_buckets = args.hit_rate_buckets
 
@@ -744,7 +756,7 @@ def main():
     # ── Mutation ordering eval ──────────────────────────────────────────────────
     testing_id_map = {}
     for i, example in enumerate(all_examples):
-        if example.last_mutation_time > args.cutoff:
+        if example.time > args.cutoff:
             testing_id_map[id(example)] = i
 
     evaluate_mutation_ordering(
@@ -762,12 +774,24 @@ def main():
             writer.writerow([f"{v:.8f}" for v in row])
     print(f"Variant root predictions ({testing_root_probs_full.shape[0]} x {testing_root_probs_full.shape[1]}) saved to {variant_preds_path}")
 
+    # Save variant root predictions with previously seen mutations masked to NA
+    seen_mask_full = pssm_root > 0  # (seq_len, E)
+    testing_root_probs_unseen = testing_root_probs_full.clone()
+    testing_root_probs_unseen[seen_mask_full] = float('nan')
+    unseen_preds_path = os.path.join(args.output_dir, f"variant_root_predictions_unseen_{run_prefix}.csv")
+    with open(unseen_preds_path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(list(allowed_aas))
+        for row in testing_root_probs_unseen.numpy():
+            writer.writerow(["NA" if math.isnan(v) else f"{v:.8f}" for v in row])
+    print(f"Unseen variant root predictions saved to {unseen_preds_path}")
+
     output_path = os.path.join(args.output_dir, f"fitness_{run_prefix}.pt")
 
     print(f"Saving model to {output_path}...")
     checkpoint = {
         'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict(),
+        'optimizer_state_dict': optimizer_state,
         'epoch': epoch,
         'global_step': global_step,
         'loss': avg_train_loss,

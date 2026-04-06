@@ -133,8 +133,9 @@ def read_fasta(path):
 
 
 EARLIEST_SARS_COV2 = datetime(2019, 12, 22).timestamp()
+EARLIEST_FLU = datetime(2005, 1, 1).timestamp()
 
-def parse_date(node_id):
+def parse_date(node_id, EARLIEST_TIME):
     """Extract date from node name like 'Country/strain|accession|YYYY-MM-DD'.
     Returns a float (seconds since epoch) or inf if date is missing/incomplete/implausible."""
     parts = node_id.split("|")
@@ -151,7 +152,7 @@ def parse_date(node_id):
                 # Use end of year
                 dt = dt.replace(month=12, day=31)
             ts = dt.timestamp()
-            if ts < EARLIEST_SARS_COV2:
+            if ts < EARLIEST_TIME:
                 return math.inf  # implausible pre-COVID date
             return ts
         except ValueError:
@@ -175,15 +176,83 @@ class Example:
     is_descended_from_variant: bool = False
 
 
-def parse_pb_tree(pb_path, ref_fasta_path, variant_seq_file, allowed_aas, cutoff, start_pos=21562, end_pos=25381, timestep=0.1, n_steps=60):
+def parse_spike_mut(mut_str):
+    """
+    Parse a matUtils AA mutation string like 'S:N501Y' into (ref_aa, pos, alt_aa)
+    where pos is 0-indexed within the spike protein.
+    Returns None if not a spike mutation or unparseable.
+    """
+    if not mut_str.startswith("S:"):
+        return None
+    inner = mut_str[2:]  # e.g. "N501Y"
+    ref_aa = inner[0]
+    alt_aa = inner[-1]
+    try:
+        pos = int(inner[1:-1]) - 1  # 1-indexed -> 0-indexed
+    except ValueError:
+        return None
+    return ref_aa, pos, alt_aa
+
+def load_aa_mutations_tsv(tsv_path, gene="S"):
+    """
+    Load matUtils summary --translate TSV and return a dict:
+        node_id -> list of (ref_aa, pos_0indexed, alt_aa)
+    Only includes non-synonymous mutations in the specified gene.
+    """
+    prefix = f"{gene}:"
+    node_to_muts = {}
+    with open(tsv_path) as f:
+        header = f.readline()  # skip header
+        for line in f:
+            parts = line.rstrip("\n").split("\t")
+            if len(parts) < 2:
+                continue
+            node_id = parts[0]
+            aa_field = parts[1]  # semicolon-separated, e.g. "S:N501Y;ORF1ab:D614G"
+            muts = []
+            for entry in aa_field.split(";"):
+                entry = entry.strip()
+                if not entry.startswith(prefix):
+                    continue
+                parsed = parse_spike_mut(entry)
+                if parsed is None:
+                    continue
+                ref_aa, pos, alt_aa = parsed
+                if ref_aa != alt_aa:  # skip synonymous
+                    muts.append((ref_aa, pos, alt_aa))
+            if muts:
+                node_to_muts[node_id] = muts
+    print(f"Loaded AA mutations for {len(node_to_muts)} nodes from {tsv_path}")
+    return node_to_muts
+
+
+def parse_pb_tree(pb_path, ref_fasta_path, variant_seq_file, allowed_aas, cutoff, start_pos=21562, end_pos=25381, timestep=0.1, n_steps=60, virus = "sc2"):
 
     # ── Load tree ─────────────────────────────────────────────────────────────────
     print("Loading tree...")
     tree = bte.MATree(pb_path)
 
+    # ── Load pre-computed AA mutations ────────────────────────────────────────
+    print("Loading AA muts...")
+    aa_mutations_tsv = "/home/ivan.specht/fitness-inference-data/sars-cov-2/branch_mutations_aa.tsv"
+    node_id_to_aa_muts = load_aa_mutations_tsv(aa_mutations_tsv, gene="S")
+
+    positions = set()
+    for muts in node_id_to_aa_muts.values():
+        for ref, pos, alt in muts:
+            positions.add(pos)
+    print(f"Unique spike positions mutated: {len(positions)}")
+
     all_nodes = list(tree.depth_first_expansion())
 
     node_times = {}
+
+    if virus == "sc2":
+        EARLIEST_TIME = EARLIEST_SARS_COV2
+    elif virus == "flu":
+        EARLIEST_TIME = EARLIEST_FLU
+    else:
+        raise ValueError("Unknown dataset")
 
     # Step 1: leaf times only
     print("Parsing leaf dates...")
@@ -192,7 +261,7 @@ def parse_pb_tree(pb_path, ref_fasta_path, variant_seq_file, allowed_aas, cutoff
     max_leaf_time = -math.inf
     for node in reversed(all_nodes):
         if node.is_leaf():
-            t = parse_date(node.id)
+            t = parse_date(node.id, EARLIEST_TIME)
             node_times[node.id] = t
             if t < math.inf:
                 min_leaf_time = min(min_leaf_time, t)
@@ -205,7 +274,7 @@ def parse_pb_tree(pb_path, ref_fasta_path, variant_seq_file, allowed_aas, cutoff
 
     # Step 2: convert to years since root
     print("Converting dates to years since MRCA...")
-    root_time = EARLIEST_SARS_COV2
+    root_time = min_leaf_time
     for node in all_nodes:
         if node.is_leaf():
             node_times[node.id] = (node_times[node.id] - root_time) / (365.25 * 24 * 3600)
@@ -264,65 +333,35 @@ def parse_pb_tree(pb_path, ref_fasta_path, variant_seq_file, allowed_aas, cutoff
     print("Assigning worst-case inner node times...")
     for node in reversed(all_nodes):
         if not node.is_leaf():
-            child_dates = [node_times[c.id] for c in node.children if c.id in node_times]
+            child_dates = [node_times[c.id] for c in node.children]
             node_times[node.id] = min(child_dates) if child_dates else math.inf
+
+    
+    # Check which nodes have downstream mutations
+    print("Initializing which nodes have downstream mutations...")
+    node_id_to_has_downstream_mutations = {}
+    for node in all_nodes:
+        node_id_to_has_downstream_mutations[node.id] = False
+
+    print("Determining which nodes have downstream mutations...")
+    for node in reversed(all_nodes):
+        if len(node_id_to_aa_muts.get(node.id, [])) > 0:
+            node_id_to_has_downstream_mutations[node.id] = True
+        if node_id_to_has_downstream_mutations[node.id] and node.parent is not None:
+            node_id_to_has_downstream_mutations[node.parent.id] = True
+            
+    
 
     # ----- Sequences -------
     # Get the root nuc seq, subset to spike
-    root_nuc_seq = read_fasta_region(ref_fasta_path, start_pos, end_pos)
-    root_aa_seq = nuc_to_aa(root_nuc_seq)
-    nuc_seq_len = len(root_nuc_seq)
+    root_aa_seq = nuc_to_aa(read_fasta_region(ref_fasta_path, start_pos, end_pos))
     aa_seq_len = len(root_aa_seq)
-
-    # Get the nuc seq everywhere on the tree
-    print("Assigning nucleotide sequences...")
-    node_id_to_nuc_seq = {}
-    counter = 0
-    for node in all_nodes:
-        counter += 1
-        if counter % 100000 == 0:
-            print(f"   Processed {counter} nodes...")
-        if node.parent is None:
-            node_id_to_nuc_seq[node.id] = root_nuc_seq.copy()
-            continue
-
-        new_node_seq = node_id_to_nuc_seq[node.parent.id].copy()
-        for mut in node.mutations:
-            ref, pos, alt = parse_mutation(mut)
-            pos -= start_pos
-            if 0 <= pos < nuc_seq_len:
-                if new_node_seq[pos] != ref:
-                    raise ValueError("Nuc mismatch")
-                new_node_seq[pos] = alt
-        node_id_to_nuc_seq[node.id] = new_node_seq
-
-    
-    # Convert to AA seq and AA mutations
-    print("Translating...")
-    node_id_to_aa_seq = {}
-    node_id_to_aa_muts = {}
-    counter = 0
-    for node in all_nodes:
-        counter += 1
-        if counter % 100000 == 0:
-            print(f"   Processed {counter} nodes...")
-        node_id_to_aa_seq[node.id] = nuc_to_aa(node_id_to_nuc_seq[node.id])
-        node_id_to_aa_muts[node.id] = []
-
-        if node.parent is None:
-            continue
-
-        for pos in range(aa_seq_len):
-            if node_id_to_aa_seq[node.parent.id][pos] != node_id_to_aa_seq[node.id][pos]:
-                node_id_to_aa_muts[node.id].append((node_id_to_aa_seq[node.parent.id][pos], pos, node_id_to_aa_seq[node.id][pos]))
-
-
-
 
     # Variant AA seq
     variant_aa_seq = read_fasta(variant_seq_file)
     variant_seq_idx = tokenize(variant_aa_seq, allowed_aas)
 
+    # Initialize empty mutations
     empty_mutation_tensor = torch.zeros(aa_seq_len, len(allowed_aas), dtype=torch.float32)
 
     # PSSM from root thru cutoff
@@ -337,7 +376,10 @@ def parse_pb_tree(pb_path, ref_fasta_path, variant_seq_file, allowed_aas, cutoff
     node_id_to_example_id = {}
     node_id_to_is_descended_from_variant = {}
 
+    # Tokenize root aa sequence
     root_aa_idx = tokenize(root_aa_seq, allowed_aas)
+
+    # Make root example
     root_example = Example(
         aa_idx = root_aa_idx,
         mat = empty_mutation_tensor.clone(),
@@ -365,6 +407,9 @@ def parse_pb_tree(pb_path, ref_fasta_path, variant_seq_file, allowed_aas, cutoff
         if node.parent is None:
             continue
 
+        if not node_id_to_has_downstream_mutations[node.id]:
+            continue
+
         # Get the parent node's ID
         parent_id = node.parent.id
 
@@ -375,34 +420,34 @@ def parse_pb_tree(pb_path, ref_fasta_path, variant_seq_file, allowed_aas, cutoff
         parent_example_id = node_id_to_example_id[parent_id]
         parent_is_descended_from_variant = node_id_to_is_descended_from_variant[parent_id]
 
-        local_aa_seq = node_id_to_aa_seq[parent_id].copy()
+        local_aa_idx = training_examples[parent_example_id].aa_idx.clone()
 
         
 
         # Create training example for each sequence
         # Each time we cross a mutation in the range of study, we want to create a new training example
-        if len(node_id_to_aa_muts[node.id]) > 0:
+        if len(node_id_to_aa_muts.get(node.id, [])) > 0:
             for ref, pos, alt in random.sample(node_id_to_aa_muts[node.id], len(node_id_to_aa_muts[node.id])):
 
-                local_aa_seq[pos] = alt
-                local_aa_seq_tokenized = tokenize(local_aa_seq)
+                if local_aa_idx[pos] != allowed_aas.index(ref):
+                    raise ValueError("Mismatch")
                 
-
-
-
-                # Incremental variant mismatch tracking
+                local_aa_idx[pos] = allowed_aas.index(alt)
+                
+                # Check if we've matched the variant of interest
                 is_testing_root = False
                 # Check if descended from variant
                 if not found_variant_root:
    
-                    matches_variant = (local_aa_seq_tokenized[non_gap_mask] == variant_seq_idx[non_gap_mask]).all().item()
+                    matches_variant = (local_aa_idx[non_gap_mask] == variant_seq_idx[non_gap_mask]).all().item()
 
                     if matches_variant:
                         print("Hooray! We found the variant")
-                        print(f"Variant node time: {node.time}")
-                        print(f"Variant parent time: {tree.nodes[node.parent_id].time}")
+                        print(f"Variant node time: {node_times[node.id]}")
+                        print(f"Variant parent time: {node_times[parent_id]}")
                         is_testing_root = True
                         found_variant_root = True
+                        parent_is_descended_from_variant = True
 
                 # Check if the parent is in the training window
                 parent_is_train = training_examples[parent_example_id].time < cutoff
@@ -417,9 +462,9 @@ def parse_pb_tree(pb_path, ref_fasta_path, variant_seq_file, allowed_aas, cutoff
                     # Update parent training example with the new mutation
                     training_examples[parent_example_id].mat[pos, allowed_aas.index(alt)] += 1.0
 
-                # Snapshot aa_idx for this example
+                # New example
                 new_example = Example(
-                    aa_idx = local_aa_seq_tokenized,
+                    aa_idx = local_aa_idx.clone(),
                     mat = empty_mutation_tensor.clone(),
                     time = node_times[node.id],
                     parent_id = parent_example_id,

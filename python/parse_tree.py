@@ -3,6 +3,7 @@ Load taxonium JSONL, extract training examples
 """
 
 import json
+import random
 from copy import copy
 from dataclasses import dataclass
 
@@ -28,20 +29,22 @@ class Node:
     parent_id: int = None
     child_ids: list = None
     mutations_rel_parent: list = None
+    aa_idx: object = None  # tokenized AA sequence, set by compute_sequences
 
 
 @dataclass
 class Tree:
     nodes: dict      # node_id -> Node
     root_id: int
+    next_id: int = 0  # next unused node ID, for creating new nodes
 
 @dataclass
 class Example:
-    aa_idx: None
-    mat: None
-    last_mutation_time: float # Time of last mutation away from starting strain
-    parent_id: int = None # ID of parent example
-    parent_mutation: tuple = None # (pos, alt_idx) mutation that created this from parent
+    aa_idx: object
+    mat: object
+    time: float
+    parent_id: int = None
+    parent_mutation: tuple = None
     is_testing_root: bool = False
     is_descended_from_variant: bool = False
 
@@ -151,11 +154,120 @@ def load_tree(jsonl_path):
         if(node.time < 0):
             raise ValueError("Times should never be earlier than the root")
         
-    tree = Tree(nodes=nodes, root_id=root_id)
+    tree = Tree(nodes=nodes, root_id=root_id, next_id=max(nodes.keys()) + 1)
 
-
+    # Reassign inner node times as min leaf time in subtree (post-order)
+    print("Reassigning inner node times...")
+    stack = [(root_id, False)]
+    while stack:
+        nid, processed = stack.pop()
+        node = nodes[nid]
+        if not node.child_ids:
+            continue
+        if processed:
+            node.time = min(nodes[cid].time for cid in node.child_ids)
+        else:
+            stack.append((nid, True))
+            for cid in node.child_ids:
+                stack.append((cid, False))
 
     return tree
+
+def prune(tree, node_id):
+    """Prune a node from the tree.
+
+    Given edges A->B->C and A->B->D, calling prune(C) removes C from B's
+    children and creates a new node B' as C's parent (a detached copy of B),
+    so C's subtree remains rooted with the correct parent context.
+
+    If B now has exactly one remaining child (D) and B is not the root,
+    B is collapsed: A->D replaces A->B and B->D, with mutations merged.
+    """
+    nodes = tree.nodes
+    node = nodes[node_id]
+    parent_id = node.parent_id
+    if parent_id is None:
+        return
+
+    parent = nodes[parent_id]
+
+    # Create B' — a copy of the parent — as a new root for node's subtree.
+    bp_id = tree.next_id
+    tree.next_id += 1
+    bp = Node(
+        node_id=bp_id,
+        time=parent.time,
+        parent_id=None,
+        child_ids=[node_id],
+        mutations_rel_parent=[],
+        aa_idx=parent.aa_idx.clone() if parent.aa_idx is not None else None,
+    )
+    nodes[bp_id] = bp
+
+    # Detach node from its parent and re-parent under B'.
+    parent.child_ids.remove(node_id)
+    node.parent_id = bp_id
+    # Mutations on the edge from parent to node are preserved (now on B'->node).
+
+    # If the parent now has exactly one child and is not the root, collapse it.
+    if len(parent.child_ids) == 1 and parent.parent_id is not None:
+        grandparent = nodes[parent.parent_id]
+        remaining_id = parent.child_ids[0]
+        remaining = nodes[remaining_id]
+
+        # Merge mutations: grandparent->parent + parent->remaining
+        parent_by_pos = {}
+        for mut in parent.mutations_rel_parent:
+            parent_by_pos[mut.pos] = mut
+
+        merged = list(parent.mutations_rel_parent)
+        for mut in remaining.mutations_rel_parent:
+            if mut.pos in parent_by_pos:
+                orig = parent_by_pos[mut.pos]
+                if orig.alt != mut.ref:
+                    raise ValueError(
+                        f"Cannot compose mutations at position {mut.pos}: "
+                        f"parent produces '{orig.alt}' but child expects '{mut.ref}'"
+                    )
+                merged.remove(orig)
+                if orig.ref != mut.alt:
+                    merged.append(AAMutation(pos=mut.pos, ref=orig.ref, alt=mut.alt))
+            else:
+                merged.append(mut)
+
+        remaining.mutations_rel_parent = merged
+        remaining.parent_id = parent.parent_id
+
+        # Replace parent with remaining in grandparent's children list.
+        idx = grandparent.child_ids.index(parent_id)
+        grandparent.child_ids[idx] = remaining_id
+
+        # Detach parent.
+        parent.parent_id = None
+        parent.child_ids = []
+        parent.mutations_rel_parent = []
+
+
+def prune_by_cutoff(tree, cutoff):
+    """Prune all nodes whose time > cutoff but whose parent's time <= cutoff.
+    Returns a list of the new subtree root IDs (the B' nodes created by prune)."""
+    to_prune = [
+        nid
+        for nid, node in tree.nodes.items()
+        if node.parent_id is not None
+        and node.time > cutoff
+        and tree.nodes[node.parent_id].time <= cutoff
+    ]
+    print(f"  {len(to_prune)} nodes to prune")
+    subtree_roots = []
+    for i, nid in enumerate(to_prune):
+        prune(tree, nid)
+        # The node's new parent is the B' root of its subtree
+        subtree_roots.append(tree.nodes[nid].parent_id)
+        if (i + 1) % 5000 == 0:
+            print(f"  ... pruned {i + 1}/{len(to_prune)} nodes")
+    return subtree_roots
+
 
 # ── Spike sequence extraction ─────────────────────────────────────────────────
 
@@ -195,129 +307,180 @@ def mutate(aa_idx, allowed_aas, mut):
     aa_idx[mut.pos] = after_idx
     return aa_idx
 
-def generate_training_examples(tree, root_seq_file, variant_seq_file, allowed_aas, cutoff, timestep = 0.1, n_steps = 60):
+def compute_sequences(tree, root_aa_idx, allowed_aas):
+    """Compute tokenized AA sequence at every node via BFS from the root."""
+    nodes = tree.nodes
+    root = nodes[tree.root_id]
+    root.aa_idx = root_aa_idx.clone()
 
-    training_examples = {}
-    example_parent = {}
-    next_example_id = 0
+    from collections import deque
+    queue = deque(root.child_ids)
+    processed = 0
+    total = len(nodes)
+    while queue:
+        nid = queue.popleft()
+        node = nodes[nid]
+        parent_aa_idx = nodes[node.parent_id].aa_idx.clone()
+        for mut in node.mutations_rel_parent:
+            if parent_aa_idx[mut.pos] != allowed_aas.index(mut.ref):
+                raise ValueError(
+                    f"Mismatch at pos {mut.pos}: expected {mut.ref}, "
+                    f"got {allowed_aas[parent_aa_idx[mut.pos]]}"
+                )
+            parent_aa_idx[mut.pos] = allowed_aas.index(mut.alt)
+        node.aa_idx = parent_aa_idx
+        queue.extend(node.child_ids)
+        processed += 1
+        if processed % 500000 == 0:
+            print(f"  ... computed sequences for {processed}/{total} nodes")
 
-    
 
+def generate_training_examples(tree, root_seq_file, variant_seq_file, allowed_aas,
+                               cutoff, timestep=0.1, n_steps=60):
+
+    # ── Compute sequences at every node before pruning ────────────────────────
     root_seq = read_fasta(root_seq_file)
-    empty_mutation_tensor = torch.zeros(len(root_seq), len(allowed_aas), dtype=torch.float32)
-    root_example = Example(
-        aa_idx=tokenize(root_seq, allowed_aas),
-        mat=empty_mutation_tensor.clone(),
-        last_mutation_time=0.0
-    )
+    root_aa_idx = tokenize(root_seq, allowed_aas)
+    print("Computing node sequences...")
+    compute_sequences(tree, root_aa_idx, allowed_aas)
 
-    training_examples[next_example_id] = root_example
-    next_example_id += 1
+    # ── Prune and record subtree roots ────────────────────────────────────────
+    print("Pruning by cutoff...")
+    subtree_root_ids = prune_by_cutoff(tree, cutoff)
+    print(f"  {len(subtree_root_ids)} subtrees pruned")
 
-    # Stack holds (node, parent_example_id, genotype_ancestor_id, last_mutation_info, is_descended_from_variant)
-    stack = [(tree.nodes[tree.root_id], 0, None, None, False)]
-    nodes_processed = 0
+    # ── Randomize mutation order on all nodes ─────────────────────────────────
+    print("Randomizing mutation order...")
+    for node in tree.nodes.values():
+        if len(node.mutations_rel_parent) > 1:
+            random.shuffle(node.mutations_rel_parent)
 
-    visited = set()
+    # ── Setup ─────────────────────────────────────────────────────────────────
+    seq_len = len(root_seq)
+    empty_mat = torch.zeros(seq_len, len(allowed_aas), dtype=torch.float32)
 
-    # PSSM from root thru cutoff
-    pssm_root = empty_mutation_tensor.clone()
+    pssm_root = empty_mat.clone()
+    pssm_variant = [empty_mat.clone() for _ in range(n_steps)]
 
-    # PSSM variant emergence thru various timepoints
-    pssm_variant = []
-    for step in range(n_steps):
-        pssm_variant.append(empty_mutation_tensor.clone())
-
-    # Sequence of the variant
     variant_seq = read_fasta(variant_seq_file)
     variant_seq_idx = tokenize(variant_seq, allowed_aas)
+    non_gap_mask = [c not in ('-', '*') for c in variant_seq]
 
-    while stack:
-        node, parent_example_id, genotype_ancestor_id, last_mutation_info, is_descended_from_variant = stack.pop()
+    training_examples = {}
+    next_example_id = 0
+    found_variant_root = False
 
-        if node.node_id in visited:
-            raise ValueError(f"Cycle detected: node_id={node.node_id} visited twice")
-        visited.add(node.node_id)
+    # ── Helper: traverse one subtree ──────────────────────────────────────────
+    def traverse_subtree(subtree_root_id):
+        nonlocal next_example_id, found_variant_root, pssm_root
 
-        first = True
-        if node.parent_id is not None:
-            for i, mut in enumerate(node.mutations_rel_parent):
+        sr_node = tree.nodes[subtree_root_id]
+        root_example = Example(
+            aa_idx=sr_node.aa_idx.clone(),
+            mat=empty_mat.clone(),
+            time=sr_node.time,
+        )
+        root_eid = next_example_id
+        training_examples[root_eid] = root_example
+        next_example_id += 1
 
-                mut_time = (
-                    tree.nodes[node.parent_id].time
-                    + (node.time - tree.nodes[node.parent_id].time)
-                    * ((i + 1) / (len(node.mutations_rel_parent) + 1))
-                )
+        # node_info: node_id -> (example_id, is_descended_from_variant)
+        node_info = {subtree_root_id: (root_eid, False)}
+        nodes_processed = 0
 
-                ancestral_seq_id = parent_example_id if first else next_example_id - 1
-                first = False
+        # DFS via stack
+        stack = list(sr_node.child_ids)
+        for cid in sr_node.child_ids:
+            node_info[cid] = (root_eid, False)
 
-                training_examples[ancestral_seq_id].mat[mut.pos, allowed_aas.index(mut.alt)] += 1.0
-                training_examples[ancestral_seq_id].last_mutation_time = max(
-                    training_examples[ancestral_seq_id].last_mutation_time, mut_time
-                )
+        while stack:
+            nid = stack.pop()
+            node = tree.nodes[nid]
+            parent_example_id, is_variant_desc = node_info[nid]
 
-                new_seq = mutate(training_examples[ancestral_seq_id].aa_idx, allowed_aas, mut)
-                is_testing_root = False
+            current_eid = parent_example_id
 
-                # Check if descended from variant
-                if not is_descended_from_variant:
-                    # Check match ignoring gap/stop positions
-                    non_gap_mask = torch.tensor(
-                        [c not in ('-', '*') for c in variant_seq], dtype=torch.bool
+            for mut in node.mutations_rel_parent:
+                parent_ex = training_examples[current_eid]
+
+                local_aa_idx = parent_ex.aa_idx.clone()
+                if local_aa_idx[mut.pos] != allowed_aas.index(mut.ref):
+                    raise ValueError(
+                        f"Mismatch at pos {mut.pos}: expected {mut.ref}, "
+                        f"got {allowed_aas[local_aa_idx[mut.pos]]}"
                     )
-                    matches_variant = (new_seq[non_gap_mask] == variant_seq_idx[non_gap_mask]).all().item()
+                local_aa_idx[mut.pos] = allowed_aas.index(mut.alt)
 
-                    if matches_variant:
+                # Check variant match
+                is_testing_root = False
+                if not found_variant_root:
+                    if (local_aa_idx[non_gap_mask] == variant_seq_idx[non_gap_mask]).all().item():
                         print("Hooray! We found the variant")
                         print(f"Variant node time: {node.time}")
-                        print(f"Variant parent time: {tree.nodes[node.parent_id].time}")
                         is_testing_root = True
-                        is_descended_from_variant = True
+                        found_variant_root = True
+                        is_variant_desc = True
 
+                # Update parent example's mat if both on same side of cutoff
+                parent_is_train = parent_ex.time < cutoff
+                node_is_train = node.time < cutoff
+
+                if (not parent_is_train) and node_is_train:
+                    raise ValueError("Node is in training set but parent is not")
+
+                if parent_is_train == node_is_train:
+                    parent_ex.mat[mut.pos, allowed_aas.index(mut.alt)] += 1.0
 
                 new_example = Example(
-                    aa_idx=new_seq,
-                    mat=empty_mutation_tensor.clone(),
-                    last_mutation_time=mut_time,
-                    parent_id=ancestral_seq_id,
+                    aa_idx=local_aa_idx,
+                    mat=empty_mat.clone(),
+                    time=node.time,
+                    parent_id=current_eid,
                     parent_mutation=(mut.pos, allowed_aas.index(mut.alt)),
-                    is_testing_root = is_testing_root,
-                    is_descended_from_variant = is_descended_from_variant
+                    is_testing_root=is_testing_root,
+                    is_descended_from_variant=is_variant_desc,
                 )
                 training_examples[next_example_id] = new_example
-                example_parent[next_example_id] = ancestral_seq_id
-                genotype_ancestor_id = ancestral_seq_id
-                last_mutation_info = (mut.pos, allowed_aas.index(mut.alt))
+                current_eid = next_example_id
                 next_example_id += 1
 
-        last_id = parent_example_id if first else next_example_id - 1
+            # PSSM at leaves
+            if not node.child_ids:
+                ex = training_examples[current_eid]
+                one_hot = torch.nn.functional.one_hot(
+                    ex.aa_idx, num_classes=len(allowed_aas)
+                ).float()
+                if node.time < cutoff:
+                    pssm_root += one_hot
+                if is_variant_desc:
+                    for step in range(n_steps):
+                        step_cutoff = (step + 1) * timestep
+                        if node.time < step_cutoff:
+                            pssm_variant[step] += one_hot
 
-        # Update pssm(s) if this node is a tip
-        if len(node.child_ids) == 0 and genotype_ancestor_id is not None:
-            one_hot = torch.nn.functional.one_hot(training_examples[last_id].aa_idx, num_classes=len(allowed_aas)).float()
-            if node.time < cutoff:
-                pssm_root += one_hot
+            # Push children
+            for cid in node.child_ids:
+                node_info[cid] = (current_eid, is_variant_desc)
+                stack.append(cid)
 
-            if is_descended_from_variant:
-                for step in range(n_steps):
-                    step_cutoff = (step + 1) * timestep
-                    if node.time < step_cutoff:
-                        pssm_variant[step] += one_hot
+            nodes_processed += 1
+            if nodes_processed % 500000 == 0:
+                print(f"  ... processed {nodes_processed} nodes, {next_example_id} examples generated")
 
-        # Push children onto stack
-        for child_id in node.child_ids:
-            stack.append((tree.nodes[child_id], last_id, genotype_ancestor_id, last_mutation_info, is_descended_from_variant))
+        return nodes_processed
 
-        nodes_processed += 1
-        if nodes_processed % 500000 == 0:
-            print(f"  ... processed {nodes_processed} nodes, {next_example_id} examples generated")
+    # ── Traverse main tree ────────────────────────────────────────────────────
+    print("Generating examples from main tree...")
+    n = traverse_subtree(tree.root_id)
+    print(f"  Main tree: {n} nodes, {next_example_id} examples")
 
-    print(f"  Done: {nodes_processed} nodes processed, {next_example_id} examples generated")
+    # ── Traverse pruned subtrees ──────────────────────────────────────────────
+    print(f"Generating examples from {len(subtree_root_ids)} pruned subtrees...")
+    for sr_id in subtree_root_ids:
+        traverse_subtree(sr_id)
 
+    print(f"Done: {next_example_id} examples generated")
     return list(training_examples.values()), pssm_root, pssm_variant
-        
-
 
 
 # ── Full pipeline ─────────────────────────────────────────────────────────────
@@ -327,11 +490,11 @@ def parse_big_tree(
     root_seq_file,
     variant_seq_file,
     allowed_aas,
-    cutoff
+    cutoff,
+    timestep=0.1,
+    n_steps=60,
 ):
 
-
     tree = load_tree(jsonl_path)
-    return generate_training_examples(tree, root_seq_file, variant_seq_file, allowed_aas, cutoff)
-
-    
+    return generate_training_examples(tree, root_seq_file, variant_seq_file,
+                                      allowed_aas, cutoff, timestep, n_steps)

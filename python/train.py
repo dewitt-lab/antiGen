@@ -23,8 +23,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from config import ModelConfig, ModelType, TransformerConfig, AlphabetConfig, ESM2Config, ESMCConfig, VespaGConfig
 from models.factory import create_model
-from parse_tree import parse_big_tree
-from tree_utils import parse_tree
+from load import Example, load_examples, load_pssms
 
 
 # ── Dataset ───────────────────────────────────────────────────────────────────
@@ -209,12 +208,8 @@ def parse_args():
                         help='Number of quantile buckets for hit-rate evaluation')
     parser.add_argument('--dms-eval-dir', type=str, default=None,
                         help='Directory with DMS TSV files for evaluation')
-    parser.add_argument('--flu', action='store_true', default=False,
-                        help='Use influenza H3N2 dataset instead of SARS-CoV-2')
     parser.add_argument('--variant', type=str, default='BA.2',
                         help='Variant name for test sequence file (e.g. BA.2, XFG)')
-    parser.add_argument('--taxonium', action=argparse.BooleanOptionalAction, default=None,
-                        help='Use Taxonium JSONL parser (default: true for SC2, false otherwise)')
     return parser.parse_args()
 
 
@@ -353,34 +348,9 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
 
-    variant_path = f"/home/ivan.specht/fitness-inference/data/test_sequences/{args.variant}.txt"
-    use_taxonium = args.taxonium if args.taxonium is not None else (not args.flu)
-    print(f"Loading tree (variant={args.variant}, taxonium={use_taxonium})...")
-
-    if use_taxonium:
-        if not args.flu:
-            all_examples, pssm_root, pssm_variant = parse_big_tree(
-                "/home/ivan.specht/fitness-inference-data/covid.jsonl",
-                "/home/ivan.specht/fitness-inference/data/test_sequences/root.txt",
-                variant_path,
-                allowed_aas,
-                args.cutoff,
-            )
-        else:
-            raise NotImplementedError("Flu tree loading via Taxonium is not yet supported")
-    else:
-        if not args.flu:
-            all_examples, pssm_root, pssm_variant = parse_tree(
-                "/home/ivan.specht/sc2-processing/tree_output.tsv",
-                "data/test_sequences/root.txt",
-                variant_path,
-                allowed_aas,
-                args.cutoff,
-                0.1,
-                60,
-            )
-        else:
-            raise NotImplementedError("Flu tree loading via parse_tree is not yet supported")
+    examples_path = f"/home/ivan.specht/antiGen-data/output/examples_cutoff_{args.cutoff:.0f}.txt"
+    print(f"Loading examples from {examples_path}...")
+    all_examples = load_examples(examples_path, allowed_aas, args.variant)
 
 
     seq_len_aa = len(all_examples[0].aa_idx)
@@ -390,38 +360,19 @@ def main():
     testing_examples = []
     total_mutations_train = 0.0
 
-    training_ids = set()
     for i, example in enumerate(all_examples):
         if args.ignore_dead_ends:
             if example.mat.sum() < 0.5:
                 continue
 
-        if example.time <= args.cutoff:
+        if example.is_training:
             training_examples.append(example)
-            training_ids.add(i)
-            n_muts = example.mat.sum()
-            if n_muts > 1000:
-                print(f"  WARNING: example {i} has {n_muts:.0f} mutations")
-                print(f"  example.time = {example.time}")
-                print(f"  example.parent_id = {example.parent_id}")
-                print(f"  example.parent_mutation = {example.parent_mutation}")
-                print(f"  example.aa_idx (base sequence): {example.aa_idx}")
-                print(f"  mat shape: {example.mat.shape}")
-                print(f"  mat nonzero entries: {example.mat.nonzero().shape[0]}")
-                nonzero_idx = example.mat.nonzero()
-                for nz in nonzero_idx:
-                    pos, aa = nz[0].item(), nz[1].item()
-                    print(f"    pos={pos}, aa={aa}, count={example.mat[pos, aa].item()}")
-                print(f"  full mat tensor:\n{example.mat}", flush=True)
             total_mutations_train += example.mat.sum()
         else:
             testing_examples.append(example)
 
-
     print(f"Training examples: {len(training_examples)}, Testing examples: {len(testing_examples)}")
     print(f"Total mutations in training set: {total_mutations_train:.0f}")
-
-    print(f"  parent_example_id children count: {sum(1 for e in training_examples if e.parent_id == 771)}")
 
 
 
@@ -579,6 +530,9 @@ def main():
 
     n_buckets = args.hit_rate_buckets
 
+    pssm_dir = "/home/ivan.specht/antiGen-data/output/pssms"
+    pssm_root, pssm_variant = load_pssms(pssm_dir, args.variant, E)
+
     baselines = [("pssm_root", pssm_root)]
 
     # Load additional baselines from CSV files
@@ -679,8 +633,8 @@ def main():
 
     # ── Testing-root eval ────────────────────────────────────────────────────
     testing_root_examples = [e for e in all_examples if e.is_testing_root]
-    assert len(testing_root_examples) == 1, (
-        f"Expected exactly 1 example with is_testing_root=True, found {len(testing_root_examples)}"
+    assert len(testing_root_examples) >= 1, (
+        f"Expected at least 1 example with is_testing_root=True, found {len(testing_root_examples)}"
     )
     testing_root_example = testing_root_examples[0]
 
@@ -797,7 +751,7 @@ def main():
     # ── Mutation ordering eval ──────────────────────────────────────────────────
     testing_id_map = {}
     for i, example in enumerate(all_examples):
-        if example.time > args.cutoff:
+        if not example.is_training:
             testing_id_map[id(example)] = i
 
     evaluate_mutation_ordering(

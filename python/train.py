@@ -45,11 +45,11 @@ class MutationDataset(Dataset):
 def compute_probs(logits, target_batch, aa_batch):
     wt_mask = torch.ones_like(logits, dtype=torch.bool)
     wt_mask.scatter_(2, aa_batch.unsqueeze(-1), False)
- 
+
     #probs = torch.sigmoid(logits)
     probs = torch.softmax(logits.flatten(), dim=0).reshape(logits.shape)
-    probs = probs * wt_mask  # zero out wild-type before normalizing
-    probs = probs / probs.sum(dim=(1, 2), keepdim=True)  # per-example normalization
+    probs = probs * wt_mask  # zero out wild-type, but DON'T renormalize
+    # Sum can now vary - higher sum = more mutational potential
     probs = probs.clamp(1e-8, 1 - 1e-8)
     return probs
 
@@ -57,7 +57,10 @@ def compute_loss_batch(probs, target_batch):
     """Compute masked multinomial NLL, ignoring wild-type positions."""
     target_batch = target_batch.to(probs.device)
 
-    loss = -(target_batch * torch.log(probs))
+    # Renormalize probs for loss computation (training expects normalized probabilities)
+    normalized_probs = probs / probs.sum(dim=(1, 2), keepdim=True).clamp(min=1e-8)
+
+    loss = -(target_batch * torch.log(normalized_probs))
     n_mutations = target_batch.sum().clamp(min=1)
     return loss.sum() / n_mutations
 
@@ -65,7 +68,10 @@ def compute_loss_full(probs, target_batch):
     """Compute masked multinomial NLL, ignoring wild-type positions."""
     target_batch = target_batch.to(probs.device)
 
-    loss = -(target_batch * torch.log(probs))
+    # Renormalize probs for loss computation (training expects normalized probabilities)
+    normalized_probs = probs / probs.sum(dim=(1, 2), keepdim=True).clamp(min=1e-8)
+
+    loss = -(target_batch * torch.log(normalized_probs))
     n_mutations = target_batch.sum().clamp(min=1)
     return loss.sum(), n_mutations
 
@@ -210,6 +216,8 @@ def parse_args():
                         help='Directory with DMS TSV files for evaluation')
     parser.add_argument('--variant', type=str, default='BA.2',
                         help='Variant name for test sequence file (e.g. BA.2, XFG)')
+    parser.add_argument('--flu', action='store_true', default=False,
+                        help='Flu mode (not yet supported)')
     return parser.parse_args()
 
 
@@ -348,7 +356,15 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
 
-    examples_path = f"/home/ivan.specht/antiGen-data/output/examples_cutoff_{args.cutoff:.0f}.txt"
+    if args.flu:
+        raise NotImplementedError("Flu mode is not yet supported")
+
+    cutoff_int = int(args.cutoff)
+    if cutoff_int not in (1, 4, 5):
+        raise ValueError(f"Unsupported cutoff {args.cutoff}. Supported values: 1, 4, 5")
+
+    data_dir = f"/home/ivan.specht/antiGen-data/output{cutoff_int}"
+    examples_path = os.path.join(data_dir, f"examples_cutoff_{cutoff_int}.txt")
     print(f"Loading examples from {examples_path}...")
     all_examples = load_examples(examples_path, allowed_aas, args.variant)
 
@@ -530,7 +546,7 @@ def main():
 
     n_buckets = args.hit_rate_buckets
 
-    pssm_dir = "/home/ivan.specht/antiGen-data/output/pssms"
+    pssm_dir = os.path.join(data_dir, "pssms")
     pssm_root, pssm_variant = load_pssms(pssm_dir, args.variant, E)
 
     baselines = [("pssm_root", pssm_root)]

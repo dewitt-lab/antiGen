@@ -48,6 +48,9 @@ def create_model(
     elif config.model_type == ModelType.VESPAG_FITNESS:
         from models.vespag_fitness_predictor import VespaGFitnessPredictor
         model = VespaGFitnessPredictor(config)
+    elif config.model_type == ModelType.BLOSUM62:
+        from models.blosum62_fitness_predictor import BLOSUM62FitnessPredictor
+        model = BLOSUM62FitnessPredictor(config)
     else:
         raise ValueError(f"Unknown model type: {config.model_type}")
 

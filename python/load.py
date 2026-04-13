@@ -132,8 +132,11 @@ def load_examples(filepath, allowed_aas, variant):
     return examples
 
 
-def load_pssms(pssm_dir, variant, E, n_steps=60):
+def load_pssms(pssm_dir, variant, E):
     """Load root PSSM and variant PSSMs from CSV files.
+
+    The number of variant time steps is auto-detected from the files
+    present in the variant PSSM directory.
 
     Returns (pssm_root, pssm_variant) where pssm_root is a (seq_len, E)
     tensor and pssm_variant is a list of n_steps (seq_len, E) tensors.
@@ -145,6 +148,9 @@ def load_pssms(pssm_dir, variant, E, n_steps=60):
     print(f"Loaded pssm_root: {pssm_root.shape}")
 
     variant_pssm_dir = os.path.join(pssm_dir, variant)
+    # Auto-detect number of time steps
+    import glob as glob_mod
+    n_steps = len(glob_mod.glob(os.path.join(variant_pssm_dir, "time_*.csv")))
     pssm_variant = []
     for step in range(n_steps):
         t = step * 0.1

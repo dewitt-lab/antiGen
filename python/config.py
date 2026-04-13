@@ -13,6 +13,7 @@ class ModelType(str, Enum):
     ESM2_FITNESS_PREDICTOR = "esm2_fitness_predictor"
     ESMC_FITNESS_PREDICTOR = "esmc_fitness_predictor"  # ESM C finetune
     VESPAG_FITNESS = "vespag_fitness"  # VespaG: ESM2-3B embeddings + FNN
+    BLOSUM62 = "blosum62"  # BLOSUM62 substitution matrix (no training)
 
 
 class TrainingMode(str, Enum):

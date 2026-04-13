@@ -47,7 +47,7 @@ def compute_probs(logits, target_batch, aa_batch):
     wt_mask.scatter_(2, aa_batch.unsqueeze(-1), False)
 
     #probs = torch.sigmoid(logits)
-    probs = torch.softmax(logits.flatten(), dim=0).reshape(logits.shape)
+    probs = torch.softmax(logits.flatten(1), dim=1).reshape(logits.shape)
     probs = probs * wt_mask  # zero out wild-type, but DON'T renormalize
     # Sum can now vary - higher sum = more mutational potential
     probs = probs.clamp(1e-8, 1 - 1e-8)
@@ -77,19 +77,22 @@ def compute_loss_full(probs, target_batch):
 
 RBD_RANGE = list(range(330, 531))  # 0-indexed, inclusive
 
-def compute_hit_rate(probs, target_batch, aa_batch, qtile=0.1):
+def compute_hit_rate(probs, target_batch, aa_batch, qtile=0.1, eval_range=None):
     target_batch = target_batch.to(probs.device)
     aa_batch = aa_batch.to(probs.device)
 
-    # Subset to RBD range
-    target_batch = target_batch[:, RBD_RANGE, :]
-    aa_batch_rbd = aa_batch[:, RBD_RANGE]
-    if probs.shape[1] != len(RBD_RANGE):
-        probs = probs[:, RBD_RANGE, :]
+    if eval_range is None:
+        eval_range = RBD_RANGE
+
+    # Subset to eval range
+    target_batch = target_batch[:, eval_range, :]
+    aa_batch_sub = aa_batch[:, eval_range]
+    if probs.shape[1] != len(eval_range):
+        probs = probs[:, eval_range, :]
 
     # Mask wild-type positions to NaN so they don't affect quantile thresholds
     probs = probs.clone()
-    probs.scatter_(2, aa_batch_rbd.unsqueeze(-1), float('nan'))
+    probs.scatter_(2, aa_batch_sub.unsqueeze(-1), float('nan'))
 
     # Vectorized: compute per-example quantile thresholds in one call
     B = probs.shape[0]
@@ -104,7 +107,7 @@ def compute_hit_rate(probs, target_batch, aa_batch, qtile=0.1):
         
 
 @torch.no_grad()
-def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10, seen_mask=None):
+def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10, seen_mask=None, eval_range=None):
     """Evaluate loss and hit rates over the entire dataloader.
 
     baselines: list of (name, probs_2d) where probs_2d is a (seq_len, E) tensor
@@ -156,13 +159,13 @@ def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10, seen_
 
         for i in range(n_buckets - 1):
             qtile = (i + 1) / n_buckets
-            hits, rbd_muts = compute_hit_rate(probs, target_batch, aa_batch, qtile)
+            hits, rbd_muts = compute_hit_rate(probs, target_batch, aa_batch, qtile, eval_range=eval_range)
             total_hits_by_qtile[i] += hits
             if i == 0:
                 total_rbd_mutations += rbd_muts
 
             for name, _ in baselines:
-                b_hits, _ = compute_hit_rate(masked_baselines[name], target_batch, aa_batch, qtile)
+                b_hits, _ = compute_hit_rate(masked_baselines[name], target_batch, aa_batch, qtile, eval_range=eval_range)
                 baseline_hits_by_qtile[name][i] += b_hits
 
         # Prevent gradual memory buildup over long eval loops
@@ -189,8 +192,8 @@ def parse_args():
     parser.add_argument('--cutoff', type=float, default=1.0, help='Train/test cutoff (years since MRCA)')
     parser.add_argument('--ignore-dead-ends', action='store_true', default=False, help='Do not make examples for sequences with no downstream mutants')
 
-    parser.add_argument('--model-type', type=str, default='transformer', choices=['transformer', 'esm2', 'esmc', 'vespag'],
-                        help='Model architecture: from-scratch transformer, ESM-2 finetune, ESM C finetune, or VespaG')
+    parser.add_argument('--model-type', type=str, default='transformer', choices=['transformer', 'esm2', 'esmc', 'vespag', 'blosum62'],
+                        help='Model architecture: from-scratch transformer, ESM-2 finetune, ESM C finetune, VespaG, or BLOSUM62 (eval only)')
     parser.add_argument('--d-model', type=int, default=512, help='Model dimension (transformer only)')
     parser.add_argument('--num-layers', type=int, default=4, help='Number of transformer layers (transformer only)')
     parser.add_argument('--esm2-model-name', type=str, default='facebook/esm2_t12_35M_UR50D',
@@ -214,10 +217,10 @@ def parse_args():
                         help='Number of quantile buckets for hit-rate evaluation')
     parser.add_argument('--dms-eval-dir', type=str, default=None,
                         help='Directory with DMS TSV files for evaluation')
-    parser.add_argument('--variant', type=str, default='BA.2',
-                        help='Variant name for test sequence file (e.g. BA.2, XFG)')
+    parser.add_argument('--variant', type=str, default=None,
+                        help='Variant name (default: BA.2 for SARS-CoV-2, G for flu)')
     parser.add_argument('--flu', action='store_true', default=False,
-                        help='Flu mode (not yet supported)')
+                        help='Flu mode: uses flu data, full-sequence eval, variant G or K')
     return parser.parse_args()
 
 
@@ -226,13 +229,15 @@ def parse_args():
 @torch.no_grad()
 def evaluate_mutation_ordering(model, all_examples, testing_examples, testing_id_map,
                                 device, allowed_aas, output_dir, run_prefix):
-    """Evaluate whether the model predicts the correct order of two sequential mutations.
+    """Rank-based mutation ordering eval.
 
-    For each testing example S with parent P (also in testing set), and each child
-    mutation M2 from S.mat, compare:
-        p_actual  = P(P->S) * P(S->C)
-        p_swapped = P(P->NEW) * P(NEW->C)
-    where NEW applies M2 to P first instead of M1.
+    For each triple (X -> Y via M1, Y -> Z via M2), report whether each
+    mutation lands in the top decile of predicted mutations from the relevant
+    sequence.  Four booleans per triple:
+        m1_top_from_x:   M1 in top decile relative to X
+        m2_top_from_y:   M2 in top decile relative to Y
+        m2_top_from_x:   M2 in top decile relative to X
+        m1_top_from_new: M1 in top decile relative to X+M2
 
     testing_id_map: dict mapping id(example) -> index in all_examples for testing examples.
     """
@@ -240,16 +245,22 @@ def evaluate_mutation_ordering(model, all_examples, testing_examples, testing_id
     testing_ids = set(testing_id_map.values())
 
     def forward_one(aa_idx_tensor):
-        """Run a single sequence through the model, return per-mutation probs (seq_len, E)."""
+        """Run a single sequence through the model, return probs with wt masked to NaN."""
         aa_batch = aa_idx_tensor.unsqueeze(0).to(device)
         logits = model(aa_batch).float()
         probs = compute_probs(logits, None, aa_batch)
+        # Replace wild-type entries with NaN so they don't affect quantile thresholds
+        probs.scatter_(2, aa_batch.unsqueeze(-1), float('nan'))
         return probs.squeeze(0)  # (seq_len, E)
+
+    def is_top_decile(probs_2d, pos, aa):
+        """Check if probs_2d[pos, aa] is in the top decile (ignoring NaN wild-type)."""
+        val = probs_2d[pos, aa].item()
+        threshold = torch.nanquantile(probs_2d.flatten().float(), 0.9).item()
+        return val >= threshold
 
     NEW_BATCH_SIZE = 64  # sub-batch NEW sequences to avoid OOM
     rows = []
-    n_correct = 0
-    n_total = 0
     n_examples = len(testing_examples)
 
     for s_num, s_example in enumerate(testing_examples):
@@ -260,7 +271,7 @@ def evaluate_mutation_ordering(model, all_examples, testing_examples, testing_id
         if s_example.parent_id is None or s_example.parent_mutation is None:
             continue
 
-        # Parent must also be in testing set (perhaps not strictly necessary but)
+        # Parent must also be in testing set
         if s_example.parent_id not in testing_ids:
             continue
 
@@ -280,11 +291,11 @@ def evaluate_mutation_ordering(model, all_examples, testing_examples, testing_id
         if not child_mutations:
             continue
 
-        # Forward pass on P and S (cached across child mutations)
+        # Forward pass on X (=P) and Y (=S), cached across child mutations
         parent_probs = forward_one(p_example.aa_idx)   # (seq_len, E)
         seq_probs = forward_one(s_example.aa_idx)       # (seq_len, E)
 
-        p_parent_to_s = parent_probs[pos1, alt1].item()
+        m1_top_from_x = is_top_decile(parent_probs, pos1, alt1)
 
         # Batch forward passes for all NEW sequences, sub-batched to limit memory
         all_new_probs = []
@@ -299,38 +310,45 @@ def evaluate_mutation_ordering(model, all_examples, testing_examples, testing_id
             new_aa_batch = torch.stack(new_aa_list).to(device)
             new_logits = model(new_aa_batch).float()
             new_probs = compute_probs(new_logits, None, new_aa_batch)  # (B, seq_len, E)
+            # Replace wild-type entries with NaN
+            new_probs.scatter_(2, new_aa_batch.unsqueeze(-1), float('nan'))
             all_new_probs.append(new_probs)
 
         all_new_probs = torch.cat(all_new_probs, dim=0)  # (N_children, seq_len, E)
 
         for i, (pos2, alt2) in enumerate(child_mutations):
-            p_s_to_c = seq_probs[pos2, alt2].item()
-            p_parent_to_new = parent_probs[pos2, alt2].item()
-            p_new_to_c = all_new_probs[i, pos1, alt1].item()
+            m2_top_from_y = is_top_decile(seq_probs, pos2, alt2)
+            m2_top_from_x = is_top_decile(parent_probs, pos2, alt2)
+            m1_top_from_new = is_top_decile(all_new_probs[i], pos1, alt1)
 
-            p_actual = p_parent_to_s * p_s_to_c
-            p_swapped = p_parent_to_new * p_new_to_c
-
-            score = p_actual / (p_actual + p_swapped) if (p_actual + p_swapped) > 0 else 0.5
-
-            rows.append((s_example.parent_id, s_idx, pos2, alt2, score))
-            n_total += 1
-            if score > 0.5:
-                n_correct += 1
+            rows.append((s_example.parent_id, s_idx, pos1, alt1, pos2, alt2,
+                         m1_top_from_x, m2_top_from_y, m2_top_from_x, m1_top_from_new))
 
     # Write CSV
     csv_path = os.path.join(output_dir, f"mutation_ordering_{run_prefix}.csv")
     with open(csv_path, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["parent_idx", "seq_idx", "child_pos", "child_aa", "score"])
-        for parent_idx, seq_idx, pos2, alt2, score in rows:
-            writer.writerow([parent_idx, seq_idx, pos2, alt2, f"{score:.8f}"])
+        writer.writerow(["parent_idx", "seq_idx", "m1_pos", "m1_aa",
+                         "m2_pos", "m2_aa",
+                         "m1_top_from_x", "m2_top_from_y",
+                         "m2_top_from_x", "m1_top_from_new"])
+        for row in rows:
+            parent_idx, seq_idx, p1, a1, p2, a2, b1, b2, b3, b4 = row
+            writer.writerow([parent_idx, seq_idx, p1, a1, p2, a2,
+                             int(b1), int(b2), int(b3), int(b4)])
 
     # Summary
+    n_total = len(rows)
     if n_total > 0:
-        mean_score = sum(r[4] for r in rows) / n_total
-        accuracy = n_correct / n_total
-        print(f"Mutation ordering eval: {n_total} triples, mean score={mean_score:.4f}, accuracy={accuracy:.4f}")
+        n_m1x = sum(r[6] for r in rows)
+        n_m2y = sum(r[7] for r in rows)
+        n_m2x = sum(r[8] for r in rows)
+        n_m1new = sum(r[9] for r in rows)
+        print(f"Mutation ordering eval: {n_total} triples")
+        print(f"  M1 top-decile from X:   {n_m1x}/{n_total} ({n_m1x/n_total:.4f})")
+        print(f"  M2 top-decile from Y:   {n_m2y}/{n_total} ({n_m2y/n_total:.4f})")
+        print(f"  M2 top-decile from X:   {n_m2x}/{n_total} ({n_m2x/n_total:.4f})")
+        print(f"  M1 top-decile from NEW: {n_m1new}/{n_total} ({n_m1new/n_total:.4f})")
     else:
         print("Mutation ordering eval: no valid triples found")
 
@@ -357,20 +375,37 @@ def main():
     print(f"Using device: {device}")
 
     if args.flu:
-        raise NotImplementedError("Flu mode is not yet supported")
-
-    cutoff_int = int(args.cutoff)
-    if cutoff_int not in (1, 4, 5):
-        raise ValueError(f"Unsupported cutoff {args.cutoff}. Supported values: 1, 4, 5")
-
-    data_dir = f"/home/ivan.specht/antiGen-data/output{cutoff_int}"
-    examples_path = os.path.join(data_dir, f"examples_cutoff_{cutoff_int}.txt")
+        # Flu mode: fixed data dir, only cutoff=12 allowed
+        if args.variant is None:
+            args.variant = 'G'
+        if args.variant not in ('G', 'K'):
+            raise ValueError(f"Flu mode only supports variants G and K, got '{args.variant}'")
+        cutoff_int = int(args.cutoff)
+        if cutoff_int != 12:
+            raise ValueError(f"Flu mode only supports cutoff=12, got {args.cutoff}")
+        data_dir = "/home/ivan.specht/antiGen-data/output_flu_full_cutoff12"
+        examples_path = os.path.join(data_dir, "examples_cutoff_12.txt")
+    else:
+        # SARS-CoV-2 mode
+        if args.variant is None:
+            args.variant = 'BA.2'
+        cutoff_int = int(args.cutoff)
+        if cutoff_int not in (1, 4, 5):
+            raise ValueError(f"Unsupported cutoff {args.cutoff}. Supported values: 1, 4, 5")
+        data_dir = f"/home/ivan.specht/antiGen-data/output{cutoff_int}"
+        examples_path = os.path.join(data_dir, f"examples_cutoff_{cutoff_int}.txt")
     print(f"Loading examples from {examples_path}...")
     all_examples = load_examples(examples_path, allowed_aas, args.variant)
 
 
     seq_len_aa = len(all_examples[0].aa_idx)
     print(f"Sequence length: {seq_len_aa}")
+
+    # Eval range: full sequence for flu, RBD for SARS-CoV-2
+    if args.flu:
+        eval_range = list(range(seq_len_aa))
+    else:
+        eval_range = RBD_RANGE
 
     training_examples = []
     testing_examples = []
@@ -453,6 +488,14 @@ def main():
         )
         model = create_model(model_config, device)
         print(f"Model: VespaG (ESM2-3B + FNN), freeze_backbone={args.freeze_backbone}, load_pretrained={args.load_pretrained}")
+    elif args.model_type == 'blosum62':
+        model_config = ModelConfig(
+            model_type=ModelType.BLOSUM62,
+            seq_len=seq_len_aa,
+            alphabet=alphabet_config,
+        )
+        model = create_model(model_config, device)
+        print("Model: BLOSUM62 (no training, eval only)")
     else:
         model_config = ModelConfig(
             model_type=ModelType.FITNESS_PREDICTOR,
@@ -468,81 +511,87 @@ def main():
         model = create_model(model_config, device)
     print(f"Model: {model.get_num_parameters(trainable_only=True):,} trainable params")
 
-    optimizer = optim.Adam(model.parameters(), lr=args.lr)
-
-    if args.warmup_steps > 0:
-        def warmup_fn(step):
-            if step < args.warmup_steps:
-                return float(step) / float(max(1, args.warmup_steps))
-            return 1.0
-        scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=warmup_fn)
-    else:
-        scheduler = None
-
-
     os.makedirs(args.output_dir, exist_ok=True)
 
     global_step = 0
     epoch = 0
     avg_train_loss = float('nan')
-    print("Starting training...")
+    optimizer_state = None
 
-    for epoch in range(args.epochs):
-        total_train_loss = 0.0
-        n_batches = 0
+    if args.model_type == 'blosum62':
+        print("BLOSUM62 mode: skipping training, running evaluation only.")
+        model.eval()
+        del train_loader, train_dataset, training_examples
+    else:
+        optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
-        for batch_num, (aa_batch, target_batch) in enumerate(train_loader):
-            model.train()
-            optimizer.zero_grad()
+        if args.warmup_steps > 0:
+            def warmup_fn(step):
+                if step < args.warmup_steps:
+                    return float(step) / float(max(1, args.warmup_steps))
+                return 1.0
+            scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=warmup_fn)
+        else:
+            scheduler = None
 
-            aa_batch = aa_batch.to(device)
-            target_batch = target_batch.to(device)
+        print("Starting training...")
 
-            logits = model(aa_batch).float()
-            probs = compute_probs(logits, target_batch, aa_batch)
-            loss = compute_loss_batch(probs, target_batch)
-            loss.backward()
+        for epoch in range(args.epochs):
+            total_train_loss = 0.0
+            n_batches = 0
 
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-            optimizer.step()
-            if scheduler is not None:
-                scheduler.step()
+            for batch_num, (aa_batch, target_batch) in enumerate(train_loader):
+                model.train()
+                optimizer.zero_grad()
 
-            train_loss_val = loss.item()
-            total_train_loss += train_loss_val
-            n_batches += 1
-            global_step += 1
+                aa_batch = aa_batch.to(device)
+                target_batch = target_batch.to(device)
 
-            # Test minibatch loss (cheap, per-batch monitoring)
-            test_aa, test_target = next(test_iter)
-            with torch.no_grad():
-                model.eval()
-                test_aa = test_aa.to(device)
-                test_target = test_target.to(device)
-                test_logits = model(test_aa).float()
-                test_probs = compute_probs(test_logits, test_target, test_aa)
-                test_batch_loss_val = compute_loss_batch(test_probs, test_target).item()
+                logits = model(aa_batch).float()
+                probs = compute_probs(logits, target_batch, aa_batch)
+                loss = compute_loss_batch(probs, target_batch)
+                loss.backward()
 
-            if batch_num % 10 == 0:
-                print(f"  Epoch {epoch}, batch {batch_num}: train_loss={train_loss_val:.8f}, test_batch_loss={test_batch_loss_val:.8f}")
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                optimizer.step()
+                if scheduler is not None:
+                    scheduler.step()
+
+                train_loss_val = loss.item()
+                total_train_loss += train_loss_val
+                n_batches += 1
+                global_step += 1
+
+                # Test minibatch loss (cheap, per-batch monitoring)
+                test_aa, test_target = next(test_iter)
+                with torch.no_grad():
+                    model.eval()
+                    test_aa = test_aa.to(device)
+                    test_target = test_target.to(device)
+                    test_logits = model(test_aa).float()
+                    test_probs = compute_probs(test_logits, test_target, test_aa)
+                    test_batch_loss_val = compute_loss_batch(test_probs, test_target).item()
+
+                if batch_num % 10 == 0:
+                    print(f"  Epoch {epoch}, batch {batch_num}: train_loss={train_loss_val:.8f}, test_batch_loss={test_batch_loss_val:.8f}")
+
+                if args.max_batches is not None and global_step >= args.max_batches:
+                    print(f"Reached max batches ({args.max_batches}), stopping.")
+                    break
+
+            avg_train_loss = total_train_loss / max(n_batches, 1)
+            print(f"Epoch {epoch}: avg_train_loss={avg_train_loss:.8f}")
 
             if args.max_batches is not None and global_step >= args.max_batches:
-                print(f"Reached max batches ({args.max_batches}), stopping.")
                 break
 
-        avg_train_loss = total_train_loss / max(n_batches, 1)
-        print(f"Epoch {epoch}: avg_train_loss={avg_train_loss:.8f}")
-
-        if args.max_batches is not None and global_step >= args.max_batches:
-            break
-
-    # Free training-only objects to reclaim memory before eval
-    optimizer_state = optimizer.state_dict()
-    del optimizer, scheduler, train_loader, train_dataset, training_examples
-    gc.collect()
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-    print("Freed training objects (optimizer, scheduler, train_loader, etc.) before eval")
+        # Free training-only objects to reclaim memory before eval
+        optimizer_state = optimizer.state_dict()
+        del optimizer, scheduler, train_loader, train_dataset, training_examples
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        print("Freed training objects (optimizer, scheduler, train_loader, etc.) before eval")
 
     n_buckets = args.hit_rate_buckets
 
@@ -553,7 +602,8 @@ def main():
 
     # Load additional baselines from CSV files
     import glob as glob_mod
-    baseline_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "baselines")
+    baseline_subdir = "baselines_flu" if args.flu else "baselines"
+    baseline_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", baseline_subdir)
     for csv_file in sorted(glob_mod.glob(os.path.join(baseline_dir, "*.csv"))):
         baseline_name = os.path.splitext(os.path.basename(csv_file))[0]
         with open(csv_file, "r") as f:
@@ -588,6 +638,8 @@ def main():
         run_prefix = f"esmc_{args.esmc_model_name}_lr{args.lr}_{timestamp}"
     elif args.model_type == 'vespag':
         run_prefix = f"vespag_lr{args.lr}_{timestamp}"
+    elif args.model_type == 'blosum62':
+        run_prefix = f"blosum62_{timestamp}"
     else:
         run_prefix = f"simple_d{args.d_model}_n{args.num_layers}_lr{args.lr}_{timestamp}"
 
@@ -598,7 +650,7 @@ def main():
         """Run hit-rate eval on a dataloader, write CSV and plot."""
         avg_loss, hit_rate_by_qtile, baseline_hits = evaluate_full(
             model, loader, device, baselines=baselines, n_buckets=n_buckets,
-            seen_mask=seen_mask
+            seen_mask=seen_mask, eval_range=eval_range
         )
         print(f"{label} test loss: {avg_loss:.8f}")
         for i in range(len(hit_rate_by_qtile)):
@@ -653,6 +705,8 @@ def main():
         f"Expected at least 1 example with is_testing_root=True, found {len(testing_root_examples)}"
     )
     testing_root_example = testing_root_examples[0]
+    testing_root_aa_seq = "".join(allowed_aas[i] for i in testing_root_example.aa_idx.tolist())
+    print(f"Testing root amino acid sequence: {testing_root_aa_seq}")
 
     with torch.no_grad():
         model.eval()
@@ -662,17 +716,17 @@ def main():
         testing_root_probs = compute_probs(logits, target_input, aa_input)
         print(f"Testing root probs shape: {testing_root_probs.shape}")
 
-    # Remove batch dim -> (seq_len, E), then subset to RBD
-    testing_root_probs_2d = testing_root_probs.squeeze(0).cpu()[RBD_RANGE, :]
+    # Remove batch dim -> (seq_len, E), then subset to eval range
+    testing_root_probs_2d = testing_root_probs.squeeze(0).cpu()[eval_range, :]
 
-    # Build wild-type mask for the testing root sequence (RBD only)
-    wt_idx = testing_root_example.aa_idx[RBD_RANGE]  # (rbd_len,)
-    rbd_len, E_size = testing_root_probs_2d.shape
-    wt_mask_2d = torch.ones(rbd_len, E_size, dtype=torch.bool)
+    # Build wild-type mask for the testing root sequence (eval range only)
+    wt_idx = testing_root_example.aa_idx[eval_range]
+    eval_len, E_size = testing_root_probs_2d.shape
+    wt_mask_2d = torch.ones(eval_len, E_size, dtype=torch.bool)
     wt_mask_2d.scatter_(1, wt_idx.unsqueeze(-1), False)
 
-    # Subset pssm_variant to RBD
-    pssm_variant_rbd = [pv[RBD_RANGE, :] for pv in pssm_variant]
+    # Subset pssm_variant to eval range
+    pssm_variant_sub = [pv[eval_range, :] for pv in pssm_variant]
 
     # Helper: mask wild-type, re-normalize, return top-decile hit rate vs pssm_variant
     def variant_hit_rates(prob_2d, wt_mask, pssm_variant_list, threshold_count=100):
@@ -688,39 +742,39 @@ def main():
             hit_rates.append(n_hits / max(n_top, 1))
         return hit_rates
 
-    def run_variant_eval(pssm_variant_rbd_list, label, file_suffix, model_probs=None, baselines_rbd=None, threshold_count=100):
+    def run_variant_eval(pssm_variant_sub_list, label, file_suffix, model_probs=None, baselines_sub=None, threshold_count=100):
         """Run variant hit rate eval and write CSV + plot."""
         if model_probs is None:
             model_probs = testing_root_probs_2d
-        if baselines_rbd is None:
-            baselines_rbd = [(name, bp[RBD_RANGE, :].clone()) for name, bp in baselines]
+        if baselines_sub is None:
+            baselines_sub = [(name, bp[eval_range, :].clone()) for name, bp in baselines]
 
         # Compute for model
-        model_hits = variant_hit_rates(model_probs, wt_mask_2d, pssm_variant_rbd_list, threshold_count=threshold_count)
+        model_hits = variant_hit_rates(model_probs, wt_mask_2d, pssm_variant_sub_list, threshold_count=threshold_count)
 
         # Compute for each baseline
         baseline_variant_hits = {}
-        for name, bp_rbd in baselines_rbd:
-            baseline_variant_hits[name] = variant_hit_rates(bp_rbd, wt_mask_2d, pssm_variant_rbd_list, threshold_count=threshold_count)
+        for name, bp_sub in baselines_sub:
+            baseline_variant_hits[name] = variant_hit_rates(bp_sub, wt_mask_2d, pssm_variant_sub_list, threshold_count=threshold_count)
 
         # Write CSV: rows = time steps, columns = model + baselines
         variant_csv_path = os.path.join(args.output_dir, f"variant_emergence_{file_suffix}_{run_prefix}.csv")
         with open(variant_csv_path, "w", newline="") as f:
             writer = csv.writer(f)
-            header = ["step", "trained"] + [name for name, _ in baselines]
+            header = ["step", "trained"] + [name for name, _ in baselines_sub]
             writer.writerow(header)
-            for i in range(len(pssm_variant_rbd_list)):
+            for i in range(len(pssm_variant_sub_list)):
                 row = [i, f"{model_hits[i]:.8f}"]
-                for name, _ in baselines:
+                for name, _ in baselines_sub:
                     row.append(f"{baseline_variant_hits[name][i]:.8f}")
                 writer.writerow(row)
         print(f"{label} variant hit rates written to {variant_csv_path}")
 
         # Plot variant hit rates over time
-        time_years = [(i + 1) * 0.1 for i in range(len(pssm_variant_rbd_list))]
+        time_years = [(i + 1) * 0.1 for i in range(len(pssm_variant_sub_list))]
         fig, ax = plt.subplots(figsize=(8, 5))
         ax.plot(time_years, model_hits, marker='o', label="trained")
-        for name, _ in baselines:
+        for name, _ in baselines_sub:
             ax.plot(time_years, baseline_variant_hits[name], marker='o', label=name)
         ax.set_xlabel("Years since beginning of pandemic")
         ax.set_ylabel("Hit rate")
@@ -734,35 +788,35 @@ def main():
         print(f"{label} variant hit rate plot saved to {variant_plot_path}")
 
     # (1) All variants
-    run_variant_eval(pssm_variant_rbd, "All", "all")
+    run_variant_eval(pssm_variant_sub, "All", "all")
 
     # (2) Never-before-seen variants only: mask out positions that are non-zero in pssm_root
-    pssm_root_rbd = pssm_root[RBD_RANGE, :]
-    seen_mask = pssm_root_rbd > 0  # positions seen in training root PSSM (exclude sentinels)
-    pssm_variant_rbd_unseen = []
-    for pv in pssm_variant_rbd:
+    pssm_root_sub = pssm_root[eval_range, :]
+    seen_mask = pssm_root_sub > 0  # positions seen in training root PSSM (exclude sentinels)
+    pssm_variant_sub_unseen = []
+    for pv in pssm_variant_sub:
         pv_masked = pv.clone()
         pv_masked[seen_mask] = float('nan')
-        pssm_variant_rbd_unseen.append(pv_masked)
+        pssm_variant_sub_unseen.append(pv_masked)
 
     # Mask seen mutations in model probs
     unseen_model_probs = testing_root_probs_2d.clone()
     unseen_model_probs[seen_mask] = float('nan')
 
     # Mask seen mutations in baselines
-    unseen_baselines_rbd = []
+    unseen_baselines_sub = []
     for name, bp in baselines:
-        bp_rbd = bp[RBD_RANGE, :].clone()
-        bp_rbd[seen_mask] = float('nan')
-        unseen_baselines_rbd.append((name, bp_rbd))
+        bp_sub = bp[eval_range, :].clone()
+        bp_sub[seen_mask] = float('nan')
+        unseen_baselines_sub.append((name, bp_sub))
 
-    run_variant_eval(pssm_variant_rbd_unseen, "Unseen", "unseen",
-                     model_probs=unseen_model_probs, baselines_rbd=unseen_baselines_rbd)
+    run_variant_eval(pssm_variant_sub_unseen, "Unseen", "unseen",
+                     model_probs=unseen_model_probs, baselines_sub=unseen_baselines_sub)
 
     # Repeat variant evals with pandemic threshold of 1 instead of 100
-    run_variant_eval(pssm_variant_rbd, "All (threshold=1)", "all_thresh1", threshold_count=1)
-    run_variant_eval(pssm_variant_rbd_unseen, "Unseen (threshold=1)", "unseen_thresh1",
-                     model_probs=unseen_model_probs, baselines_rbd=unseen_baselines_rbd, threshold_count=1)
+    run_variant_eval(pssm_variant_sub, "All (threshold=1)", "all_thresh1", threshold_count=1)
+    run_variant_eval(pssm_variant_sub_unseen, "Unseen (threshold=1)", "unseen_thresh1",
+                     model_probs=unseen_model_probs, baselines_sub=unseen_baselines_sub, threshold_count=1)
 
     # ── Mutation ordering eval ──────────────────────────────────────────────────
     testing_id_map = {}

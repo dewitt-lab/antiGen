@@ -21,7 +21,7 @@ from collections import defaultdict
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from config import ModelConfig, ModelType, TransformerConfig, AlphabetConfig, ESM2Config, ESMCConfig, VespaGConfig
+from config import ModelConfig, ModelType, TransformerConfig, AlphabetConfig, ESM2Config, ESMCConfig, VespaGConfig, EVcouplingsConfig, EVEConfig, TranceptionConfig
 from models.factory import create_model
 from load import Example, load_examples, load_pssms
 
@@ -94,8 +94,11 @@ def compute_hit_rate(probs, target_batch, aa_batch, qtile=0.1, eval_range=None):
     probs = probs.clone()
     probs.scatter_(2, aa_batch_sub.unsqueeze(-1), float('nan'))
 
-    # Vectorized: compute per-example quantile thresholds in one call
+    # Break ties that arise from float32 underflow + clamping (e.g. peaked
+    # autoregressive models where many exp(log_prob) round to 0 → clamp to 1e-8)
     B = probs.shape[0]
+    probs = probs + torch.rand_like(probs) * 1e-10
+
     p_flat = probs.reshape(B, -1).float()
     thresholds = torch.nanquantile(p_flat, 1.0 - qtile, dim=1)  # (B,)
     top_qtile_mask = probs >= thresholds.view(B, 1, 1)
@@ -192,8 +195,8 @@ def parse_args():
     parser.add_argument('--cutoff', type=float, default=1.0, help='Train/test cutoff (years since MRCA)')
     parser.add_argument('--ignore-dead-ends', action='store_true', default=False, help='Do not make examples for sequences with no downstream mutants')
 
-    parser.add_argument('--model-type', type=str, default='transformer', choices=['transformer', 'esm2', 'esmc', 'vespag', 'blosum62'],
-                        help='Model architecture: from-scratch transformer, ESM-2 finetune, ESM C finetune, VespaG, or BLOSUM62 (eval only)')
+    parser.add_argument('--model-type', type=str, default='transformer', choices=['transformer', 'esm2', 'esmc', 'vespag', 'blosum62', 'evcouplings', 'eve', 'tranception'],
+                        help='Model architecture: from-scratch transformer, ESM-2 finetune, ESM C finetune, VespaG, BLOSUM62 (eval only), EVcouplings (eval only), EVE VAE, or Tranception LM')
     parser.add_argument('--d-model', type=int, default=512, help='Model dimension (transformer only)')
     parser.add_argument('--num-layers', type=int, default=4, help='Number of transformer layers (transformer only)')
     parser.add_argument('--esm2-model-name', type=str, default='facebook/esm2_t12_35M_UR50D',
@@ -218,9 +221,18 @@ def parse_args():
     parser.add_argument('--dms-eval-dir', type=str, default=None,
                         help='Directory with DMS TSV files for evaluation')
     parser.add_argument('--variant', type=str, default=None,
-                        help='Variant name (default: BA.2 for SARS-CoV-2, G for flu)')
+                        help='Variant name (default: BA.2 for SARS-CoV-2, J for flu)')
     parser.add_argument('--flu', action='store_true', default=False,
-                        help='Flu mode: uses flu data, full-sequence eval, variant G or K')
+                        help='Flu mode: uses flu data, full-sequence eval, variant J or K')
+    parser.add_argument('--msa', type=str, default=None,
+                        help='Path to pandemic MSA FASTA (required for evcouplings/eve)')
+    parser.add_argument('--metadata', type=str, default=None,
+                        help='Path to metadata TSV with strain/date columns (required for evcouplings/eve)')
+    parser.add_argument('--max-seqs', type=int, default=0,
+                        help='Max MSA sequences for evcouplings/eve/tranception (0=unlimited)')
+    parser.add_argument('--scoring-direction', type=str, default='both',
+                        choices=['forward', 'backward', 'both'],
+                        help='Autoregressive scoring direction for Tranception (default: both)')
     return parser.parse_args()
 
 
@@ -377,9 +389,9 @@ def main():
     if args.flu:
         # Flu mode: fixed data dir, only cutoff=12 allowed
         if args.variant is None:
-            args.variant = 'G'
-        if args.variant not in ('G', 'K'):
-            raise ValueError(f"Flu mode only supports variants G and K, got '{args.variant}'")
+            args.variant = 'J'
+        if args.variant not in ('J', 'K'):
+            raise ValueError(f"Flu mode only supports variants J and K, got '{args.variant}'")
         cutoff_int = int(args.cutoff)
         if cutoff_int != 12:
             raise ValueError(f"Flu mode only supports cutoff=12, got {args.cutoff}")
@@ -496,6 +508,78 @@ def main():
         )
         model = create_model(model_config, device)
         print("Model: BLOSUM62 (no training, eval only)")
+    elif args.model_type == 'evcouplings':
+        if args.msa is None or args.metadata is None:
+            raise ValueError("--msa and --metadata are required for evcouplings model type")
+        from datetime import timedelta
+        if args.flu:
+            mrca_date = datetime(2007, 10, 1)
+        else:
+            mrca_date = datetime(2019, 12, 23)
+        date_cutoff = (mrca_date + timedelta(days=args.cutoff * 365.25)).strftime("%Y-%m-%d")
+        print(f"EVcouplings: date cutoff = {date_cutoff} (MRCA + {args.cutoff} years)")
+        model_config = ModelConfig(
+            model_type=ModelType.EVCOUPLINGS,
+            seq_len=seq_len_aa,
+            alphabet=alphabet_config,
+            evcouplings=EVcouplingsConfig(
+                msa_path=args.msa,
+                metadata_path=args.metadata,
+                date_cutoff=date_cutoff,
+                max_seqs=args.max_seqs,
+            ),
+        )
+        model = create_model(model_config, device)
+        print("Model: EVcouplings mean-field DCA (no training, eval only)")
+    elif args.model_type == 'eve':
+        if args.msa is None or args.metadata is None:
+            raise ValueError("--msa and --metadata are required for eve model type")
+        from datetime import timedelta
+        if args.flu:
+            mrca_date = datetime(2007, 10, 1)
+        else:
+            mrca_date = datetime(2019, 12, 23)
+        date_cutoff = (mrca_date + timedelta(days=args.cutoff * 365.25)).strftime("%Y-%m-%d")
+        print(f"EVE: date cutoff = {date_cutoff} (MRCA + {args.cutoff} years)")
+        model_config = ModelConfig(
+            model_type=ModelType.EVE,
+            seq_len=seq_len_aa,
+            alphabet=alphabet_config,
+            eve=EVEConfig(
+                msa_path=args.msa,
+                metadata_path=args.metadata,
+                date_cutoff=date_cutoff,
+                freeze_backbone=args.freeze_backbone,
+                max_seqs=args.max_seqs,
+            ),
+        )
+        model = create_model(model_config, device)
+        print(f"Model: EVE VAE, freeze_backbone={args.freeze_backbone}")
+    elif args.model_type == 'tranception':
+        if args.msa is None or args.metadata is None:
+            raise ValueError("--msa and --metadata are required for tranception model type")
+        from datetime import timedelta
+        if args.flu:
+            mrca_date = datetime(2007, 10, 1)
+        else:
+            mrca_date = datetime(2019, 12, 23)
+        date_cutoff = (mrca_date + timedelta(days=args.cutoff * 365.25)).strftime("%Y-%m-%d")
+        print(f"Tranception: date cutoff = {date_cutoff} (MRCA + {args.cutoff} years)")
+        model_config = ModelConfig(
+            model_type=ModelType.TRANCEPTION,
+            seq_len=seq_len_aa,
+            alphabet=alphabet_config,
+            tranception=TranceptionConfig(
+                msa_path=args.msa,
+                metadata_path=args.metadata,
+                date_cutoff=date_cutoff,
+                freeze_backbone=args.freeze_backbone,
+                max_seqs=args.max_seqs,
+                scoring_direction=args.scoring_direction,
+            ),
+        )
+        model = create_model(model_config, device)
+        print(f"Model: Tranception LM, scoring={args.scoring_direction}, freeze_backbone={args.freeze_backbone}")
     else:
         model_config = ModelConfig(
             model_type=ModelType.FITNESS_PREDICTOR,
@@ -518,8 +602,11 @@ def main():
     avg_train_loss = float('nan')
     optimizer_state = None
 
-    if args.model_type == 'blosum62':
-        print("BLOSUM62 mode: skipping training, running evaluation only.")
+    skip_training = args.model_type in ('blosum62', 'evcouplings') or \
+        (args.model_type == 'eve' and args.freeze_backbone) or \
+        (args.model_type == 'tranception' and args.freeze_backbone)
+    if skip_training:
+        print(f"{args.model_type} mode: skipping training, running evaluation only.")
         model.eval()
         del train_loader, train_dataset, training_examples
     else:
@@ -640,6 +727,18 @@ def main():
         run_prefix = f"vespag_lr{args.lr}_{timestamp}"
     elif args.model_type == 'blosum62':
         run_prefix = f"blosum62_{timestamp}"
+    elif args.model_type == 'evcouplings':
+        run_prefix = f"evcouplings_{timestamp}"
+    elif args.model_type == 'eve':
+        if args.freeze_backbone:
+            run_prefix = f"eve_frozen_{timestamp}"
+        else:
+            run_prefix = f"eve_ft_lr{args.lr}_{timestamp}"
+    elif args.model_type == 'tranception':
+        if args.freeze_backbone:
+            run_prefix = f"tranception_frozen_{args.scoring_direction}_{timestamp}"
+        else:
+            run_prefix = f"tranception_ft_{args.scoring_direction}_lr{args.lr}_{timestamp}"
     else:
         run_prefix = f"simple_d{args.d_model}_n{args.num_layers}_lr{args.lr}_{timestamp}"
 
@@ -787,8 +886,15 @@ def main():
         plt.close(fig)
         print(f"{label} variant hit rate plot saved to {variant_plot_path}")
 
+    # Variant emergence thresholds: BA.2 uses 100/1, everything else uses 10/1
+    if not args.flu and args.variant == 'BA.2':
+        variant_thresholds = [100, 1]
+    else:
+        variant_thresholds = [10, 1]
+
     # (1) All variants
-    run_variant_eval(pssm_variant_sub, "All", "all")
+    run_variant_eval(pssm_variant_sub, f"All (threshold={variant_thresholds[0]})", "all",
+                     threshold_count=variant_thresholds[0])
 
     # (2) Never-before-seen variants only: mask out positions that are non-zero in pssm_root
     pssm_root_sub = pssm_root[eval_range, :]
@@ -810,10 +916,11 @@ def main():
         bp_sub[seen_mask] = float('nan')
         unseen_baselines_sub.append((name, bp_sub))
 
-    run_variant_eval(pssm_variant_sub_unseen, "Unseen", "unseen",
-                     model_probs=unseen_model_probs, baselines_sub=unseen_baselines_sub)
+    run_variant_eval(pssm_variant_sub_unseen, f"Unseen (threshold={variant_thresholds[0]})", "unseen",
+                     model_probs=unseen_model_probs, baselines_sub=unseen_baselines_sub,
+                     threshold_count=variant_thresholds[0])
 
-    # Repeat variant evals with pandemic threshold of 1 instead of 100
+    # Repeat variant evals with threshold of 1
     run_variant_eval(pssm_variant_sub, "All (threshold=1)", "all_thresh1", threshold_count=1)
     run_variant_eval(pssm_variant_sub_unseen, "Unseen (threshold=1)", "unseen_thresh1",
                      model_probs=unseen_model_probs, baselines_sub=unseen_baselines_sub, threshold_count=1)

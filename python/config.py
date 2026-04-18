@@ -14,6 +14,9 @@ class ModelType(str, Enum):
     ESMC_FITNESS_PREDICTOR = "esmc_fitness_predictor"  # ESM C finetune
     VESPAG_FITNESS = "vespag_fitness"  # VespaG: ESM2-3B embeddings + FNN
     BLOSUM62 = "blosum62"  # BLOSUM62 substitution matrix (no training)
+    EVCOUPLINGS = "evcouplings"  # EVcouplings mean-field DCA (no training)
+    EVE = "eve"  # EVE VAE (pre-train on MSA, optional finetune)
+    TRANCEPTION = "tranception"  # Tranception autoregressive LM (pre-train on MSA, optional finetune)
 
 
 class TrainingMode(str, Enum):
@@ -125,6 +128,88 @@ class VespaGConfig:
 
 
 @dataclass(frozen=True)
+class EVcouplingsConfig:
+    """Configuration for EVcouplings mean-field DCA model.
+
+    Attributes:
+        msa_path: Path to pandemic MSA in FASTA format.
+        metadata_path: Path to metadata TSV with 'strain' and 'date' columns.
+        date_cutoff: YYYY-MM-DD cutoff for filtering MSA to training window.
+        theta: Sequence reweighting threshold for clustering.
+        pseudo_count: Pseudo-count for frequency regularization.
+    """
+    msa_path: str = ""
+    metadata_path: str = ""
+    date_cutoff: str = ""
+    theta: float = 1.0
+    pseudo_count: float = 0.5
+    max_seqs: int = 10000
+
+
+@dataclass(frozen=True)
+class EVEConfig:
+    """Configuration for EVE VAE model.
+
+    Attributes:
+        msa_path: Path to pandemic MSA in FASTA format.
+        metadata_path: Path to metadata TSV with 'strain' and 'date' columns.
+        date_cutoff: YYYY-MM-DD cutoff for filtering MSA to training window.
+        theta: Sequence reweighting threshold (0.01 for viruses per EVE paper).
+        z_dim: Latent space dimension.
+        pretrain_steps: Number of MSA pre-training steps.
+        pretrain_lr: Learning rate for MSA pre-training.
+        pretrain_batch_size: Batch size for MSA pre-training.
+        freeze_backbone: If True, freeze all parameters after MSA pre-training.
+    """
+    msa_path: str = ""
+    metadata_path: str = ""
+    date_cutoff: str = ""
+    theta: float = 0.01
+    z_dim: int = 50
+    pretrain_steps: int = 400000
+    pretrain_lr: float = 0.0001
+    pretrain_batch_size: int = 256
+    freeze_backbone: bool = False
+    max_seqs: int = 0
+
+
+@dataclass(frozen=True)
+class TranceptionConfig:
+    """Configuration for Tranception autoregressive transformer model.
+
+    Attributes:
+        msa_path: Path to pandemic MSA in FASTA format.
+        metadata_path: Path to metadata TSV with 'strain' and 'date' columns.
+        date_cutoff: YYYY-MM-DD cutoff for filtering MSA to training window.
+        theta: Sequence reweighting threshold.
+        n_embd: Embedding dimension.
+        n_head: Number of attention heads (must be divisible by 4).
+        n_layer: Number of transformer layers.
+        dropout: Dropout probability.
+        pretrain_steps: Number of MSA pre-training steps.
+        pretrain_lr: Peak learning rate for MSA pre-training.
+        pretrain_batch_size: Batch size for MSA pre-training.
+        freeze_backbone: If True, freeze all parameters after MSA pre-training.
+        max_seqs: Max MSA sequences (0=unlimited).
+        scoring_direction: "forward", "backward", or "both".
+    """
+    msa_path: str = ""
+    metadata_path: str = ""
+    date_cutoff: str = ""
+    theta: float = 0.01
+    n_embd: int = 256
+    n_head: int = 8
+    n_layer: int = 6
+    dropout: float = 0.1
+    pretrain_steps: int = 150000
+    pretrain_lr: float = 3e-4
+    pretrain_batch_size: int = 32
+    freeze_backbone: bool = False
+    max_seqs: int = 0
+    scoring_direction: str = "both"
+
+
+@dataclass(frozen=True)
 class ModelConfig:
     """Unified model configuration.
 
@@ -142,6 +227,9 @@ class ModelConfig:
     esm2: ESM2Config = field(default_factory=ESM2Config)
     esmc: ESMCConfig = field(default_factory=ESMCConfig)
     vespag: VespaGConfig = field(default_factory=VespaGConfig)
+    evcouplings: EVcouplingsConfig = field(default_factory=EVcouplingsConfig)
+    eve: EVEConfig = field(default_factory=EVEConfig)
+    tranception: TranceptionConfig = field(default_factory=TranceptionConfig)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize config to dictionary for checkpoint storage."""
@@ -177,6 +265,42 @@ class ModelConfig:
                 "normalize_scores": self.vespag.normalize_scores,
                 "load_pretrained": self.vespag.load_pretrained,
             },
+            "evcouplings": {
+                "msa_path": self.evcouplings.msa_path,
+                "metadata_path": self.evcouplings.metadata_path,
+                "date_cutoff": self.evcouplings.date_cutoff,
+                "theta": self.evcouplings.theta,
+                "pseudo_count": self.evcouplings.pseudo_count,
+                "max_seqs": self.evcouplings.max_seqs,
+            },
+            "eve": {
+                "msa_path": self.eve.msa_path,
+                "metadata_path": self.eve.metadata_path,
+                "date_cutoff": self.eve.date_cutoff,
+                "theta": self.eve.theta,
+                "z_dim": self.eve.z_dim,
+                "pretrain_steps": self.eve.pretrain_steps,
+                "pretrain_lr": self.eve.pretrain_lr,
+                "pretrain_batch_size": self.eve.pretrain_batch_size,
+                "freeze_backbone": self.eve.freeze_backbone,
+                "max_seqs": self.eve.max_seqs,
+            },
+            "tranception": {
+                "msa_path": self.tranception.msa_path,
+                "metadata_path": self.tranception.metadata_path,
+                "date_cutoff": self.tranception.date_cutoff,
+                "theta": self.tranception.theta,
+                "n_embd": self.tranception.n_embd,
+                "n_head": self.tranception.n_head,
+                "n_layer": self.tranception.n_layer,
+                "dropout": self.tranception.dropout,
+                "pretrain_steps": self.tranception.pretrain_steps,
+                "pretrain_lr": self.tranception.pretrain_lr,
+                "pretrain_batch_size": self.tranception.pretrain_batch_size,
+                "freeze_backbone": self.tranception.freeze_backbone,
+                "max_seqs": self.tranception.max_seqs,
+                "scoring_direction": self.tranception.scoring_direction,
+            },
         }
 
     @classmethod
@@ -205,6 +329,51 @@ class ModelConfig:
             load_pretrained=vespag_dict.get("load_pretrained", True),
         )
 
+        # Parse EVcouplings config (with backward compat for old checkpoints)
+        evc_dict = d.get("evcouplings", {})
+        evcouplings_config = EVcouplingsConfig(
+            msa_path=evc_dict.get("msa_path", ""),
+            metadata_path=evc_dict.get("metadata_path", ""),
+            date_cutoff=evc_dict.get("date_cutoff", ""),
+            theta=evc_dict.get("theta", 1.0),
+            pseudo_count=evc_dict.get("pseudo_count", 0.5),
+            max_seqs=evc_dict.get("max_seqs", 10000),
+        )
+
+        # Parse EVE config (with backward compat for old checkpoints)
+        eve_dict = d.get("eve", {})
+        eve_config = EVEConfig(
+            msa_path=eve_dict.get("msa_path", ""),
+            metadata_path=eve_dict.get("metadata_path", ""),
+            date_cutoff=eve_dict.get("date_cutoff", ""),
+            theta=eve_dict.get("theta", 0.01),
+            z_dim=eve_dict.get("z_dim", 50),
+            pretrain_steps=eve_dict.get("pretrain_steps", 400000),
+            pretrain_lr=eve_dict.get("pretrain_lr", 0.0001),
+            pretrain_batch_size=eve_dict.get("pretrain_batch_size", 256),
+            freeze_backbone=eve_dict.get("freeze_backbone", False),
+            max_seqs=eve_dict.get("max_seqs", 0),
+        )
+
+        # Parse Tranception config (with backward compat for old checkpoints)
+        tc_dict = d.get("tranception", {})
+        tranception_config = TranceptionConfig(
+            msa_path=tc_dict.get("msa_path", ""),
+            metadata_path=tc_dict.get("metadata_path", ""),
+            date_cutoff=tc_dict.get("date_cutoff", ""),
+            theta=tc_dict.get("theta", 0.01),
+            n_embd=tc_dict.get("n_embd", 256),
+            n_head=tc_dict.get("n_head", 8),
+            n_layer=tc_dict.get("n_layer", 6),
+            dropout=tc_dict.get("dropout", 0.1),
+            pretrain_steps=tc_dict.get("pretrain_steps", 150000),
+            pretrain_lr=tc_dict.get("pretrain_lr", 3e-4),
+            pretrain_batch_size=tc_dict.get("pretrain_batch_size", 32),
+            freeze_backbone=tc_dict.get("freeze_backbone", False),
+            max_seqs=tc_dict.get("max_seqs", 0),
+            scoring_direction=tc_dict.get("scoring_direction", "both"),
+        )
+
         return cls(
             model_type=ModelType(d["model_type"]),
             seq_len=d["seq_len"],
@@ -213,6 +382,9 @@ class ModelConfig:
             esm2=ESM2Config(**esm2_dict),
             esmc=esmc_config,
             vespag=vespag_config,
+            evcouplings=evcouplings_config,
+            eve=eve_config,
+            tranception=tranception_config,
         )
 
 

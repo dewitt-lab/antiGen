@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/home/ivan.specht/fitness-inference/python/baselines/covfit.py", line 236, in <module>
+    main()
+  File "/home/ivan.specht/fitness-inference/python/baselines/covfit.py", line 217, in main
+    tsv_path = run_covfit(
+               ^^^^^^^^^^^
+  File "/home/ivan.specht/fitness-inference/python/baselines/covfit.py", line 100, in run_covfit
+    raise FileNotFoundError(f"Expected output not found: {output_file}")
+FileNotFoundError: Expected output not found: /tmp/tmpsia8d3ln/covfit_output/CoVFit_Predictions_Fold_0.tsv

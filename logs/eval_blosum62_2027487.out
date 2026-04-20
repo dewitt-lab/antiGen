@@ -1,0 +1,30 @@
+Job started at: Sun Apr 12 06:10:56 PM PDT 2026
+Running on node: GPU708E
+Job ID: 2027487
+GPU: 0
+Alphabet size: 22
+Using device: cuda
+Loading examples from /home/ivan.specht/antiGen-data/output1/examples_cutoff_1.txt...
+Loaded 171248 examples from /home/ivan.specht/antiGen-data/output1/examples_cutoff_1.txt
+  1 variant testing root(s), 52835 variant-descended for 'BA.2'
+Sequence length: 1273
+Training examples: 3648, Testing examples: 167600
+Total mutations in training set: 12024
+Train batches per epoch: 2
+Model: BLOSUM62 (no training, eval only)
+Model: 0 trainable params
+BLOSUM62 mode: skipping training, running evaluation only.
+Loaded pssm_root: torch.Size([1273, 22])
+Loaded 60 variant PSSMs from /home/ivan.specht/antiGen-data/output1/pssms/BA.2
+Loaded baseline: EVEscape (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA1_bind (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA1_expr (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA2_bind (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA2_expr (torch.Size([1273, 22]))
+  [evaluate_full] batch 0/82
+  [evaluate_full] batch 10/82
+  [evaluate_full] batch 20/82
+  [evaluate_full] batch 30/82
+  [evaluate_full] batch 40/82
+  [evaluate_full] batch 50/82
+  [evaluate_full] batch 60/82

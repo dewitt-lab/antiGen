@@ -1,0 +1,2590 @@
+Job started at: Sat Apr 11 07:33:32 PM PDT 2026
+Running on node: GPU708E
+Job ID: 2005934
+GPU: 0
+Alphabet size: 22
+Using device: cuda
+Loading examples from /home/ivan.specht/antiGen-data/output1/examples_cutoff_1.txt...
+Loaded 171248 examples from /home/ivan.specht/antiGen-data/output1/examples_cutoff_1.txt
+  1 variant testing root(s), 52835 variant-descended for 'BA.2'
+Sequence length: 1273
+Training examples: 3648, Testing examples: 167600
+Total mutations in training set: 12024
+Train batches per epoch: 57
+Model: 284,246 trainable params
+Starting training...
+  Epoch 0, batch 0: train_loss=10.27450752, test_batch_loss=10.22050095
+  Epoch 0, batch 10: train_loss=9.63678169, test_batch_loss=9.81232166
+  Epoch 0, batch 20: train_loss=9.27565479, test_batch_loss=9.69015980
+  Epoch 0, batch 30: train_loss=9.10354137, test_batch_loss=9.28100967
+  Epoch 0, batch 40: train_loss=9.02078438, test_batch_loss=9.27978325
+  Epoch 0, batch 50: train_loss=9.12715149, test_batch_loss=9.17926025
+Epoch 0: avg_train_loss=9.33389859
+  Epoch 1, batch 0: train_loss=9.05942822, test_batch_loss=8.93195915
+  Epoch 1, batch 10: train_loss=9.05223656, test_batch_loss=9.25088787
+  Epoch 1, batch 20: train_loss=8.48797417, test_batch_loss=9.22616768
+  Epoch 1, batch 30: train_loss=8.61871624, test_batch_loss=9.20853901
+  Epoch 1, batch 40: train_loss=8.77811050, test_batch_loss=9.29281998
+  Epoch 1, batch 50: train_loss=8.66806984, test_batch_loss=9.17662430
+Epoch 1: avg_train_loss=8.76268552
+  Epoch 2, batch 0: train_loss=8.52241516, test_batch_loss=9.41361809
+  Epoch 2, batch 10: train_loss=8.32649994, test_batch_loss=9.29112720
+  Epoch 2, batch 20: train_loss=8.60692024, test_batch_loss=9.19904995
+  Epoch 2, batch 30: train_loss=8.43565750, test_batch_loss=9.17628670
+  Epoch 2, batch 40: train_loss=8.64136219, test_batch_loss=8.90473270
+  Epoch 2, batch 50: train_loss=8.40511227, test_batch_loss=9.64781952
+Epoch 2: avg_train_loss=8.62504128
+  Epoch 3, batch 0: train_loss=8.90171528, test_batch_loss=9.77374458
+  Epoch 3, batch 10: train_loss=8.67384338, test_batch_loss=9.52256203
+  Epoch 3, batch 20: train_loss=8.52093315, test_batch_loss=9.25417042
+  Epoch 3, batch 30: train_loss=8.43944931, test_batch_loss=9.35609150
+  Epoch 3, batch 40: train_loss=8.83636189, test_batch_loss=9.68264866
+  Epoch 3, batch 50: train_loss=8.40005970, test_batch_loss=9.29268265
+Epoch 3: avg_train_loss=8.56831087
+  Epoch 4, batch 0: train_loss=8.54293919, test_batch_loss=9.20353127
+  Epoch 4, batch 10: train_loss=8.38675499, test_batch_loss=9.54795647
+  Epoch 4, batch 20: train_loss=8.40540886, test_batch_loss=9.22234440
+  Epoch 4, batch 30: train_loss=8.46917343, test_batch_loss=9.20321274
+  Epoch 4, batch 40: train_loss=8.63870239, test_batch_loss=9.53429985
+  Epoch 4, batch 50: train_loss=8.35666656, test_batch_loss=9.19985485
+Epoch 4: avg_train_loss=8.50820729
+  Epoch 5, batch 0: train_loss=8.59526634, test_batch_loss=9.18646145
+  Epoch 5, batch 10: train_loss=9.23351574, test_batch_loss=9.05690193
+  Epoch 5, batch 20: train_loss=8.30465412, test_batch_loss=9.02440834
+  Epoch 5, batch 30: train_loss=8.23766899, test_batch_loss=9.34049129
+  Epoch 5, batch 40: train_loss=8.51690578, test_batch_loss=9.08934593
+  Epoch 5, batch 50: train_loss=8.08070087, test_batch_loss=9.58684921
+Epoch 5: avg_train_loss=8.40073945
+  Epoch 6, batch 0: train_loss=8.30978966, test_batch_loss=8.88586426
+  Epoch 6, batch 10: train_loss=8.24623013, test_batch_loss=8.96713066
+  Epoch 6, batch 20: train_loss=9.16092682, test_batch_loss=9.54793739
+  Epoch 6, batch 30: train_loss=8.24822044, test_batch_loss=9.06580830
+  Epoch 6, batch 40: train_loss=7.92224121, test_batch_loss=8.88756752
+  Epoch 6, batch 50: train_loss=7.99429560, test_batch_loss=8.83046913
+Epoch 6: avg_train_loss=8.23597870
+  Epoch 7, batch 0: train_loss=7.95319653, test_batch_loss=9.06973171
+  Epoch 7, batch 10: train_loss=9.11313438, test_batch_loss=8.91408253
+  Epoch 7, batch 20: train_loss=8.22450352, test_batch_loss=9.18480015
+  Epoch 7, batch 30: train_loss=7.90826654, test_batch_loss=8.76476669
+  Epoch 7, batch 40: train_loss=7.98884153, test_batch_loss=8.69305325
+  Epoch 7, batch 50: train_loss=8.10810375, test_batch_loss=8.67164135
+Epoch 7: avg_train_loss=8.10770227
+  Epoch 8, batch 0: train_loss=8.02035904, test_batch_loss=9.06082916
+  Epoch 8, batch 10: train_loss=7.77732134, test_batch_loss=8.82474518
+  Epoch 8, batch 20: train_loss=8.65899849, test_batch_loss=8.71441936
+  Epoch 8, batch 30: train_loss=7.97415352, test_batch_loss=9.14438057
+  Epoch 8, batch 40: train_loss=8.00785065, test_batch_loss=8.82981396
+  Epoch 8, batch 50: train_loss=8.11110306, test_batch_loss=8.84987926
+Epoch 8: avg_train_loss=8.02123001
+  Epoch 9, batch 0: train_loss=7.75963926, test_batch_loss=8.72159863
+  Epoch 9, batch 10: train_loss=7.85878563, test_batch_loss=8.99840450
+  Epoch 9, batch 20: train_loss=8.00890446, test_batch_loss=9.16212845
+  Epoch 9, batch 30: train_loss=8.38111496, test_batch_loss=8.72726822
+  Epoch 9, batch 40: train_loss=8.13926792, test_batch_loss=8.64100266
+  Epoch 9, batch 50: train_loss=7.81890345, test_batch_loss=9.18725204
+Epoch 9: avg_train_loss=7.98177814
+  Epoch 10, batch 0: train_loss=7.87456751, test_batch_loss=9.13601971
+  Epoch 10, batch 10: train_loss=7.82728910, test_batch_loss=8.88154030
+  Epoch 10, batch 20: train_loss=7.86159563, test_batch_loss=8.69814587
+  Epoch 10, batch 30: train_loss=7.82363892, test_batch_loss=8.31685066
+  Epoch 10, batch 40: train_loss=7.94985962, test_batch_loss=9.05611515
+  Epoch 10, batch 50: train_loss=8.36234379, test_batch_loss=8.67540646
+Epoch 10: avg_train_loss=7.92159925
+  Epoch 11, batch 0: train_loss=7.82958221, test_batch_loss=8.78236485
+  Epoch 11, batch 10: train_loss=8.52185154, test_batch_loss=9.34096527
+  Epoch 11, batch 20: train_loss=8.26323509, test_batch_loss=8.74759293
+  Epoch 11, batch 30: train_loss=7.74323368, test_batch_loss=8.82313919
+  Epoch 11, batch 40: train_loss=7.81022501, test_batch_loss=8.99679565
+  Epoch 11, batch 50: train_loss=7.88123512, test_batch_loss=8.72746181
+Epoch 11: avg_train_loss=7.88056849
+  Epoch 12, batch 0: train_loss=7.86095905, test_batch_loss=9.03536034
+  Epoch 12, batch 10: train_loss=7.69854498, test_batch_loss=8.77912521
+  Epoch 12, batch 20: train_loss=7.49366283, test_batch_loss=8.73362637
+  Epoch 12, batch 30: train_loss=7.84509897, test_batch_loss=8.94623470
+  Epoch 12, batch 40: train_loss=7.77714300, test_batch_loss=8.40723801
+  Epoch 12, batch 50: train_loss=7.57529163, test_batch_loss=8.62655926
+Epoch 12: avg_train_loss=7.85933572
+  Epoch 13, batch 0: train_loss=7.77336979, test_batch_loss=8.59534645
+  Epoch 13, batch 10: train_loss=7.43659163, test_batch_loss=8.62414169
+  Epoch 13, batch 20: train_loss=8.16382599, test_batch_loss=8.71786880
+  Epoch 13, batch 30: train_loss=7.75660753, test_batch_loss=9.64419746
+  Epoch 13, batch 40: train_loss=7.69085503, test_batch_loss=8.98161983
+  Epoch 13, batch 50: train_loss=8.58550072, test_batch_loss=9.05225754
+Epoch 13: avg_train_loss=7.82753415
+  Epoch 14, batch 0: train_loss=7.83550262, test_batch_loss=8.48999882
+  Epoch 14, batch 10: train_loss=7.68518114, test_batch_loss=8.32968426
+  Epoch 14, batch 20: train_loss=8.47052765, test_batch_loss=8.59221649
+  Epoch 14, batch 30: train_loss=7.64451265, test_batch_loss=8.69478321
+  Epoch 14, batch 40: train_loss=7.65902805, test_batch_loss=8.75835991
+  Epoch 14, batch 50: train_loss=7.69802475, test_batch_loss=8.75078583
+Epoch 14: avg_train_loss=7.83548898
+  Epoch 15, batch 0: train_loss=7.85877705, test_batch_loss=8.87885094
+  Epoch 15, batch 10: train_loss=7.85145569, test_batch_loss=8.59590435
+  Epoch 15, batch 20: train_loss=7.70296240, test_batch_loss=8.51358986
+  Epoch 15, batch 30: train_loss=7.70011902, test_batch_loss=8.77682495
+  Epoch 15, batch 40: train_loss=7.89590359, test_batch_loss=9.14325905
+  Epoch 15, batch 50: train_loss=7.61806297, test_batch_loss=8.94335365
+Epoch 15: avg_train_loss=7.79312181
+  Epoch 16, batch 0: train_loss=7.63359213, test_batch_loss=8.89052486
+  Epoch 16, batch 10: train_loss=7.63979435, test_batch_loss=8.67582512
+  Epoch 16, batch 20: train_loss=7.71895456, test_batch_loss=8.97949219
+  Epoch 16, batch 30: train_loss=8.38301849, test_batch_loss=8.91635990
+  Epoch 16, batch 40: train_loss=8.27585888, test_batch_loss=8.81953907
+  Epoch 16, batch 50: train_loss=7.74606466, test_batch_loss=8.70656109
+Epoch 16: avg_train_loss=7.75935785
+  Epoch 17, batch 0: train_loss=7.96300602, test_batch_loss=8.91468048
+  Epoch 17, batch 10: train_loss=7.64168787, test_batch_loss=8.99706650
+  Epoch 17, batch 20: train_loss=7.49904776, test_batch_loss=8.90772057
+  Epoch 17, batch 30: train_loss=7.61258698, test_batch_loss=9.34765625
+  Epoch 17, batch 40: train_loss=7.66540670, test_batch_loss=8.89624214
+  Epoch 17, batch 50: train_loss=7.58594990, test_batch_loss=8.72489071
+Epoch 17: avg_train_loss=7.74634078
+  Epoch 18, batch 0: train_loss=7.76616812, test_batch_loss=8.65591431
+  Epoch 18, batch 10: train_loss=7.40549421, test_batch_loss=8.68412018
+  Epoch 18, batch 20: train_loss=9.25785923, test_batch_loss=8.75310040
+  Epoch 18, batch 30: train_loss=7.44776058, test_batch_loss=8.49084282
+  Epoch 18, batch 40: train_loss=7.91269207, test_batch_loss=9.00618362
+  Epoch 18, batch 50: train_loss=7.60209465, test_batch_loss=8.70368004
+Epoch 18: avg_train_loss=7.73341780
+  Epoch 19, batch 0: train_loss=7.38504410, test_batch_loss=8.44212246
+  Epoch 19, batch 10: train_loss=7.78750134, test_batch_loss=9.15329933
+  Epoch 19, batch 20: train_loss=7.49318695, test_batch_loss=8.91630459
+  Epoch 19, batch 30: train_loss=7.61996937, test_batch_loss=8.58518696
+  Epoch 19, batch 40: train_loss=7.58293915, test_batch_loss=8.62161827
+  Epoch 19, batch 50: train_loss=7.90961790, test_batch_loss=8.62134171
+Epoch 19: avg_train_loss=7.70215541
+  Epoch 20, batch 0: train_loss=7.50604296, test_batch_loss=8.52950859
+  Epoch 20, batch 10: train_loss=7.39478636, test_batch_loss=8.87723160
+  Epoch 20, batch 20: train_loss=7.76432991, test_batch_loss=8.46744251
+  Epoch 20, batch 30: train_loss=7.55849552, test_batch_loss=9.06196880
+  Epoch 20, batch 40: train_loss=7.85696697, test_batch_loss=8.58620453
+  Epoch 20, batch 50: train_loss=7.74755716, test_batch_loss=8.93417072
+Epoch 20: avg_train_loss=7.70120033
+  Epoch 21, batch 0: train_loss=7.77483988, test_batch_loss=8.74976254
+  Epoch 21, batch 10: train_loss=8.20800304, test_batch_loss=9.05212879
+  Epoch 21, batch 20: train_loss=7.67982531, test_batch_loss=8.93172264
+  Epoch 21, batch 30: train_loss=7.92246532, test_batch_loss=9.44447136
+  Epoch 21, batch 40: train_loss=7.96421671, test_batch_loss=9.11491776
+  Epoch 21, batch 50: train_loss=7.63519907, test_batch_loss=9.13017750
+Epoch 21: avg_train_loss=7.69551740
+  Epoch 22, batch 0: train_loss=7.48828459, test_batch_loss=9.21712875
+  Epoch 22, batch 10: train_loss=7.33560944, test_batch_loss=9.00879860
+  Epoch 22, batch 20: train_loss=7.81869459, test_batch_loss=8.89149189
+  Epoch 22, batch 30: train_loss=7.70045996, test_batch_loss=8.79371262
+  Epoch 22, batch 40: train_loss=7.44438171, test_batch_loss=8.41891766
+  Epoch 22, batch 50: train_loss=9.22820759, test_batch_loss=8.46147156
+Epoch 22: avg_train_loss=7.66085645
+  Epoch 23, batch 0: train_loss=7.55376768, test_batch_loss=8.40460491
+  Epoch 23, batch 10: train_loss=7.50631189, test_batch_loss=9.22474480
+  Epoch 23, batch 20: train_loss=7.53932953, test_batch_loss=8.73183918
+  Epoch 23, batch 30: train_loss=7.54645967, test_batch_loss=8.88792706
+  Epoch 23, batch 40: train_loss=7.39451122, test_batch_loss=8.49651623
+  Epoch 23, batch 50: train_loss=7.52449226, test_batch_loss=8.40577507
+Epoch 23: avg_train_loss=7.63091255
+  Epoch 24, batch 0: train_loss=7.43642378, test_batch_loss=8.34962749
+  Epoch 24, batch 10: train_loss=7.39470482, test_batch_loss=8.42719650
+  Epoch 24, batch 20: train_loss=7.69726324, test_batch_loss=8.89203453
+  Epoch 24, batch 30: train_loss=8.03769684, test_batch_loss=8.87769890
+  Epoch 24, batch 40: train_loss=7.63211298, test_batch_loss=8.76550007
+  Epoch 24, batch 50: train_loss=7.75340414, test_batch_loss=8.72946644
+Epoch 24: avg_train_loss=7.65533077
+  Epoch 25, batch 0: train_loss=7.66941261, test_batch_loss=9.36693668
+  Epoch 25, batch 10: train_loss=7.72896576, test_batch_loss=8.58326435
+  Epoch 25, batch 20: train_loss=7.34726715, test_batch_loss=9.13316631
+  Epoch 25, batch 30: train_loss=7.67620182, test_batch_loss=8.94811821
+  Epoch 25, batch 40: train_loss=7.64607716, test_batch_loss=8.76823997
+  Epoch 25, batch 50: train_loss=7.31125164, test_batch_loss=8.46287346
+Epoch 25: avg_train_loss=7.61784486
+  Epoch 26, batch 0: train_loss=7.59822607, test_batch_loss=8.71012688
+  Epoch 26, batch 10: train_loss=7.36487913, test_batch_loss=8.49956799
+  Epoch 26, batch 20: train_loss=7.19457579, test_batch_loss=8.76950550
+  Epoch 26, batch 30: train_loss=7.18308306, test_batch_loss=8.79866982
+  Epoch 26, batch 40: train_loss=7.32166576, test_batch_loss=8.76720238
+  Epoch 26, batch 50: train_loss=7.54974604, test_batch_loss=8.88972855
+Epoch 26: avg_train_loss=7.59647716
+  Epoch 27, batch 0: train_loss=7.22444487, test_batch_loss=8.52147484
+  Epoch 27, batch 10: train_loss=7.75636816, test_batch_loss=8.69591427
+  Epoch 27, batch 20: train_loss=9.23621750, test_batch_loss=8.42428875
+  Epoch 27, batch 30: train_loss=7.47714949, test_batch_loss=8.50706863
+  Epoch 27, batch 40: train_loss=7.38473272, test_batch_loss=8.93000698
+  Epoch 27, batch 50: train_loss=7.12521267, test_batch_loss=9.02756405
+Epoch 27: avg_train_loss=7.59259723
+  Epoch 28, batch 0: train_loss=9.11963081, test_batch_loss=8.81396580
+  Epoch 28, batch 10: train_loss=7.46270943, test_batch_loss=8.72102261
+  Epoch 28, batch 20: train_loss=7.26884699, test_batch_loss=8.52049255
+  Epoch 28, batch 30: train_loss=7.63007402, test_batch_loss=8.51326752
+  Epoch 28, batch 40: train_loss=7.55158091, test_batch_loss=8.99695873
+  Epoch 28, batch 50: train_loss=7.56192684, test_batch_loss=8.96170902
+Epoch 28: avg_train_loss=7.57844507
+  Epoch 29, batch 0: train_loss=7.31756163, test_batch_loss=8.61566734
+  Epoch 29, batch 10: train_loss=7.70374393, test_batch_loss=9.07087326
+  Epoch 29, batch 20: train_loss=7.47140598, test_batch_loss=8.63123989
+  Epoch 29, batch 30: train_loss=7.42761278, test_batch_loss=8.92035580
+  Epoch 29, batch 40: train_loss=7.45293951, test_batch_loss=8.80971050
+  Epoch 29, batch 50: train_loss=7.47209787, test_batch_loss=9.39673233
+Epoch 29: avg_train_loss=7.58018659
+  Epoch 30, batch 0: train_loss=7.57995081, test_batch_loss=8.67905521
+  Epoch 30, batch 10: train_loss=7.39739704, test_batch_loss=8.87334347
+  Epoch 30, batch 20: train_loss=7.61305332, test_batch_loss=8.64220333
+  Epoch 30, batch 30: train_loss=7.45911169, test_batch_loss=8.86337471
+  Epoch 30, batch 40: train_loss=9.19726372, test_batch_loss=8.75939178
+  Epoch 30, batch 50: train_loss=7.35588217, test_batch_loss=8.62148476
+Epoch 30: avg_train_loss=7.57641200
+  Epoch 31, batch 0: train_loss=7.24653435, test_batch_loss=8.97737408
+  Epoch 31, batch 10: train_loss=7.42425346, test_batch_loss=8.62851620
+  Epoch 31, batch 20: train_loss=7.69637537, test_batch_loss=8.83585930
+  Epoch 31, batch 30: train_loss=7.72027683, test_batch_loss=8.84890366
+  Epoch 31, batch 40: train_loss=7.39880133, test_batch_loss=9.09630680
+  Epoch 31, batch 50: train_loss=7.35687113, test_batch_loss=8.44855499
+Epoch 31: avg_train_loss=7.55999989
+Freed training objects (optimizer, scheduler, train_loader, etc.) before eval
+Loaded pssm_root: torch.Size([1273, 22])
+Loaded 60 variant PSSMs from /home/ivan.specht/antiGen-data/output1/pssms/BA.2
+Loaded baseline: BLOSUM62 (torch.Size([1273, 22]))
+Loaded baseline: ESM2_650M (torch.Size([1273, 22]))
+Loaded baseline: EVEscape (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA1_bind (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA1_expr (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA2_bind (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA2_expr (torch.Size([1273, 22]))
+Loaded baseline: Pre_Wuhan1_MSA (torch.Size([1273, 22]))
+Loaded baseline: Pre_Wuhan1_MSATransformer (torch.Size([1273, 22]))
+  [evaluate_full] batch 0/2619
+  [evaluate_full] batch 10/2619
+  [evaluate_full] batch 20/2619
+  [evaluate_full] batch 30/2619
+  [evaluate_full] batch 40/2619
+  [evaluate_full] batch 50/2619
+  [evaluate_full] batch 60/2619
+  [evaluate_full] batch 70/2619
+  [evaluate_full] batch 80/2619
+  [evaluate_full] batch 90/2619
+  [evaluate_full] batch 100/2619
+  [evaluate_full] batch 110/2619
+  [evaluate_full] batch 120/2619
+  [evaluate_full] batch 130/2619
+  [evaluate_full] batch 140/2619
+  [evaluate_full] batch 150/2619
+  [evaluate_full] batch 160/2619
+  [evaluate_full] batch 170/2619
+  [evaluate_full] batch 180/2619
+  [evaluate_full] batch 190/2619
+  [evaluate_full] batch 200/2619
+  [evaluate_full] batch 210/2619
+  [evaluate_full] batch 220/2619
+  [evaluate_full] batch 230/2619
+  [evaluate_full] batch 240/2619
+  [evaluate_full] batch 250/2619
+  [evaluate_full] batch 260/2619
+  [evaluate_full] batch 270/2619
+  [evaluate_full] batch 280/2619
+  [evaluate_full] batch 290/2619
+  [evaluate_full] batch 300/2619
+  [evaluate_full] batch 310/2619
+  [evaluate_full] batch 320/2619
+  [evaluate_full] batch 330/2619
+  [evaluate_full] batch 340/2619
+  [evaluate_full] batch 350/2619
+  [evaluate_full] batch 360/2619
+  [evaluate_full] batch 370/2619
+  [evaluate_full] batch 380/2619
+  [evaluate_full] batch 390/2619
+  [evaluate_full] batch 400/2619
+  [evaluate_full] batch 410/2619
+  [evaluate_full] batch 420/2619
+  [evaluate_full] batch 430/2619
+  [evaluate_full] batch 440/2619
+  [evaluate_full] batch 450/2619
+  [evaluate_full] batch 460/2619
+  [evaluate_full] batch 470/2619
+  [evaluate_full] batch 480/2619
+  [evaluate_full] batch 490/2619
+  [evaluate_full] batch 500/2619
+  [evaluate_full] batch 510/2619
+  [evaluate_full] batch 520/2619
+  [evaluate_full] batch 530/2619
+  [evaluate_full] batch 540/2619
+  [evaluate_full] batch 550/2619
+  [evaluate_full] batch 560/2619
+  [evaluate_full] batch 570/2619
+  [evaluate_full] batch 580/2619
+  [evaluate_full] batch 590/2619
+  [evaluate_full] batch 600/2619
+  [evaluate_full] batch 610/2619
+  [evaluate_full] batch 620/2619
+  [evaluate_full] batch 630/2619
+  [evaluate_full] batch 640/2619
+  [evaluate_full] batch 650/2619
+  [evaluate_full] batch 660/2619
+  [evaluate_full] batch 670/2619
+  [evaluate_full] batch 680/2619
+  [evaluate_full] batch 690/2619
+  [evaluate_full] batch 700/2619
+  [evaluate_full] batch 710/2619
+  [evaluate_full] batch 720/2619
+  [evaluate_full] batch 730/2619
+  [evaluate_full] batch 740/2619
+  [evaluate_full] batch 750/2619
+  [evaluate_full] batch 760/2619
+  [evaluate_full] batch 770/2619
+  [evaluate_full] batch 780/2619
+  [evaluate_full] batch 790/2619
+  [evaluate_full] batch 800/2619
+  [evaluate_full] batch 810/2619
+  [evaluate_full] batch 820/2619
+  [evaluate_full] batch 830/2619
+  [evaluate_full] batch 840/2619
+  [evaluate_full] batch 850/2619
+  [evaluate_full] batch 860/2619
+  [evaluate_full] batch 870/2619
+  [evaluate_full] batch 880/2619
+  [evaluate_full] batch 890/2619
+  [evaluate_full] batch 900/2619
+  [evaluate_full] batch 910/2619
+  [evaluate_full] batch 920/2619
+  [evaluate_full] batch 930/2619
+  [evaluate_full] batch 940/2619
+  [evaluate_full] batch 950/2619
+  [evaluate_full] batch 960/2619
+  [evaluate_full] batch 970/2619
+  [evaluate_full] batch 980/2619
+  [evaluate_full] batch 990/2619
+  [evaluate_full] batch 1000/2619
+  [evaluate_full] batch 1010/2619
+  [evaluate_full] batch 1020/2619
+  [evaluate_full] batch 1030/2619
+  [evaluate_full] batch 1040/2619
+  [evaluate_full] batch 1050/2619
+  [evaluate_full] batch 1060/2619
+  [evaluate_full] batch 1070/2619
+  [evaluate_full] batch 1080/2619
+  [evaluate_full] batch 1090/2619
+  [evaluate_full] batch 1100/2619
+  [evaluate_full] batch 1110/2619
+  [evaluate_full] batch 1120/2619
+  [evaluate_full] batch 1130/2619
+  [evaluate_full] batch 1140/2619
+  [evaluate_full] batch 1150/2619
+  [evaluate_full] batch 1160/2619
+  [evaluate_full] batch 1170/2619
+  [evaluate_full] batch 1180/2619
+  [evaluate_full] batch 1190/2619
+  [evaluate_full] batch 1200/2619
+  [evaluate_full] batch 1210/2619
+  [evaluate_full] batch 1220/2619
+  [evaluate_full] batch 1230/2619
+  [evaluate_full] batch 1240/2619
+  [evaluate_full] batch 1250/2619
+  [evaluate_full] batch 1260/2619
+  [evaluate_full] batch 1270/2619
+  [evaluate_full] batch 1280/2619
+  [evaluate_full] batch 1290/2619
+  [evaluate_full] batch 1300/2619
+  [evaluate_full] batch 1310/2619
+  [evaluate_full] batch 1320/2619
+  [evaluate_full] batch 1330/2619
+  [evaluate_full] batch 1340/2619
+  [evaluate_full] batch 1350/2619
+  [evaluate_full] batch 1360/2619
+  [evaluate_full] batch 1370/2619
+  [evaluate_full] batch 1380/2619
+  [evaluate_full] batch 1390/2619
+  [evaluate_full] batch 1400/2619
+  [evaluate_full] batch 1410/2619
+  [evaluate_full] batch 1420/2619
+  [evaluate_full] batch 1430/2619
+  [evaluate_full] batch 1440/2619
+  [evaluate_full] batch 1450/2619
+  [evaluate_full] batch 1460/2619
+  [evaluate_full] batch 1470/2619
+  [evaluate_full] batch 1480/2619
+  [evaluate_full] batch 1490/2619
+  [evaluate_full] batch 1500/2619
+  [evaluate_full] batch 1510/2619
+  [evaluate_full] batch 1520/2619
+  [evaluate_full] batch 1530/2619
+  [evaluate_full] batch 1540/2619
+  [evaluate_full] batch 1550/2619
+  [evaluate_full] batch 1560/2619
+  [evaluate_full] batch 1570/2619
+  [evaluate_full] batch 1580/2619
+  [evaluate_full] batch 1590/2619
+  [evaluate_full] batch 1600/2619
+  [evaluate_full] batch 1610/2619
+  [evaluate_full] batch 1620/2619
+  [evaluate_full] batch 1630/2619
+  [evaluate_full] batch 1640/2619
+  [evaluate_full] batch 1650/2619
+  [evaluate_full] batch 1660/2619
+  [evaluate_full] batch 1670/2619
+  [evaluate_full] batch 1680/2619
+  [evaluate_full] batch 1690/2619
+  [evaluate_full] batch 1700/2619
+  [evaluate_full] batch 1710/2619
+  [evaluate_full] batch 1720/2619
+  [evaluate_full] batch 1730/2619
+  [evaluate_full] batch 1740/2619
+  [evaluate_full] batch 1750/2619
+  [evaluate_full] batch 1760/2619
+  [evaluate_full] batch 1770/2619
+  [evaluate_full] batch 1780/2619
+  [evaluate_full] batch 1790/2619
+  [evaluate_full] batch 1800/2619
+  [evaluate_full] batch 1810/2619
+  [evaluate_full] batch 1820/2619
+  [evaluate_full] batch 1830/2619
+  [evaluate_full] batch 1840/2619
+  [evaluate_full] batch 1850/2619
+  [evaluate_full] batch 1860/2619
+  [evaluate_full] batch 1870/2619
+  [evaluate_full] batch 1880/2619
+  [evaluate_full] batch 1890/2619
+  [evaluate_full] batch 1900/2619
+  [evaluate_full] batch 1910/2619
+  [evaluate_full] batch 1920/2619
+  [evaluate_full] batch 1930/2619
+  [evaluate_full] batch 1940/2619
+  [evaluate_full] batch 1950/2619
+  [evaluate_full] batch 1960/2619
+  [evaluate_full] batch 1970/2619
+  [evaluate_full] batch 1980/2619
+  [evaluate_full] batch 1990/2619
+  [evaluate_full] batch 2000/2619
+  [evaluate_full] batch 2010/2619
+  [evaluate_full] batch 2020/2619
+  [evaluate_full] batch 2030/2619
+  [evaluate_full] batch 2040/2619
+  [evaluate_full] batch 2050/2619
+  [evaluate_full] batch 2060/2619
+  [evaluate_full] batch 2070/2619
+  [evaluate_full] batch 2080/2619
+  [evaluate_full] batch 2090/2619
+  [evaluate_full] batch 2100/2619
+  [evaluate_full] batch 2110/2619
+  [evaluate_full] batch 2120/2619
+  [evaluate_full] batch 2130/2619
+  [evaluate_full] batch 2140/2619
+  [evaluate_full] batch 2150/2619
+  [evaluate_full] batch 2160/2619
+  [evaluate_full] batch 2170/2619
+  [evaluate_full] batch 2180/2619
+  [evaluate_full] batch 2190/2619
+  [evaluate_full] batch 2200/2619
+  [evaluate_full] batch 2210/2619
+  [evaluate_full] batch 2220/2619
+  [evaluate_full] batch 2230/2619
+  [evaluate_full] batch 2240/2619
+  [evaluate_full] batch 2250/2619
+  [evaluate_full] batch 2260/2619
+  [evaluate_full] batch 2270/2619
+  [evaluate_full] batch 2280/2619
+  [evaluate_full] batch 2290/2619
+  [evaluate_full] batch 2300/2619
+  [evaluate_full] batch 2310/2619
+  [evaluate_full] batch 2320/2619
+  [evaluate_full] batch 2330/2619
+  [evaluate_full] batch 2340/2619
+  [evaluate_full] batch 2350/2619
+  [evaluate_full] batch 2360/2619
+  [evaluate_full] batch 2370/2619
+  [evaluate_full] batch 2380/2619
+  [evaluate_full] batch 2390/2619
+  [evaluate_full] batch 2400/2619
+  [evaluate_full] batch 2410/2619
+  [evaluate_full] batch 2420/2619
+  [evaluate_full] batch 2430/2619
+  [evaluate_full] batch 2440/2619
+  [evaluate_full] batch 2450/2619
+  [evaluate_full] batch 2460/2619
+  [evaluate_full] batch 2470/2619
+  [evaluate_full] batch 2480/2619
+  [evaluate_full] batch 2490/2619
+  [evaluate_full] batch 2500/2619
+  [evaluate_full] batch 2510/2619
+  [evaluate_full] batch 2520/2619
+  [evaluate_full] batch 2530/2619
+  [evaluate_full] batch 2540/2619
+  [evaluate_full] batch 2550/2619
+  [evaluate_full] batch 2560/2619
+  [evaluate_full] batch 2570/2619
+  [evaluate_full] batch 2580/2619
+  [evaluate_full] batch 2590/2619
+  [evaluate_full] batch 2600/2619
+  [evaluate_full] batch 2610/2619
+  [evaluate_full] done (2619 batches, 418362 mutations)
+All test loss: 8.79705142
+  All hit rate for top 10.0%: 0.68646571
+  All hit rate for top 20.0%: 0.83835735
+  All hit rate for top 30.0%: 0.91161719
+  All hit rate for top 40.0%: 0.94050104
+  All hit rate for top 50.0%: 0.96923214
+  All hit rate for top 60.0%: 0.98236927
+  All hit rate for top 70.0%: 0.99620653
+  All hit rate for top 80.0%: 0.99861245
+  All hit rate for top 90.0%: 0.99980905
+All hit rates written to /large_storage/hielab/ispecht/fitness-inference/sweep/quantile_hit_rates_all_simple_d64_n4_lr0.0003_20260411_193742.csv
+All hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/sweep/quantile_hit_rates_all_simple_d64_n4_lr0.0003_20260411_193742.png
+Variant-descended testing examples: 52835
+  [evaluate_full] batch 0/826
+  [evaluate_full] batch 10/826
+  [evaluate_full] batch 20/826
+  [evaluate_full] batch 30/826
+  [evaluate_full] batch 40/826
+  [evaluate_full] batch 50/826
+  [evaluate_full] batch 60/826
+  [evaluate_full] batch 70/826
+  [evaluate_full] batch 80/826
+  [evaluate_full] batch 90/826
+  [evaluate_full] batch 100/826
+  [evaluate_full] batch 110/826
+  [evaluate_full] batch 120/826
+  [evaluate_full] batch 130/826
+  [evaluate_full] batch 140/826
+  [evaluate_full] batch 150/826
+  [evaluate_full] batch 160/826
+  [evaluate_full] batch 170/826
+  [evaluate_full] batch 180/826
+  [evaluate_full] batch 190/826
+  [evaluate_full] batch 200/826
+  [evaluate_full] batch 210/826
+  [evaluate_full] batch 220/826
+  [evaluate_full] batch 230/826
+  [evaluate_full] batch 240/826
+  [evaluate_full] batch 250/826
+  [evaluate_full] batch 260/826
+  [evaluate_full] batch 270/826
+  [evaluate_full] batch 280/826
+  [evaluate_full] batch 290/826
+  [evaluate_full] batch 300/826
+  [evaluate_full] batch 310/826
+  [evaluate_full] batch 320/826
+  [evaluate_full] batch 330/826
+  [evaluate_full] batch 340/826
+  [evaluate_full] batch 350/826
+  [evaluate_full] batch 360/826
+  [evaluate_full] batch 370/826
+  [evaluate_full] batch 380/826
+  [evaluate_full] batch 390/826
+  [evaluate_full] batch 400/826
+  [evaluate_full] batch 410/826
+  [evaluate_full] batch 420/826
+  [evaluate_full] batch 430/826
+  [evaluate_full] batch 440/826
+  [evaluate_full] batch 450/826
+  [evaluate_full] batch 460/826
+  [evaluate_full] batch 470/826
+  [evaluate_full] batch 480/826
+  [evaluate_full] batch 490/826
+  [evaluate_full] batch 500/826
+  [evaluate_full] batch 510/826
+  [evaluate_full] batch 520/826
+  [evaluate_full] batch 530/826
+  [evaluate_full] batch 540/826
+  [evaluate_full] batch 550/826
+  [evaluate_full] batch 560/826
+  [evaluate_full] batch 570/826
+  [evaluate_full] batch 580/826
+  [evaluate_full] batch 590/826
+  [evaluate_full] batch 600/826
+  [evaluate_full] batch 610/826
+  [evaluate_full] batch 620/826
+  [evaluate_full] batch 630/826
+  [evaluate_full] batch 640/826
+  [evaluate_full] batch 650/826
+  [evaluate_full] batch 660/826
+  [evaluate_full] batch 670/826
+  [evaluate_full] batch 680/826
+  [evaluate_full] batch 690/826
+  [evaluate_full] batch 700/826
+  [evaluate_full] batch 710/826
+  [evaluate_full] batch 720/826
+  [evaluate_full] batch 730/826
+  [evaluate_full] batch 740/826
+  [evaluate_full] batch 750/826
+  [evaluate_full] batch 760/826
+  [evaluate_full] batch 770/826
+  [evaluate_full] batch 780/826
+  [evaluate_full] batch 790/826
+  [evaluate_full] batch 800/826
+  [evaluate_full] batch 810/826
+  [evaluate_full] batch 820/826
+  [evaluate_full] done (826 batches, 174437 mutations)
+Variant-descended test loss: 9.00686434
+  Variant-descended hit rate for top 10.0%: 0.65248707
+  Variant-descended hit rate for top 20.0%: 0.83623514
+  Variant-descended hit rate for top 30.0%: 0.91286453
+  Variant-descended hit rate for top 40.0%: 0.94262273
+  Variant-descended hit rate for top 50.0%: 0.96972733
+  Variant-descended hit rate for top 60.0%: 0.98226422
+  Variant-descended hit rate for top 70.0%: 0.98830251
+  Variant-descended hit rate for top 80.0%: 0.99832119
+  Variant-descended hit rate for top 90.0%: 0.99972922
+Variant-descended hit rates written to /large_storage/hielab/ispecht/fitness-inference/sweep/quantile_hit_rates_variant_simple_d64_n4_lr0.0003_20260411_193742.csv
+Variant-descended hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/sweep/quantile_hit_rates_variant_simple_d64_n4_lr0.0003_20260411_193742.png
+  [evaluate_full] batch 0/2619
+  [evaluate_full] batch 10/2619
+  [evaluate_full] batch 20/2619
+  [evaluate_full] batch 30/2619
+  [evaluate_full] batch 40/2619
+  [evaluate_full] batch 50/2619
+  [evaluate_full] batch 60/2619
+  [evaluate_full] batch 70/2619
+  [evaluate_full] batch 80/2619
+  [evaluate_full] batch 90/2619
+  [evaluate_full] batch 100/2619
+  [evaluate_full] batch 110/2619
+  [evaluate_full] batch 120/2619
+  [evaluate_full] batch 130/2619
+  [evaluate_full] batch 140/2619
+  [evaluate_full] batch 150/2619
+  [evaluate_full] batch 160/2619
+  [evaluate_full] batch 170/2619
+  [evaluate_full] batch 180/2619
+  [evaluate_full] batch 190/2619
+  [evaluate_full] batch 200/2619
+  [evaluate_full] batch 210/2619
+  [evaluate_full] batch 220/2619
+  [evaluate_full] batch 230/2619
+  [evaluate_full] batch 240/2619
+  [evaluate_full] batch 250/2619
+  [evaluate_full] batch 260/2619
+  [evaluate_full] batch 270/2619
+  [evaluate_full] batch 280/2619
+  [evaluate_full] batch 290/2619
+  [evaluate_full] batch 300/2619
+  [evaluate_full] batch 310/2619
+  [evaluate_full] batch 320/2619
+  [evaluate_full] batch 330/2619
+  [evaluate_full] batch 340/2619
+  [evaluate_full] batch 350/2619
+  [evaluate_full] batch 360/2619
+  [evaluate_full] batch 370/2619
+  [evaluate_full] batch 380/2619
+  [evaluate_full] batch 390/2619
+  [evaluate_full] batch 400/2619
+  [evaluate_full] batch 410/2619
+  [evaluate_full] batch 420/2619
+  [evaluate_full] batch 430/2619
+  [evaluate_full] batch 440/2619
+  [evaluate_full] batch 450/2619
+  [evaluate_full] batch 460/2619
+  [evaluate_full] batch 470/2619
+  [evaluate_full] batch 480/2619
+  [evaluate_full] batch 490/2619
+  [evaluate_full] batch 500/2619
+  [evaluate_full] batch 510/2619
+  [evaluate_full] batch 520/2619
+  [evaluate_full] batch 530/2619
+  [evaluate_full] batch 540/2619
+  [evaluate_full] batch 550/2619
+  [evaluate_full] batch 560/2619
+  [evaluate_full] batch 570/2619
+  [evaluate_full] batch 580/2619
+  [evaluate_full] batch 590/2619
+  [evaluate_full] batch 600/2619
+  [evaluate_full] batch 610/2619
+  [evaluate_full] batch 620/2619
+  [evaluate_full] batch 630/2619
+  [evaluate_full] batch 640/2619
+  [evaluate_full] batch 650/2619
+  [evaluate_full] batch 660/2619
+  [evaluate_full] batch 670/2619
+  [evaluate_full] batch 680/2619
+  [evaluate_full] batch 690/2619
+  [evaluate_full] batch 700/2619
+  [evaluate_full] batch 710/2619
+  [evaluate_full] batch 720/2619
+  [evaluate_full] batch 730/2619
+  [evaluate_full] batch 740/2619
+  [evaluate_full] batch 750/2619
+  [evaluate_full] batch 760/2619
+  [evaluate_full] batch 770/2619
+  [evaluate_full] batch 780/2619
+  [evaluate_full] batch 790/2619
+  [evaluate_full] batch 800/2619
+  [evaluate_full] batch 810/2619
+  [evaluate_full] batch 820/2619
+  [evaluate_full] batch 830/2619
+  [evaluate_full] batch 840/2619
+  [evaluate_full] batch 850/2619
+  [evaluate_full] batch 860/2619
+  [evaluate_full] batch 870/2619
+  [evaluate_full] batch 880/2619
+  [evaluate_full] batch 890/2619
+  [evaluate_full] batch 900/2619
+  [evaluate_full] batch 910/2619
+  [evaluate_full] batch 920/2619
+  [evaluate_full] batch 930/2619
+  [evaluate_full] batch 940/2619
+  [evaluate_full] batch 950/2619
+  [evaluate_full] batch 960/2619
+  [evaluate_full] batch 970/2619
+  [evaluate_full] batch 980/2619
+  [evaluate_full] batch 990/2619
+  [evaluate_full] batch 1000/2619
+  [evaluate_full] batch 1010/2619
+  [evaluate_full] batch 1020/2619
+  [evaluate_full] batch 1030/2619
+  [evaluate_full] batch 1040/2619
+  [evaluate_full] batch 1050/2619
+  [evaluate_full] batch 1060/2619
+  [evaluate_full] batch 1070/2619
+  [evaluate_full] batch 1080/2619
+  [evaluate_full] batch 1090/2619
+  [evaluate_full] batch 1100/2619
+  [evaluate_full] batch 1110/2619
+  [evaluate_full] batch 1120/2619
+  [evaluate_full] batch 1130/2619
+  [evaluate_full] batch 1140/2619
+  [evaluate_full] batch 1150/2619
+  [evaluate_full] batch 1160/2619
+  [evaluate_full] batch 1170/2619
+  [evaluate_full] batch 1180/2619
+  [evaluate_full] batch 1190/2619
+  [evaluate_full] batch 1200/2619
+  [evaluate_full] batch 1210/2619
+  [evaluate_full] batch 1220/2619
+  [evaluate_full] batch 1230/2619
+  [evaluate_full] batch 1240/2619
+  [evaluate_full] batch 1250/2619
+  [evaluate_full] batch 1260/2619
+  [evaluate_full] batch 1270/2619
+  [evaluate_full] batch 1280/2619
+  [evaluate_full] batch 1290/2619
+  [evaluate_full] batch 1300/2619
+  [evaluate_full] batch 1310/2619
+  [evaluate_full] batch 1320/2619
+  [evaluate_full] batch 1330/2619
+  [evaluate_full] batch 1340/2619
+  [evaluate_full] batch 1350/2619
+  [evaluate_full] batch 1360/2619
+  [evaluate_full] batch 1370/2619
+  [evaluate_full] batch 1380/2619
+  [evaluate_full] batch 1390/2619
+  [evaluate_full] batch 1400/2619
+  [evaluate_full] batch 1410/2619
+  [evaluate_full] batch 1420/2619
+  [evaluate_full] batch 1430/2619
+  [evaluate_full] batch 1440/2619
+  [evaluate_full] batch 1450/2619
+  [evaluate_full] batch 1460/2619
+  [evaluate_full] batch 1470/2619
+  [evaluate_full] batch 1480/2619
+  [evaluate_full] batch 1490/2619
+  [evaluate_full] batch 1500/2619
+  [evaluate_full] batch 1510/2619
+  [evaluate_full] batch 1520/2619
+  [evaluate_full] batch 1530/2619
+  [evaluate_full] batch 1540/2619
+  [evaluate_full] batch 1550/2619
+  [evaluate_full] batch 1560/2619
+  [evaluate_full] batch 1570/2619
+  [evaluate_full] batch 1580/2619
+  [evaluate_full] batch 1590/2619
+  [evaluate_full] batch 1600/2619
+  [evaluate_full] batch 1610/2619
+  [evaluate_full] batch 1620/2619
+  [evaluate_full] batch 1630/2619
+  [evaluate_full] batch 1640/2619
+  [evaluate_full] batch 1650/2619
+  [evaluate_full] batch 1660/2619
+  [evaluate_full] batch 1670/2619
+  [evaluate_full] batch 1680/2619
+  [evaluate_full] batch 1690/2619
+  [evaluate_full] batch 1700/2619
+  [evaluate_full] batch 1710/2619
+  [evaluate_full] batch 1720/2619
+  [evaluate_full] batch 1730/2619
+  [evaluate_full] batch 1740/2619
+  [evaluate_full] batch 1750/2619
+  [evaluate_full] batch 1760/2619
+  [evaluate_full] batch 1770/2619
+  [evaluate_full] batch 1780/2619
+  [evaluate_full] batch 1790/2619
+  [evaluate_full] batch 1800/2619
+  [evaluate_full] batch 1810/2619
+  [evaluate_full] batch 1820/2619
+  [evaluate_full] batch 1830/2619
+  [evaluate_full] batch 1840/2619
+  [evaluate_full] batch 1850/2619
+  [evaluate_full] batch 1860/2619
+  [evaluate_full] batch 1870/2619
+  [evaluate_full] batch 1880/2619
+  [evaluate_full] batch 1890/2619
+  [evaluate_full] batch 1900/2619
+  [evaluate_full] batch 1910/2619
+  [evaluate_full] batch 1920/2619
+  [evaluate_full] batch 1930/2619
+  [evaluate_full] batch 1940/2619
+  [evaluate_full] batch 1950/2619
+  [evaluate_full] batch 1960/2619
+  [evaluate_full] batch 1970/2619
+  [evaluate_full] batch 1980/2619
+  [evaluate_full] batch 1990/2619
+  [evaluate_full] batch 2000/2619
+  [evaluate_full] batch 2010/2619
+  [evaluate_full] batch 2020/2619
+  [evaluate_full] batch 2030/2619
+  [evaluate_full] batch 2040/2619
+  [evaluate_full] batch 2050/2619
+  [evaluate_full] batch 2060/2619
+  [evaluate_full] batch 2070/2619
+  [evaluate_full] batch 2080/2619
+  [evaluate_full] batch 2090/2619
+  [evaluate_full] batch 2100/2619
+  [evaluate_full] batch 2110/2619
+  [evaluate_full] batch 2120/2619
+  [evaluate_full] batch 2130/2619
+  [evaluate_full] batch 2140/2619
+  [evaluate_full] batch 2150/2619
+  [evaluate_full] batch 2160/2619
+  [evaluate_full] batch 2170/2619
+  [evaluate_full] batch 2180/2619
+  [evaluate_full] batch 2190/2619
+  [evaluate_full] batch 2200/2619
+  [evaluate_full] batch 2210/2619
+  [evaluate_full] batch 2220/2619
+  [evaluate_full] batch 2230/2619
+  [evaluate_full] batch 2240/2619
+  [evaluate_full] batch 2250/2619
+  [evaluate_full] batch 2260/2619
+  [evaluate_full] batch 2270/2619
+  [evaluate_full] batch 2280/2619
+  [evaluate_full] batch 2290/2619
+  [evaluate_full] batch 2300/2619
+  [evaluate_full] batch 2310/2619
+  [evaluate_full] batch 2320/2619
+  [evaluate_full] batch 2330/2619
+  [evaluate_full] batch 2340/2619
+  [evaluate_full] batch 2350/2619
+  [evaluate_full] batch 2360/2619
+  [evaluate_full] batch 2370/2619
+  [evaluate_full] batch 2380/2619
+  [evaluate_full] batch 2390/2619
+  [evaluate_full] batch 2400/2619
+  [evaluate_full] batch 2410/2619
+  [evaluate_full] batch 2420/2619
+  [evaluate_full] batch 2430/2619
+  [evaluate_full] batch 2440/2619
+  [evaluate_full] batch 2450/2619
+  [evaluate_full] batch 2460/2619
+  [evaluate_full] batch 2470/2619
+  [evaluate_full] batch 2480/2619
+  [evaluate_full] batch 2490/2619
+  [evaluate_full] batch 2500/2619
+  [evaluate_full] batch 2510/2619
+  [evaluate_full] batch 2520/2619
+  [evaluate_full] batch 2530/2619
+  [evaluate_full] batch 2540/2619
+  [evaluate_full] batch 2550/2619
+  [evaluate_full] batch 2560/2619
+  [evaluate_full] batch 2570/2619
+  [evaluate_full] batch 2580/2619
+  [evaluate_full] batch 2590/2619
+  [evaluate_full] batch 2600/2619
+  [evaluate_full] batch 2610/2619
+  [evaluate_full] done (2619 batches, 418362 mutations)
+Unseen-mutations test loss: 8.79706849
+  Unseen-mutations hit rate for top 10.0%: 0.49745883
+  Unseen-mutations hit rate for top 20.0%: 0.71999729
+  Unseen-mutations hit rate for top 30.0%: 0.79175984
+  Unseen-mutations hit rate for top 40.0%: 0.87572000
+  Unseen-mutations hit rate for top 50.0%: 0.92118994
+  Unseen-mutations hit rate for top 60.0%: 0.97363963
+  Unseen-mutations hit rate for top 70.0%: 0.98956427
+  Unseen-mutations hit rate for top 80.0%: 0.99573084
+  Unseen-mutations hit rate for top 90.0%: 0.99925459
+Unseen-mutations hit rates written to /large_storage/hielab/ispecht/fitness-inference/sweep/quantile_hit_rates_unseen_simple_d64_n4_lr0.0003_20260411_193742.csv
+Unseen-mutations hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/sweep/quantile_hit_rates_unseen_simple_d64_n4_lr0.0003_20260411_193742.png
+Testing root probs shape: torch.Size([1, 1273, 22])
+All variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/sweep/variant_emergence_all_simple_d64_n4_lr0.0003_20260411_193742.csv
+All variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/sweep/variant_emergence_all_simple_d64_n4_lr0.0003_20260411_193742.png
+Unseen variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/sweep/variant_emergence_unseen_simple_d64_n4_lr0.0003_20260411_193742.csv
+Unseen variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/sweep/variant_emergence_unseen_simple_d64_n4_lr0.0003_20260411_193742.png
+All (threshold=1) variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/sweep/variant_emergence_all_thresh1_simple_d64_n4_lr0.0003_20260411_193742.csv
+All (threshold=1) variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/sweep/variant_emergence_all_thresh1_simple_d64_n4_lr0.0003_20260411_193742.png
+Unseen (threshold=1) variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/sweep/variant_emergence_unseen_thresh1_simple_d64_n4_lr0.0003_20260411_193742.csv
+Unseen (threshold=1) variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/sweep/variant_emergence_unseen_thresh1_simple_d64_n4_lr0.0003_20260411_193742.png
+  [mutation_ordering] example 0/167600
+  [mutation_ordering] example 100/167600
+  [mutation_ordering] example 200/167600
+  [mutation_ordering] example 300/167600
+  [mutation_ordering] example 400/167600
+  [mutation_ordering] example 500/167600
+  [mutation_ordering] example 600/167600
+  [mutation_ordering] example 700/167600
+  [mutation_ordering] example 800/167600
+  [mutation_ordering] example 900/167600
+  [mutation_ordering] example 1000/167600
+  [mutation_ordering] example 1100/167600
+  [mutation_ordering] example 1200/167600
+  [mutation_ordering] example 1300/167600
+  [mutation_ordering] example 1400/167600
+  [mutation_ordering] example 1500/167600
+  [mutation_ordering] example 1600/167600
+  [mutation_ordering] example 1700/167600
+  [mutation_ordering] example 1800/167600
+  [mutation_ordering] example 1900/167600
+  [mutation_ordering] example 2000/167600
+  [mutation_ordering] example 2100/167600
+  [mutation_ordering] example 2200/167600
+  [mutation_ordering] example 2300/167600
+  [mutation_ordering] example 2400/167600
+  [mutation_ordering] example 2500/167600
+  [mutation_ordering] example 2600/167600
+  [mutation_ordering] example 2700/167600
+  [mutation_ordering] example 2800/167600
+  [mutation_ordering] example 2900/167600
+  [mutation_ordering] example 3000/167600
+  [mutation_ordering] example 3100/167600
+  [mutation_ordering] example 3200/167600
+  [mutation_ordering] example 3300/167600
+  [mutation_ordering] example 3400/167600
+  [mutation_ordering] example 3500/167600
+  [mutation_ordering] example 3600/167600
+  [mutation_ordering] example 3700/167600
+  [mutation_ordering] example 3800/167600
+  [mutation_ordering] example 3900/167600
+  [mutation_ordering] example 4000/167600
+  [mutation_ordering] example 4100/167600
+  [mutation_ordering] example 4200/167600
+  [mutation_ordering] example 4300/167600
+  [mutation_ordering] example 4400/167600
+  [mutation_ordering] example 4500/167600
+  [mutation_ordering] example 4600/167600
+  [mutation_ordering] example 4700/167600
+  [mutation_ordering] example 4800/167600
+  [mutation_ordering] example 4900/167600
+  [mutation_ordering] example 5000/167600
+  [mutation_ordering] example 5100/167600
+  [mutation_ordering] example 5200/167600
+  [mutation_ordering] example 5300/167600
+  [mutation_ordering] example 5400/167600
+  [mutation_ordering] example 5500/167600
+  [mutation_ordering] example 5600/167600
+  [mutation_ordering] example 5700/167600
+  [mutation_ordering] example 5800/167600
+  [mutation_ordering] example 5900/167600
+  [mutation_ordering] example 6000/167600
+  [mutation_ordering] example 6100/167600
+  [mutation_ordering] example 6200/167600
+  [mutation_ordering] example 6300/167600
+  [mutation_ordering] example 6400/167600
+  [mutation_ordering] example 6500/167600
+  [mutation_ordering] example 6600/167600
+  [mutation_ordering] example 6700/167600
+  [mutation_ordering] example 6800/167600
+  [mutation_ordering] example 6900/167600
+  [mutation_ordering] example 7000/167600
+  [mutation_ordering] example 7100/167600
+  [mutation_ordering] example 7200/167600
+  [mutation_ordering] example 7300/167600
+  [mutation_ordering] example 7400/167600
+  [mutation_ordering] example 7500/167600
+  [mutation_ordering] example 7600/167600
+  [mutation_ordering] example 7700/167600
+  [mutation_ordering] example 7800/167600
+  [mutation_ordering] example 7900/167600
+  [mutation_ordering] example 8000/167600
+  [mutation_ordering] example 8100/167600
+  [mutation_ordering] example 8200/167600
+  [mutation_ordering] example 8300/167600
+  [mutation_ordering] example 8400/167600
+  [mutation_ordering] example 8500/167600
+  [mutation_ordering] example 8600/167600
+  [mutation_ordering] example 8700/167600
+  [mutation_ordering] example 8800/167600
+  [mutation_ordering] example 8900/167600
+  [mutation_ordering] example 9000/167600
+  [mutation_ordering] example 9100/167600
+  [mutation_ordering] example 9200/167600
+  [mutation_ordering] example 9300/167600
+  [mutation_ordering] example 9400/167600
+  [mutation_ordering] example 9500/167600
+  [mutation_ordering] example 9600/167600
+  [mutation_ordering] example 9700/167600
+  [mutation_ordering] example 9800/167600
+  [mutation_ordering] example 9900/167600
+  [mutation_ordering] example 10000/167600
+  [mutation_ordering] example 10100/167600
+  [mutation_ordering] example 10200/167600
+  [mutation_ordering] example 10300/167600
+  [mutation_ordering] example 10400/167600
+  [mutation_ordering] example 10500/167600
+  [mutation_ordering] example 10600/167600
+  [mutation_ordering] example 10700/167600
+  [mutation_ordering] example 10800/167600
+  [mutation_ordering] example 10900/167600
+  [mutation_ordering] example 11000/167600
+  [mutation_ordering] example 11100/167600
+  [mutation_ordering] example 11200/167600
+  [mutation_ordering] example 11300/167600
+  [mutation_ordering] example 11400/167600
+  [mutation_ordering] example 11500/167600
+  [mutation_ordering] example 11600/167600
+  [mutation_ordering] example 11700/167600
+  [mutation_ordering] example 11800/167600
+  [mutation_ordering] example 11900/167600
+  [mutation_ordering] example 12000/167600
+  [mutation_ordering] example 12100/167600
+  [mutation_ordering] example 12200/167600
+  [mutation_ordering] example 12300/167600
+  [mutation_ordering] example 12400/167600
+  [mutation_ordering] example 12500/167600
+  [mutation_ordering] example 12600/167600
+  [mutation_ordering] example 12700/167600
+  [mutation_ordering] example 12800/167600
+  [mutation_ordering] example 12900/167600
+  [mutation_ordering] example 13000/167600
+  [mutation_ordering] example 13100/167600
+  [mutation_ordering] example 13200/167600
+  [mutation_ordering] example 13300/167600
+  [mutation_ordering] example 13400/167600
+  [mutation_ordering] example 13500/167600
+  [mutation_ordering] example 13600/167600
+  [mutation_ordering] example 13700/167600
+  [mutation_ordering] example 13800/167600
+  [mutation_ordering] example 13900/167600
+  [mutation_ordering] example 14000/167600
+  [mutation_ordering] example 14100/167600
+  [mutation_ordering] example 14200/167600
+  [mutation_ordering] example 14300/167600
+  [mutation_ordering] example 14400/167600
+  [mutation_ordering] example 14500/167600
+  [mutation_ordering] example 14600/167600
+  [mutation_ordering] example 14700/167600
+  [mutation_ordering] example 14800/167600
+  [mutation_ordering] example 14900/167600
+  [mutation_ordering] example 15000/167600
+  [mutation_ordering] example 15100/167600
+  [mutation_ordering] example 15200/167600
+  [mutation_ordering] example 15300/167600
+  [mutation_ordering] example 15400/167600
+  [mutation_ordering] example 15500/167600
+  [mutation_ordering] example 15600/167600
+  [mutation_ordering] example 15700/167600
+  [mutation_ordering] example 15800/167600
+  [mutation_ordering] example 15900/167600
+  [mutation_ordering] example 16000/167600
+  [mutation_ordering] example 16100/167600
+  [mutation_ordering] example 16200/167600
+  [mutation_ordering] example 16300/167600
+  [mutation_ordering] example 16400/167600
+  [mutation_ordering] example 16500/167600
+  [mutation_ordering] example 16600/167600
+  [mutation_ordering] example 16700/167600
+  [mutation_ordering] example 16800/167600
+  [mutation_ordering] example 16900/167600
+  [mutation_ordering] example 17000/167600
+  [mutation_ordering] example 17100/167600
+  [mutation_ordering] example 17200/167600
+  [mutation_ordering] example 17300/167600
+  [mutation_ordering] example 17400/167600
+  [mutation_ordering] example 17500/167600
+  [mutation_ordering] example 17600/167600
+  [mutation_ordering] example 17700/167600
+  [mutation_ordering] example 17800/167600
+  [mutation_ordering] example 17900/167600
+  [mutation_ordering] example 18000/167600
+  [mutation_ordering] example 18100/167600
+  [mutation_ordering] example 18200/167600
+  [mutation_ordering] example 18300/167600
+  [mutation_ordering] example 18400/167600
+  [mutation_ordering] example 18500/167600
+  [mutation_ordering] example 18600/167600
+  [mutation_ordering] example 18700/167600
+  [mutation_ordering] example 18800/167600
+  [mutation_ordering] example 18900/167600
+  [mutation_ordering] example 19000/167600
+  [mutation_ordering] example 19100/167600
+  [mutation_ordering] example 19200/167600
+  [mutation_ordering] example 19300/167600
+  [mutation_ordering] example 19400/167600
+  [mutation_ordering] example 19500/167600
+  [mutation_ordering] example 19600/167600
+  [mutation_ordering] example 19700/167600
+  [mutation_ordering] example 19800/167600
+  [mutation_ordering] example 19900/167600
+  [mutation_ordering] example 20000/167600
+  [mutation_ordering] example 20100/167600
+  [mutation_ordering] example 20200/167600
+  [mutation_ordering] example 20300/167600
+  [mutation_ordering] example 20400/167600
+  [mutation_ordering] example 20500/167600
+  [mutation_ordering] example 20600/167600
+  [mutation_ordering] example 20700/167600
+  [mutation_ordering] example 20800/167600
+  [mutation_ordering] example 20900/167600
+  [mutation_ordering] example 21000/167600
+  [mutation_ordering] example 21100/167600
+  [mutation_ordering] example 21200/167600
+  [mutation_ordering] example 21300/167600
+  [mutation_ordering] example 21400/167600
+  [mutation_ordering] example 21500/167600
+  [mutation_ordering] example 21600/167600
+  [mutation_ordering] example 21700/167600
+  [mutation_ordering] example 21800/167600
+  [mutation_ordering] example 21900/167600
+  [mutation_ordering] example 22000/167600
+  [mutation_ordering] example 22100/167600
+  [mutation_ordering] example 22200/167600
+  [mutation_ordering] example 22300/167600
+  [mutation_ordering] example 22400/167600
+  [mutation_ordering] example 22500/167600
+  [mutation_ordering] example 22600/167600
+  [mutation_ordering] example 22700/167600
+  [mutation_ordering] example 22800/167600
+  [mutation_ordering] example 22900/167600
+  [mutation_ordering] example 23000/167600
+  [mutation_ordering] example 23100/167600
+  [mutation_ordering] example 23200/167600
+  [mutation_ordering] example 23300/167600
+  [mutation_ordering] example 23400/167600
+  [mutation_ordering] example 23500/167600
+  [mutation_ordering] example 23600/167600
+  [mutation_ordering] example 23700/167600
+  [mutation_ordering] example 23800/167600
+  [mutation_ordering] example 23900/167600
+  [mutation_ordering] example 24000/167600
+  [mutation_ordering] example 24100/167600
+  [mutation_ordering] example 24200/167600
+  [mutation_ordering] example 24300/167600
+  [mutation_ordering] example 24400/167600
+  [mutation_ordering] example 24500/167600
+  [mutation_ordering] example 24600/167600
+  [mutation_ordering] example 24700/167600
+  [mutation_ordering] example 24800/167600
+  [mutation_ordering] example 24900/167600
+  [mutation_ordering] example 25000/167600
+  [mutation_ordering] example 25100/167600
+  [mutation_ordering] example 25200/167600
+  [mutation_ordering] example 25300/167600
+  [mutation_ordering] example 25400/167600
+  [mutation_ordering] example 25500/167600
+  [mutation_ordering] example 25600/167600
+  [mutation_ordering] example 25700/167600
+  [mutation_ordering] example 25800/167600
+  [mutation_ordering] example 25900/167600
+  [mutation_ordering] example 26000/167600
+  [mutation_ordering] example 26100/167600
+  [mutation_ordering] example 26200/167600
+  [mutation_ordering] example 26300/167600
+  [mutation_ordering] example 26400/167600
+  [mutation_ordering] example 26500/167600
+  [mutation_ordering] example 26600/167600
+  [mutation_ordering] example 26700/167600
+  [mutation_ordering] example 26800/167600
+  [mutation_ordering] example 26900/167600
+  [mutation_ordering] example 27000/167600
+  [mutation_ordering] example 27100/167600
+  [mutation_ordering] example 27200/167600
+  [mutation_ordering] example 27300/167600
+  [mutation_ordering] example 27400/167600
+  [mutation_ordering] example 27500/167600
+  [mutation_ordering] example 27600/167600
+  [mutation_ordering] example 27700/167600
+  [mutation_ordering] example 27800/167600
+  [mutation_ordering] example 27900/167600
+  [mutation_ordering] example 28000/167600
+  [mutation_ordering] example 28100/167600
+  [mutation_ordering] example 28200/167600
+  [mutation_ordering] example 28300/167600
+  [mutation_ordering] example 28400/167600
+  [mutation_ordering] example 28500/167600
+  [mutation_ordering] example 28600/167600
+  [mutation_ordering] example 28700/167600
+  [mutation_ordering] example 28800/167600
+  [mutation_ordering] example 28900/167600
+  [mutation_ordering] example 29000/167600
+  [mutation_ordering] example 29100/167600
+  [mutation_ordering] example 29200/167600
+  [mutation_ordering] example 29300/167600
+  [mutation_ordering] example 29400/167600
+  [mutation_ordering] example 29500/167600
+  [mutation_ordering] example 29600/167600
+  [mutation_ordering] example 29700/167600
+  [mutation_ordering] example 29800/167600
+  [mutation_ordering] example 29900/167600
+  [mutation_ordering] example 30000/167600
+  [mutation_ordering] example 30100/167600
+  [mutation_ordering] example 30200/167600
+  [mutation_ordering] example 30300/167600
+  [mutation_ordering] example 30400/167600
+  [mutation_ordering] example 30500/167600
+  [mutation_ordering] example 30600/167600
+  [mutation_ordering] example 30700/167600
+  [mutation_ordering] example 30800/167600
+  [mutation_ordering] example 30900/167600
+  [mutation_ordering] example 31000/167600
+  [mutation_ordering] example 31100/167600
+  [mutation_ordering] example 31200/167600
+  [mutation_ordering] example 31300/167600
+  [mutation_ordering] example 31400/167600
+  [mutation_ordering] example 31500/167600
+  [mutation_ordering] example 31600/167600
+  [mutation_ordering] example 31700/167600
+  [mutation_ordering] example 31800/167600
+  [mutation_ordering] example 31900/167600
+  [mutation_ordering] example 32000/167600
+  [mutation_ordering] example 32100/167600
+  [mutation_ordering] example 32200/167600
+  [mutation_ordering] example 32300/167600
+  [mutation_ordering] example 32400/167600
+  [mutation_ordering] example 32500/167600
+  [mutation_ordering] example 32600/167600
+  [mutation_ordering] example 32700/167600
+  [mutation_ordering] example 32800/167600
+  [mutation_ordering] example 32900/167600
+  [mutation_ordering] example 33000/167600
+  [mutation_ordering] example 33100/167600
+  [mutation_ordering] example 33200/167600
+  [mutation_ordering] example 33300/167600
+  [mutation_ordering] example 33400/167600
+  [mutation_ordering] example 33500/167600
+  [mutation_ordering] example 33600/167600
+  [mutation_ordering] example 33700/167600
+  [mutation_ordering] example 33800/167600
+  [mutation_ordering] example 33900/167600
+  [mutation_ordering] example 34000/167600
+  [mutation_ordering] example 34100/167600
+  [mutation_ordering] example 34200/167600
+  [mutation_ordering] example 34300/167600
+  [mutation_ordering] example 34400/167600
+  [mutation_ordering] example 34500/167600
+  [mutation_ordering] example 34600/167600
+  [mutation_ordering] example 34700/167600
+  [mutation_ordering] example 34800/167600
+  [mutation_ordering] example 34900/167600
+  [mutation_ordering] example 35000/167600
+  [mutation_ordering] example 35100/167600
+  [mutation_ordering] example 35200/167600
+  [mutation_ordering] example 35300/167600
+  [mutation_ordering] example 35400/167600
+  [mutation_ordering] example 35500/167600
+  [mutation_ordering] example 35600/167600
+  [mutation_ordering] example 35700/167600
+  [mutation_ordering] example 35800/167600
+  [mutation_ordering] example 35900/167600
+  [mutation_ordering] example 36000/167600
+  [mutation_ordering] example 36100/167600
+  [mutation_ordering] example 36200/167600
+  [mutation_ordering] example 36300/167600
+  [mutation_ordering] example 36400/167600
+  [mutation_ordering] example 36500/167600
+  [mutation_ordering] example 36600/167600
+  [mutation_ordering] example 36700/167600
+  [mutation_ordering] example 36800/167600
+  [mutation_ordering] example 36900/167600
+  [mutation_ordering] example 37000/167600
+  [mutation_ordering] example 37100/167600
+  [mutation_ordering] example 37200/167600
+  [mutation_ordering] example 37300/167600
+  [mutation_ordering] example 37400/167600
+  [mutation_ordering] example 37500/167600
+  [mutation_ordering] example 37600/167600
+  [mutation_ordering] example 37700/167600
+  [mutation_ordering] example 37800/167600
+  [mutation_ordering] example 37900/167600
+  [mutation_ordering] example 38000/167600
+  [mutation_ordering] example 38100/167600
+  [mutation_ordering] example 38200/167600
+  [mutation_ordering] example 38300/167600
+  [mutation_ordering] example 38400/167600
+  [mutation_ordering] example 38500/167600
+  [mutation_ordering] example 38600/167600
+  [mutation_ordering] example 38700/167600
+  [mutation_ordering] example 38800/167600
+  [mutation_ordering] example 38900/167600
+  [mutation_ordering] example 39000/167600
+  [mutation_ordering] example 39100/167600
+  [mutation_ordering] example 39200/167600
+  [mutation_ordering] example 39300/167600
+  [mutation_ordering] example 39400/167600
+  [mutation_ordering] example 39500/167600
+  [mutation_ordering] example 39600/167600
+  [mutation_ordering] example 39700/167600
+  [mutation_ordering] example 39800/167600
+  [mutation_ordering] example 39900/167600
+  [mutation_ordering] example 40000/167600
+  [mutation_ordering] example 40100/167600
+  [mutation_ordering] example 40200/167600
+  [mutation_ordering] example 40300/167600
+  [mutation_ordering] example 40400/167600
+  [mutation_ordering] example 40500/167600
+  [mutation_ordering] example 40600/167600
+  [mutation_ordering] example 40700/167600
+  [mutation_ordering] example 40800/167600
+  [mutation_ordering] example 40900/167600
+  [mutation_ordering] example 41000/167600
+  [mutation_ordering] example 41100/167600
+  [mutation_ordering] example 41200/167600
+  [mutation_ordering] example 41300/167600
+  [mutation_ordering] example 41400/167600
+  [mutation_ordering] example 41500/167600
+  [mutation_ordering] example 41600/167600
+  [mutation_ordering] example 41700/167600
+  [mutation_ordering] example 41800/167600
+  [mutation_ordering] example 41900/167600
+  [mutation_ordering] example 42000/167600
+  [mutation_ordering] example 42100/167600
+  [mutation_ordering] example 42200/167600
+  [mutation_ordering] example 42300/167600
+  [mutation_ordering] example 42400/167600
+  [mutation_ordering] example 42500/167600
+  [mutation_ordering] example 42600/167600
+  [mutation_ordering] example 42700/167600
+  [mutation_ordering] example 42800/167600
+  [mutation_ordering] example 42900/167600
+  [mutation_ordering] example 43000/167600
+  [mutation_ordering] example 43100/167600
+  [mutation_ordering] example 43200/167600
+  [mutation_ordering] example 43300/167600
+  [mutation_ordering] example 43400/167600
+  [mutation_ordering] example 43500/167600
+  [mutation_ordering] example 43600/167600
+  [mutation_ordering] example 43700/167600
+  [mutation_ordering] example 43800/167600
+  [mutation_ordering] example 43900/167600
+  [mutation_ordering] example 44000/167600
+  [mutation_ordering] example 44100/167600
+  [mutation_ordering] example 44200/167600
+  [mutation_ordering] example 44300/167600
+  [mutation_ordering] example 44400/167600
+  [mutation_ordering] example 44500/167600
+  [mutation_ordering] example 44600/167600
+  [mutation_ordering] example 44700/167600
+  [mutation_ordering] example 44800/167600
+  [mutation_ordering] example 44900/167600
+  [mutation_ordering] example 45000/167600
+  [mutation_ordering] example 45100/167600
+  [mutation_ordering] example 45200/167600
+  [mutation_ordering] example 45300/167600
+  [mutation_ordering] example 45400/167600
+  [mutation_ordering] example 45500/167600
+  [mutation_ordering] example 45600/167600
+  [mutation_ordering] example 45700/167600
+  [mutation_ordering] example 45800/167600
+  [mutation_ordering] example 45900/167600
+  [mutation_ordering] example 46000/167600
+  [mutation_ordering] example 46100/167600
+  [mutation_ordering] example 46200/167600
+  [mutation_ordering] example 46300/167600
+  [mutation_ordering] example 46400/167600
+  [mutation_ordering] example 46500/167600
+  [mutation_ordering] example 46600/167600
+  [mutation_ordering] example 46700/167600
+  [mutation_ordering] example 46800/167600
+  [mutation_ordering] example 46900/167600
+  [mutation_ordering] example 47000/167600
+  [mutation_ordering] example 47100/167600
+  [mutation_ordering] example 47200/167600
+  [mutation_ordering] example 47300/167600
+  [mutation_ordering] example 47400/167600
+  [mutation_ordering] example 47500/167600
+  [mutation_ordering] example 47600/167600
+  [mutation_ordering] example 47700/167600
+  [mutation_ordering] example 47800/167600
+  [mutation_ordering] example 47900/167600
+  [mutation_ordering] example 48000/167600
+  [mutation_ordering] example 48100/167600
+  [mutation_ordering] example 48200/167600
+  [mutation_ordering] example 48300/167600
+  [mutation_ordering] example 48400/167600
+  [mutation_ordering] example 48500/167600
+  [mutation_ordering] example 48600/167600
+  [mutation_ordering] example 48700/167600
+  [mutation_ordering] example 48800/167600
+  [mutation_ordering] example 48900/167600
+  [mutation_ordering] example 49000/167600
+  [mutation_ordering] example 49100/167600
+  [mutation_ordering] example 49200/167600
+  [mutation_ordering] example 49300/167600
+  [mutation_ordering] example 49400/167600
+  [mutation_ordering] example 49500/167600
+  [mutation_ordering] example 49600/167600
+  [mutation_ordering] example 49700/167600
+  [mutation_ordering] example 49800/167600
+  [mutation_ordering] example 49900/167600
+  [mutation_ordering] example 50000/167600
+  [mutation_ordering] example 50100/167600
+  [mutation_ordering] example 50200/167600
+  [mutation_ordering] example 50300/167600
+  [mutation_ordering] example 50400/167600
+  [mutation_ordering] example 50500/167600
+  [mutation_ordering] example 50600/167600
+  [mutation_ordering] example 50700/167600
+  [mutation_ordering] example 50800/167600
+  [mutation_ordering] example 50900/167600
+  [mutation_ordering] example 51000/167600
+  [mutation_ordering] example 51100/167600
+  [mutation_ordering] example 51200/167600
+  [mutation_ordering] example 51300/167600
+  [mutation_ordering] example 51400/167600
+  [mutation_ordering] example 51500/167600
+  [mutation_ordering] example 51600/167600
+  [mutation_ordering] example 51700/167600
+  [mutation_ordering] example 51800/167600
+  [mutation_ordering] example 51900/167600
+  [mutation_ordering] example 52000/167600
+  [mutation_ordering] example 52100/167600
+  [mutation_ordering] example 52200/167600
+  [mutation_ordering] example 52300/167600
+  [mutation_ordering] example 52400/167600
+  [mutation_ordering] example 52500/167600
+  [mutation_ordering] example 52600/167600
+  [mutation_ordering] example 52700/167600
+  [mutation_ordering] example 52800/167600
+  [mutation_ordering] example 52900/167600
+  [mutation_ordering] example 53000/167600
+  [mutation_ordering] example 53100/167600
+  [mutation_ordering] example 53200/167600
+  [mutation_ordering] example 53300/167600
+  [mutation_ordering] example 53400/167600
+  [mutation_ordering] example 53500/167600
+  [mutation_ordering] example 53600/167600
+  [mutation_ordering] example 53700/167600
+  [mutation_ordering] example 53800/167600
+  [mutation_ordering] example 53900/167600
+  [mutation_ordering] example 54000/167600
+  [mutation_ordering] example 54100/167600
+  [mutation_ordering] example 54200/167600
+  [mutation_ordering] example 54300/167600
+  [mutation_ordering] example 54400/167600
+  [mutation_ordering] example 54500/167600
+  [mutation_ordering] example 54600/167600
+  [mutation_ordering] example 54700/167600
+  [mutation_ordering] example 54800/167600
+  [mutation_ordering] example 54900/167600
+  [mutation_ordering] example 55000/167600
+  [mutation_ordering] example 55100/167600
+  [mutation_ordering] example 55200/167600
+  [mutation_ordering] example 55300/167600
+  [mutation_ordering] example 55400/167600
+  [mutation_ordering] example 55500/167600
+  [mutation_ordering] example 55600/167600
+  [mutation_ordering] example 55700/167600
+  [mutation_ordering] example 55800/167600
+  [mutation_ordering] example 55900/167600
+  [mutation_ordering] example 56000/167600
+  [mutation_ordering] example 56100/167600
+  [mutation_ordering] example 56200/167600
+  [mutation_ordering] example 56300/167600
+  [mutation_ordering] example 56400/167600
+  [mutation_ordering] example 56500/167600
+  [mutation_ordering] example 56600/167600
+  [mutation_ordering] example 56700/167600
+  [mutation_ordering] example 56800/167600
+  [mutation_ordering] example 56900/167600
+  [mutation_ordering] example 57000/167600
+  [mutation_ordering] example 57100/167600
+  [mutation_ordering] example 57200/167600
+  [mutation_ordering] example 57300/167600
+  [mutation_ordering] example 57400/167600
+  [mutation_ordering] example 57500/167600
+  [mutation_ordering] example 57600/167600
+  [mutation_ordering] example 57700/167600
+  [mutation_ordering] example 57800/167600
+  [mutation_ordering] example 57900/167600
+  [mutation_ordering] example 58000/167600
+  [mutation_ordering] example 58100/167600
+  [mutation_ordering] example 58200/167600
+  [mutation_ordering] example 58300/167600
+  [mutation_ordering] example 58400/167600
+  [mutation_ordering] example 58500/167600
+  [mutation_ordering] example 58600/167600
+  [mutation_ordering] example 58700/167600
+  [mutation_ordering] example 58800/167600
+  [mutation_ordering] example 58900/167600
+  [mutation_ordering] example 59000/167600
+  [mutation_ordering] example 59100/167600
+  [mutation_ordering] example 59200/167600
+  [mutation_ordering] example 59300/167600
+  [mutation_ordering] example 59400/167600
+  [mutation_ordering] example 59500/167600
+  [mutation_ordering] example 59600/167600
+  [mutation_ordering] example 59700/167600
+  [mutation_ordering] example 59800/167600
+  [mutation_ordering] example 59900/167600
+  [mutation_ordering] example 60000/167600
+  [mutation_ordering] example 60100/167600
+  [mutation_ordering] example 60200/167600
+  [mutation_ordering] example 60300/167600
+  [mutation_ordering] example 60400/167600
+  [mutation_ordering] example 60500/167600
+  [mutation_ordering] example 60600/167600
+  [mutation_ordering] example 60700/167600
+  [mutation_ordering] example 60800/167600
+  [mutation_ordering] example 60900/167600
+  [mutation_ordering] example 61000/167600
+  [mutation_ordering] example 61100/167600
+  [mutation_ordering] example 61200/167600
+  [mutation_ordering] example 61300/167600
+  [mutation_ordering] example 61400/167600
+  [mutation_ordering] example 61500/167600
+  [mutation_ordering] example 61600/167600
+  [mutation_ordering] example 61700/167600
+  [mutation_ordering] example 61800/167600
+  [mutation_ordering] example 61900/167600
+  [mutation_ordering] example 62000/167600
+  [mutation_ordering] example 62100/167600
+  [mutation_ordering] example 62200/167600
+  [mutation_ordering] example 62300/167600
+  [mutation_ordering] example 62400/167600
+  [mutation_ordering] example 62500/167600
+  [mutation_ordering] example 62600/167600
+  [mutation_ordering] example 62700/167600
+  [mutation_ordering] example 62800/167600
+  [mutation_ordering] example 62900/167600
+  [mutation_ordering] example 63000/167600
+  [mutation_ordering] example 63100/167600
+  [mutation_ordering] example 63200/167600
+  [mutation_ordering] example 63300/167600
+  [mutation_ordering] example 63400/167600
+  [mutation_ordering] example 63500/167600
+  [mutation_ordering] example 63600/167600
+  [mutation_ordering] example 63700/167600
+  [mutation_ordering] example 63800/167600
+  [mutation_ordering] example 63900/167600
+  [mutation_ordering] example 64000/167600
+  [mutation_ordering] example 64100/167600
+  [mutation_ordering] example 64200/167600
+  [mutation_ordering] example 64300/167600
+  [mutation_ordering] example 64400/167600
+  [mutation_ordering] example 64500/167600
+  [mutation_ordering] example 64600/167600
+  [mutation_ordering] example 64700/167600
+  [mutation_ordering] example 64800/167600
+  [mutation_ordering] example 64900/167600
+  [mutation_ordering] example 65000/167600
+  [mutation_ordering] example 65100/167600
+  [mutation_ordering] example 65200/167600
+  [mutation_ordering] example 65300/167600
+  [mutation_ordering] example 65400/167600
+  [mutation_ordering] example 65500/167600
+  [mutation_ordering] example 65600/167600
+  [mutation_ordering] example 65700/167600
+  [mutation_ordering] example 65800/167600
+  [mutation_ordering] example 65900/167600
+  [mutation_ordering] example 66000/167600
+  [mutation_ordering] example 66100/167600
+  [mutation_ordering] example 66200/167600
+  [mutation_ordering] example 66300/167600
+  [mutation_ordering] example 66400/167600
+  [mutation_ordering] example 66500/167600
+  [mutation_ordering] example 66600/167600
+  [mutation_ordering] example 66700/167600
+  [mutation_ordering] example 66800/167600
+  [mutation_ordering] example 66900/167600
+  [mutation_ordering] example 67000/167600
+  [mutation_ordering] example 67100/167600
+  [mutation_ordering] example 67200/167600
+  [mutation_ordering] example 67300/167600
+  [mutation_ordering] example 67400/167600
+  [mutation_ordering] example 67500/167600
+  [mutation_ordering] example 67600/167600
+  [mutation_ordering] example 67700/167600
+  [mutation_ordering] example 67800/167600
+  [mutation_ordering] example 67900/167600
+  [mutation_ordering] example 68000/167600
+  [mutation_ordering] example 68100/167600
+  [mutation_ordering] example 68200/167600
+  [mutation_ordering] example 68300/167600
+  [mutation_ordering] example 68400/167600
+  [mutation_ordering] example 68500/167600
+  [mutation_ordering] example 68600/167600
+  [mutation_ordering] example 68700/167600
+  [mutation_ordering] example 68800/167600
+  [mutation_ordering] example 68900/167600
+  [mutation_ordering] example 69000/167600
+  [mutation_ordering] example 69100/167600
+  [mutation_ordering] example 69200/167600
+  [mutation_ordering] example 69300/167600
+  [mutation_ordering] example 69400/167600
+  [mutation_ordering] example 69500/167600
+  [mutation_ordering] example 69600/167600
+  [mutation_ordering] example 69700/167600
+  [mutation_ordering] example 69800/167600
+  [mutation_ordering] example 69900/167600
+  [mutation_ordering] example 70000/167600
+  [mutation_ordering] example 70100/167600
+  [mutation_ordering] example 70200/167600
+  [mutation_ordering] example 70300/167600
+  [mutation_ordering] example 70400/167600
+  [mutation_ordering] example 70500/167600
+  [mutation_ordering] example 70600/167600
+  [mutation_ordering] example 70700/167600
+  [mutation_ordering] example 70800/167600
+  [mutation_ordering] example 70900/167600
+  [mutation_ordering] example 71000/167600
+  [mutation_ordering] example 71100/167600
+  [mutation_ordering] example 71200/167600
+  [mutation_ordering] example 71300/167600
+  [mutation_ordering] example 71400/167600
+  [mutation_ordering] example 71500/167600
+  [mutation_ordering] example 71600/167600
+  [mutation_ordering] example 71700/167600
+  [mutation_ordering] example 71800/167600
+  [mutation_ordering] example 71900/167600
+  [mutation_ordering] example 72000/167600
+  [mutation_ordering] example 72100/167600
+  [mutation_ordering] example 72200/167600
+  [mutation_ordering] example 72300/167600
+  [mutation_ordering] example 72400/167600
+  [mutation_ordering] example 72500/167600
+  [mutation_ordering] example 72600/167600
+  [mutation_ordering] example 72700/167600
+  [mutation_ordering] example 72800/167600
+  [mutation_ordering] example 72900/167600
+  [mutation_ordering] example 73000/167600
+  [mutation_ordering] example 73100/167600
+  [mutation_ordering] example 73200/167600
+  [mutation_ordering] example 73300/167600
+  [mutation_ordering] example 73400/167600
+  [mutation_ordering] example 73500/167600
+  [mutation_ordering] example 73600/167600
+  [mutation_ordering] example 73700/167600
+  [mutation_ordering] example 73800/167600
+  [mutation_ordering] example 73900/167600
+  [mutation_ordering] example 74000/167600
+  [mutation_ordering] example 74100/167600
+  [mutation_ordering] example 74200/167600
+  [mutation_ordering] example 74300/167600
+  [mutation_ordering] example 74400/167600
+  [mutation_ordering] example 74500/167600
+  [mutation_ordering] example 74600/167600
+  [mutation_ordering] example 74700/167600
+  [mutation_ordering] example 74800/167600
+  [mutation_ordering] example 74900/167600
+  [mutation_ordering] example 75000/167600
+  [mutation_ordering] example 75100/167600
+  [mutation_ordering] example 75200/167600
+  [mutation_ordering] example 75300/167600
+  [mutation_ordering] example 75400/167600
+  [mutation_ordering] example 75500/167600
+  [mutation_ordering] example 75600/167600
+  [mutation_ordering] example 75700/167600
+  [mutation_ordering] example 75800/167600
+  [mutation_ordering] example 75900/167600
+  [mutation_ordering] example 76000/167600
+  [mutation_ordering] example 76100/167600
+  [mutation_ordering] example 76200/167600
+  [mutation_ordering] example 76300/167600
+  [mutation_ordering] example 76400/167600
+  [mutation_ordering] example 76500/167600
+  [mutation_ordering] example 76600/167600
+  [mutation_ordering] example 76700/167600
+  [mutation_ordering] example 76800/167600
+  [mutation_ordering] example 76900/167600
+  [mutation_ordering] example 77000/167600
+  [mutation_ordering] example 77100/167600
+  [mutation_ordering] example 77200/167600
+  [mutation_ordering] example 77300/167600
+  [mutation_ordering] example 77400/167600
+  [mutation_ordering] example 77500/167600
+  [mutation_ordering] example 77600/167600
+  [mutation_ordering] example 77700/167600
+  [mutation_ordering] example 77800/167600
+  [mutation_ordering] example 77900/167600
+  [mutation_ordering] example 78000/167600
+  [mutation_ordering] example 78100/167600
+  [mutation_ordering] example 78200/167600
+  [mutation_ordering] example 78300/167600
+  [mutation_ordering] example 78400/167600
+  [mutation_ordering] example 78500/167600
+  [mutation_ordering] example 78600/167600
+  [mutation_ordering] example 78700/167600
+  [mutation_ordering] example 78800/167600
+  [mutation_ordering] example 78900/167600
+  [mutation_ordering] example 79000/167600
+  [mutation_ordering] example 79100/167600
+  [mutation_ordering] example 79200/167600
+  [mutation_ordering] example 79300/167600
+  [mutation_ordering] example 79400/167600
+  [mutation_ordering] example 79500/167600
+  [mutation_ordering] example 79600/167600
+  [mutation_ordering] example 79700/167600
+  [mutation_ordering] example 79800/167600
+  [mutation_ordering] example 79900/167600
+  [mutation_ordering] example 80000/167600
+  [mutation_ordering] example 80100/167600
+  [mutation_ordering] example 80200/167600
+  [mutation_ordering] example 80300/167600
+  [mutation_ordering] example 80400/167600
+  [mutation_ordering] example 80500/167600
+  [mutation_ordering] example 80600/167600
+  [mutation_ordering] example 80700/167600
+  [mutation_ordering] example 80800/167600
+  [mutation_ordering] example 80900/167600
+  [mutation_ordering] example 81000/167600
+  [mutation_ordering] example 81100/167600
+  [mutation_ordering] example 81200/167600
+  [mutation_ordering] example 81300/167600
+  [mutation_ordering] example 81400/167600
+  [mutation_ordering] example 81500/167600
+  [mutation_ordering] example 81600/167600
+  [mutation_ordering] example 81700/167600
+  [mutation_ordering] example 81800/167600
+  [mutation_ordering] example 81900/167600
+  [mutation_ordering] example 82000/167600
+  [mutation_ordering] example 82100/167600
+  [mutation_ordering] example 82200/167600
+  [mutation_ordering] example 82300/167600
+  [mutation_ordering] example 82400/167600
+  [mutation_ordering] example 82500/167600
+  [mutation_ordering] example 82600/167600
+  [mutation_ordering] example 82700/167600
+  [mutation_ordering] example 82800/167600
+  [mutation_ordering] example 82900/167600
+  [mutation_ordering] example 83000/167600
+  [mutation_ordering] example 83100/167600
+  [mutation_ordering] example 83200/167600
+  [mutation_ordering] example 83300/167600
+  [mutation_ordering] example 83400/167600
+  [mutation_ordering] example 83500/167600
+  [mutation_ordering] example 83600/167600
+  [mutation_ordering] example 83700/167600
+  [mutation_ordering] example 83800/167600
+  [mutation_ordering] example 83900/167600
+  [mutation_ordering] example 84000/167600
+  [mutation_ordering] example 84100/167600
+  [mutation_ordering] example 84200/167600
+  [mutation_ordering] example 84300/167600
+  [mutation_ordering] example 84400/167600
+  [mutation_ordering] example 84500/167600
+  [mutation_ordering] example 84600/167600
+  [mutation_ordering] example 84700/167600
+  [mutation_ordering] example 84800/167600
+  [mutation_ordering] example 84900/167600
+  [mutation_ordering] example 85000/167600
+  [mutation_ordering] example 85100/167600
+  [mutation_ordering] example 85200/167600
+  [mutation_ordering] example 85300/167600
+  [mutation_ordering] example 85400/167600
+  [mutation_ordering] example 85500/167600
+  [mutation_ordering] example 85600/167600
+  [mutation_ordering] example 85700/167600
+  [mutation_ordering] example 85800/167600
+  [mutation_ordering] example 85900/167600
+  [mutation_ordering] example 86000/167600
+  [mutation_ordering] example 86100/167600
+  [mutation_ordering] example 86200/167600
+  [mutation_ordering] example 86300/167600
+  [mutation_ordering] example 86400/167600
+  [mutation_ordering] example 86500/167600
+  [mutation_ordering] example 86600/167600
+  [mutation_ordering] example 86700/167600
+  [mutation_ordering] example 86800/167600
+  [mutation_ordering] example 86900/167600
+  [mutation_ordering] example 87000/167600
+  [mutation_ordering] example 87100/167600
+  [mutation_ordering] example 87200/167600
+  [mutation_ordering] example 87300/167600
+  [mutation_ordering] example 87400/167600
+  [mutation_ordering] example 87500/167600
+  [mutation_ordering] example 87600/167600
+  [mutation_ordering] example 87700/167600
+  [mutation_ordering] example 87800/167600
+  [mutation_ordering] example 87900/167600
+  [mutation_ordering] example 88000/167600
+  [mutation_ordering] example 88100/167600
+  [mutation_ordering] example 88200/167600
+  [mutation_ordering] example 88300/167600
+  [mutation_ordering] example 88400/167600
+  [mutation_ordering] example 88500/167600
+  [mutation_ordering] example 88600/167600
+  [mutation_ordering] example 88700/167600
+  [mutation_ordering] example 88800/167600
+  [mutation_ordering] example 88900/167600
+  [mutation_ordering] example 89000/167600
+  [mutation_ordering] example 89100/167600
+  [mutation_ordering] example 89200/167600
+  [mutation_ordering] example 89300/167600
+  [mutation_ordering] example 89400/167600
+  [mutation_ordering] example 89500/167600
+  [mutation_ordering] example 89600/167600
+  [mutation_ordering] example 89700/167600
+  [mutation_ordering] example 89800/167600
+  [mutation_ordering] example 89900/167600
+  [mutation_ordering] example 90000/167600
+  [mutation_ordering] example 90100/167600
+  [mutation_ordering] example 90200/167600
+  [mutation_ordering] example 90300/167600
+  [mutation_ordering] example 90400/167600
+  [mutation_ordering] example 90500/167600
+  [mutation_ordering] example 90600/167600
+  [mutation_ordering] example 90700/167600
+  [mutation_ordering] example 90800/167600
+  [mutation_ordering] example 90900/167600
+  [mutation_ordering] example 91000/167600
+  [mutation_ordering] example 91100/167600
+  [mutation_ordering] example 91200/167600
+  [mutation_ordering] example 91300/167600
+  [mutation_ordering] example 91400/167600
+  [mutation_ordering] example 91500/167600
+  [mutation_ordering] example 91600/167600
+  [mutation_ordering] example 91700/167600
+  [mutation_ordering] example 91800/167600
+  [mutation_ordering] example 91900/167600
+  [mutation_ordering] example 92000/167600
+  [mutation_ordering] example 92100/167600
+  [mutation_ordering] example 92200/167600
+  [mutation_ordering] example 92300/167600
+  [mutation_ordering] example 92400/167600
+  [mutation_ordering] example 92500/167600
+  [mutation_ordering] example 92600/167600
+  [mutation_ordering] example 92700/167600
+  [mutation_ordering] example 92800/167600
+  [mutation_ordering] example 92900/167600
+  [mutation_ordering] example 93000/167600
+  [mutation_ordering] example 93100/167600
+  [mutation_ordering] example 93200/167600
+  [mutation_ordering] example 93300/167600
+  [mutation_ordering] example 93400/167600
+  [mutation_ordering] example 93500/167600
+  [mutation_ordering] example 93600/167600
+  [mutation_ordering] example 93700/167600
+  [mutation_ordering] example 93800/167600
+  [mutation_ordering] example 93900/167600
+  [mutation_ordering] example 94000/167600
+  [mutation_ordering] example 94100/167600
+  [mutation_ordering] example 94200/167600
+  [mutation_ordering] example 94300/167600
+  [mutation_ordering] example 94400/167600
+  [mutation_ordering] example 94500/167600
+  [mutation_ordering] example 94600/167600
+  [mutation_ordering] example 94700/167600
+  [mutation_ordering] example 94800/167600
+  [mutation_ordering] example 94900/167600
+  [mutation_ordering] example 95000/167600
+  [mutation_ordering] example 95100/167600
+  [mutation_ordering] example 95200/167600
+  [mutation_ordering] example 95300/167600
+  [mutation_ordering] example 95400/167600
+  [mutation_ordering] example 95500/167600
+  [mutation_ordering] example 95600/167600
+  [mutation_ordering] example 95700/167600
+  [mutation_ordering] example 95800/167600
+  [mutation_ordering] example 95900/167600
+  [mutation_ordering] example 96000/167600
+  [mutation_ordering] example 96100/167600
+  [mutation_ordering] example 96200/167600
+  [mutation_ordering] example 96300/167600
+  [mutation_ordering] example 96400/167600
+  [mutation_ordering] example 96500/167600
+  [mutation_ordering] example 96600/167600
+  [mutation_ordering] example 96700/167600
+  [mutation_ordering] example 96800/167600
+  [mutation_ordering] example 96900/167600
+  [mutation_ordering] example 97000/167600
+  [mutation_ordering] example 97100/167600
+  [mutation_ordering] example 97200/167600
+  [mutation_ordering] example 97300/167600
+  [mutation_ordering] example 97400/167600
+  [mutation_ordering] example 97500/167600
+  [mutation_ordering] example 97600/167600
+  [mutation_ordering] example 97700/167600
+  [mutation_ordering] example 97800/167600
+  [mutation_ordering] example 97900/167600
+  [mutation_ordering] example 98000/167600
+  [mutation_ordering] example 98100/167600
+  [mutation_ordering] example 98200/167600
+  [mutation_ordering] example 98300/167600
+  [mutation_ordering] example 98400/167600
+  [mutation_ordering] example 98500/167600
+  [mutation_ordering] example 98600/167600
+  [mutation_ordering] example 98700/167600
+  [mutation_ordering] example 98800/167600
+  [mutation_ordering] example 98900/167600
+  [mutation_ordering] example 99000/167600
+  [mutation_ordering] example 99100/167600
+  [mutation_ordering] example 99200/167600
+  [mutation_ordering] example 99300/167600
+  [mutation_ordering] example 99400/167600
+  [mutation_ordering] example 99500/167600
+  [mutation_ordering] example 99600/167600
+  [mutation_ordering] example 99700/167600
+  [mutation_ordering] example 99800/167600
+  [mutation_ordering] example 99900/167600
+  [mutation_ordering] example 100000/167600
+  [mutation_ordering] example 100100/167600
+  [mutation_ordering] example 100200/167600
+  [mutation_ordering] example 100300/167600
+  [mutation_ordering] example 100400/167600
+  [mutation_ordering] example 100500/167600
+  [mutation_ordering] example 100600/167600
+  [mutation_ordering] example 100700/167600
+  [mutation_ordering] example 100800/167600
+  [mutation_ordering] example 100900/167600
+  [mutation_ordering] example 101000/167600
+  [mutation_ordering] example 101100/167600
+  [mutation_ordering] example 101200/167600
+  [mutation_ordering] example 101300/167600
+  [mutation_ordering] example 101400/167600
+  [mutation_ordering] example 101500/167600
+  [mutation_ordering] example 101600/167600
+  [mutation_ordering] example 101700/167600
+  [mutation_ordering] example 101800/167600
+  [mutation_ordering] example 101900/167600
+  [mutation_ordering] example 102000/167600
+  [mutation_ordering] example 102100/167600
+  [mutation_ordering] example 102200/167600
+  [mutation_ordering] example 102300/167600
+  [mutation_ordering] example 102400/167600
+  [mutation_ordering] example 102500/167600
+  [mutation_ordering] example 102600/167600
+  [mutation_ordering] example 102700/167600
+  [mutation_ordering] example 102800/167600
+  [mutation_ordering] example 102900/167600
+  [mutation_ordering] example 103000/167600
+  [mutation_ordering] example 103100/167600
+  [mutation_ordering] example 103200/167600
+  [mutation_ordering] example 103300/167600
+  [mutation_ordering] example 103400/167600
+  [mutation_ordering] example 103500/167600
+  [mutation_ordering] example 103600/167600
+  [mutation_ordering] example 103700/167600
+  [mutation_ordering] example 103800/167600
+  [mutation_ordering] example 103900/167600
+  [mutation_ordering] example 104000/167600
+  [mutation_ordering] example 104100/167600
+  [mutation_ordering] example 104200/167600
+  [mutation_ordering] example 104300/167600
+  [mutation_ordering] example 104400/167600
+  [mutation_ordering] example 104500/167600
+  [mutation_ordering] example 104600/167600
+  [mutation_ordering] example 104700/167600
+  [mutation_ordering] example 104800/167600
+  [mutation_ordering] example 104900/167600
+  [mutation_ordering] example 105000/167600
+  [mutation_ordering] example 105100/167600
+  [mutation_ordering] example 105200/167600
+  [mutation_ordering] example 105300/167600
+  [mutation_ordering] example 105400/167600
+  [mutation_ordering] example 105500/167600
+  [mutation_ordering] example 105600/167600
+  [mutation_ordering] example 105700/167600
+  [mutation_ordering] example 105800/167600
+  [mutation_ordering] example 105900/167600
+  [mutation_ordering] example 106000/167600
+  [mutation_ordering] example 106100/167600
+  [mutation_ordering] example 106200/167600
+  [mutation_ordering] example 106300/167600
+  [mutation_ordering] example 106400/167600
+  [mutation_ordering] example 106500/167600
+  [mutation_ordering] example 106600/167600
+  [mutation_ordering] example 106700/167600
+  [mutation_ordering] example 106800/167600
+  [mutation_ordering] example 106900/167600
+  [mutation_ordering] example 107000/167600
+  [mutation_ordering] example 107100/167600
+  [mutation_ordering] example 107200/167600
+  [mutation_ordering] example 107300/167600
+  [mutation_ordering] example 107400/167600
+  [mutation_ordering] example 107500/167600
+  [mutation_ordering] example 107600/167600
+  [mutation_ordering] example 107700/167600
+  [mutation_ordering] example 107800/167600
+  [mutation_ordering] example 107900/167600
+  [mutation_ordering] example 108000/167600
+  [mutation_ordering] example 108100/167600
+  [mutation_ordering] example 108200/167600
+  [mutation_ordering] example 108300/167600
+  [mutation_ordering] example 108400/167600
+  [mutation_ordering] example 108500/167600
+  [mutation_ordering] example 108600/167600
+  [mutation_ordering] example 108700/167600
+  [mutation_ordering] example 108800/167600
+  [mutation_ordering] example 108900/167600
+  [mutation_ordering] example 109000/167600
+  [mutation_ordering] example 109100/167600
+  [mutation_ordering] example 109200/167600
+  [mutation_ordering] example 109300/167600
+  [mutation_ordering] example 109400/167600
+  [mutation_ordering] example 109500/167600
+  [mutation_ordering] example 109600/167600
+  [mutation_ordering] example 109700/167600
+  [mutation_ordering] example 109800/167600
+  [mutation_ordering] example 109900/167600
+  [mutation_ordering] example 110000/167600
+  [mutation_ordering] example 110100/167600
+  [mutation_ordering] example 110200/167600
+  [mutation_ordering] example 110300/167600
+  [mutation_ordering] example 110400/167600
+  [mutation_ordering] example 110500/167600
+  [mutation_ordering] example 110600/167600
+  [mutation_ordering] example 110700/167600
+  [mutation_ordering] example 110800/167600
+  [mutation_ordering] example 110900/167600
+  [mutation_ordering] example 111000/167600
+  [mutation_ordering] example 111100/167600
+  [mutation_ordering] example 111200/167600
+  [mutation_ordering] example 111300/167600
+  [mutation_ordering] example 111400/167600
+  [mutation_ordering] example 111500/167600
+  [mutation_ordering] example 111600/167600
+  [mutation_ordering] example 111700/167600
+  [mutation_ordering] example 111800/167600
+  [mutation_ordering] example 111900/167600
+  [mutation_ordering] example 112000/167600
+  [mutation_ordering] example 112100/167600
+  [mutation_ordering] example 112200/167600
+  [mutation_ordering] example 112300/167600
+  [mutation_ordering] example 112400/167600
+  [mutation_ordering] example 112500/167600
+  [mutation_ordering] example 112600/167600
+  [mutation_ordering] example 112700/167600
+  [mutation_ordering] example 112800/167600
+  [mutation_ordering] example 112900/167600
+  [mutation_ordering] example 113000/167600
+  [mutation_ordering] example 113100/167600
+  [mutation_ordering] example 113200/167600
+  [mutation_ordering] example 113300/167600
+  [mutation_ordering] example 113400/167600
+  [mutation_ordering] example 113500/167600
+  [mutation_ordering] example 113600/167600
+  [mutation_ordering] example 113700/167600
+  [mutation_ordering] example 113800/167600
+  [mutation_ordering] example 113900/167600
+  [mutation_ordering] example 114000/167600
+  [mutation_ordering] example 114100/167600
+  [mutation_ordering] example 114200/167600
+  [mutation_ordering] example 114300/167600
+  [mutation_ordering] example 114400/167600
+  [mutation_ordering] example 114500/167600
+  [mutation_ordering] example 114600/167600
+  [mutation_ordering] example 114700/167600
+  [mutation_ordering] example 114800/167600
+  [mutation_ordering] example 114900/167600
+  [mutation_ordering] example 115000/167600
+  [mutation_ordering] example 115100/167600
+  [mutation_ordering] example 115200/167600
+  [mutation_ordering] example 115300/167600
+  [mutation_ordering] example 115400/167600
+  [mutation_ordering] example 115500/167600
+  [mutation_ordering] example 115600/167600
+  [mutation_ordering] example 115700/167600
+  [mutation_ordering] example 115800/167600
+  [mutation_ordering] example 115900/167600
+  [mutation_ordering] example 116000/167600
+  [mutation_ordering] example 116100/167600
+  [mutation_ordering] example 116200/167600
+  [mutation_ordering] example 116300/167600
+  [mutation_ordering] example 116400/167600
+  [mutation_ordering] example 116500/167600
+  [mutation_ordering] example 116600/167600
+  [mutation_ordering] example 116700/167600
+  [mutation_ordering] example 116800/167600
+  [mutation_ordering] example 116900/167600
+  [mutation_ordering] example 117000/167600
+  [mutation_ordering] example 117100/167600
+  [mutation_ordering] example 117200/167600
+  [mutation_ordering] example 117300/167600
+  [mutation_ordering] example 117400/167600
+  [mutation_ordering] example 117500/167600
+  [mutation_ordering] example 117600/167600
+  [mutation_ordering] example 117700/167600
+  [mutation_ordering] example 117800/167600
+  [mutation_ordering] example 117900/167600
+  [mutation_ordering] example 118000/167600
+  [mutation_ordering] example 118100/167600
+  [mutation_ordering] example 118200/167600
+  [mutation_ordering] example 118300/167600
+  [mutation_ordering] example 118400/167600
+  [mutation_ordering] example 118500/167600
+  [mutation_ordering] example 118600/167600
+  [mutation_ordering] example 118700/167600
+  [mutation_ordering] example 118800/167600
+  [mutation_ordering] example 118900/167600
+  [mutation_ordering] example 119000/167600
+  [mutation_ordering] example 119100/167600
+  [mutation_ordering] example 119200/167600
+  [mutation_ordering] example 119300/167600
+  [mutation_ordering] example 119400/167600
+  [mutation_ordering] example 119500/167600
+  [mutation_ordering] example 119600/167600
+  [mutation_ordering] example 119700/167600
+  [mutation_ordering] example 119800/167600
+  [mutation_ordering] example 119900/167600
+  [mutation_ordering] example 120000/167600
+  [mutation_ordering] example 120100/167600
+  [mutation_ordering] example 120200/167600
+  [mutation_ordering] example 120300/167600
+  [mutation_ordering] example 120400/167600
+  [mutation_ordering] example 120500/167600
+  [mutation_ordering] example 120600/167600
+  [mutation_ordering] example 120700/167600
+  [mutation_ordering] example 120800/167600
+  [mutation_ordering] example 120900/167600
+  [mutation_ordering] example 121000/167600
+  [mutation_ordering] example 121100/167600
+  [mutation_ordering] example 121200/167600
+  [mutation_ordering] example 121300/167600
+  [mutation_ordering] example 121400/167600
+  [mutation_ordering] example 121500/167600
+  [mutation_ordering] example 121600/167600
+  [mutation_ordering] example 121700/167600
+  [mutation_ordering] example 121800/167600
+  [mutation_ordering] example 121900/167600
+  [mutation_ordering] example 122000/167600
+  [mutation_ordering] example 122100/167600
+  [mutation_ordering] example 122200/167600
+  [mutation_ordering] example 122300/167600
+  [mutation_ordering] example 122400/167600
+  [mutation_ordering] example 122500/167600
+  [mutation_ordering] example 122600/167600
+  [mutation_ordering] example 122700/167600
+  [mutation_ordering] example 122800/167600
+  [mutation_ordering] example 122900/167600
+  [mutation_ordering] example 123000/167600
+  [mutation_ordering] example 123100/167600
+  [mutation_ordering] example 123200/167600
+  [mutation_ordering] example 123300/167600
+  [mutation_ordering] example 123400/167600
+  [mutation_ordering] example 123500/167600
+  [mutation_ordering] example 123600/167600
+  [mutation_ordering] example 123700/167600
+  [mutation_ordering] example 123800/167600
+  [mutation_ordering] example 123900/167600
+  [mutation_ordering] example 124000/167600
+  [mutation_ordering] example 124100/167600
+  [mutation_ordering] example 124200/167600
+  [mutation_ordering] example 124300/167600
+  [mutation_ordering] example 124400/167600
+  [mutation_ordering] example 124500/167600
+  [mutation_ordering] example 124600/167600
+  [mutation_ordering] example 124700/167600
+  [mutation_ordering] example 124800/167600
+  [mutation_ordering] example 124900/167600
+  [mutation_ordering] example 125000/167600
+  [mutation_ordering] example 125100/167600
+  [mutation_ordering] example 125200/167600
+  [mutation_ordering] example 125300/167600
+  [mutation_ordering] example 125400/167600
+  [mutation_ordering] example 125500/167600
+  [mutation_ordering] example 125600/167600
+  [mutation_ordering] example 125700/167600
+  [mutation_ordering] example 125800/167600
+  [mutation_ordering] example 125900/167600
+  [mutation_ordering] example 126000/167600
+  [mutation_ordering] example 126100/167600
+  [mutation_ordering] example 126200/167600
+  [mutation_ordering] example 126300/167600
+  [mutation_ordering] example 126400/167600
+  [mutation_ordering] example 126500/167600
+  [mutation_ordering] example 126600/167600
+  [mutation_ordering] example 126700/167600
+  [mutation_ordering] example 126800/167600
+  [mutation_ordering] example 126900/167600
+  [mutation_ordering] example 127000/167600
+  [mutation_ordering] example 127100/167600
+  [mutation_ordering] example 127200/167600
+  [mutation_ordering] example 127300/167600
+  [mutation_ordering] example 127400/167600
+  [mutation_ordering] example 127500/167600
+  [mutation_ordering] example 127600/167600
+  [mutation_ordering] example 127700/167600
+  [mutation_ordering] example 127800/167600
+  [mutation_ordering] example 127900/167600
+  [mutation_ordering] example 128000/167600
+  [mutation_ordering] example 128100/167600
+  [mutation_ordering] example 128200/167600
+  [mutation_ordering] example 128300/167600
+  [mutation_ordering] example 128400/167600
+  [mutation_ordering] example 128500/167600
+  [mutation_ordering] example 128600/167600
+  [mutation_ordering] example 128700/167600
+  [mutation_ordering] example 128800/167600
+  [mutation_ordering] example 128900/167600
+  [mutation_ordering] example 129000/167600
+  [mutation_ordering] example 129100/167600
+  [mutation_ordering] example 129200/167600
+  [mutation_ordering] example 129300/167600
+  [mutation_ordering] example 129400/167600
+  [mutation_ordering] example 129500/167600
+  [mutation_ordering] example 129600/167600
+  [mutation_ordering] example 129700/167600
+  [mutation_ordering] example 129800/167600
+  [mutation_ordering] example 129900/167600
+  [mutation_ordering] example 130000/167600
+  [mutation_ordering] example 130100/167600
+  [mutation_ordering] example 130200/167600
+  [mutation_ordering] example 130300/167600
+  [mutation_ordering] example 130400/167600
+  [mutation_ordering] example 130500/167600
+  [mutation_ordering] example 130600/167600
+  [mutation_ordering] example 130700/167600
+  [mutation_ordering] example 130800/167600
+  [mutation_ordering] example 130900/167600
+  [mutation_ordering] example 131000/167600
+  [mutation_ordering] example 131100/167600
+  [mutation_ordering] example 131200/167600
+  [mutation_ordering] example 131300/167600
+  [mutation_ordering] example 131400/167600
+  [mutation_ordering] example 131500/167600
+  [mutation_ordering] example 131600/167600
+  [mutation_ordering] example 131700/167600
+  [mutation_ordering] example 131800/167600
+  [mutation_ordering] example 131900/167600
+  [mutation_ordering] example 132000/167600
+  [mutation_ordering] example 132100/167600
+  [mutation_ordering] example 132200/167600
+  [mutation_ordering] example 132300/167600
+  [mutation_ordering] example 132400/167600
+  [mutation_ordering] example 132500/167600
+  [mutation_ordering] example 132600/167600
+  [mutation_ordering] example 132700/167600
+  [mutation_ordering] example 132800/167600
+  [mutation_ordering] example 132900/167600
+  [mutation_ordering] example 133000/167600
+  [mutation_ordering] example 133100/167600
+  [mutation_ordering] example 133200/167600
+  [mutation_ordering] example 133300/167600
+  [mutation_ordering] example 133400/167600
+  [mutation_ordering] example 133500/167600
+  [mutation_ordering] example 133600/167600
+  [mutation_ordering] example 133700/167600
+  [mutation_ordering] example 133800/167600
+  [mutation_ordering] example 133900/167600
+  [mutation_ordering] example 134000/167600
+  [mutation_ordering] example 134100/167600
+  [mutation_ordering] example 134200/167600
+  [mutation_ordering] example 134300/167600
+  [mutation_ordering] example 134400/167600
+  [mutation_ordering] example 134500/167600
+  [mutation_ordering] example 134600/167600
+  [mutation_ordering] example 134700/167600
+  [mutation_ordering] example 134800/167600
+  [mutation_ordering] example 134900/167600
+  [mutation_ordering] example 135000/167600
+  [mutation_ordering] example 135100/167600
+  [mutation_ordering] example 135200/167600
+  [mutation_ordering] example 135300/167600
+  [mutation_ordering] example 135400/167600
+  [mutation_ordering] example 135500/167600
+  [mutation_ordering] example 135600/167600
+  [mutation_ordering] example 135700/167600
+  [mutation_ordering] example 135800/167600
+  [mutation_ordering] example 135900/167600
+  [mutation_ordering] example 136000/167600
+  [mutation_ordering] example 136100/167600
+  [mutation_ordering] example 136200/167600
+  [mutation_ordering] example 136300/167600
+  [mutation_ordering] example 136400/167600
+  [mutation_ordering] example 136500/167600
+  [mutation_ordering] example 136600/167600
+  [mutation_ordering] example 136700/167600
+  [mutation_ordering] example 136800/167600
+  [mutation_ordering] example 136900/167600
+  [mutation_ordering] example 137000/167600
+  [mutation_ordering] example 137100/167600
+  [mutation_ordering] example 137200/167600
+  [mutation_ordering] example 137300/167600
+  [mutation_ordering] example 137400/167600
+  [mutation_ordering] example 137500/167600
+  [mutation_ordering] example 137600/167600
+  [mutation_ordering] example 137700/167600
+  [mutation_ordering] example 137800/167600
+  [mutation_ordering] example 137900/167600
+  [mutation_ordering] example 138000/167600
+  [mutation_ordering] example 138100/167600
+  [mutation_ordering] example 138200/167600
+  [mutation_ordering] example 138300/167600
+  [mutation_ordering] example 138400/167600
+  [mutation_ordering] example 138500/167600
+  [mutation_ordering] example 138600/167600
+  [mutation_ordering] example 138700/167600
+  [mutation_ordering] example 138800/167600
+  [mutation_ordering] example 138900/167600
+  [mutation_ordering] example 139000/167600
+  [mutation_ordering] example 139100/167600
+  [mutation_ordering] example 139200/167600
+  [mutation_ordering] example 139300/167600
+  [mutation_ordering] example 139400/167600
+  [mutation_ordering] example 139500/167600
+  [mutation_ordering] example 139600/167600
+  [mutation_ordering] example 139700/167600
+  [mutation_ordering] example 139800/167600
+  [mutation_ordering] example 139900/167600
+  [mutation_ordering] example 140000/167600
+  [mutation_ordering] example 140100/167600
+  [mutation_ordering] example 140200/167600
+  [mutation_ordering] example 140300/167600
+  [mutation_ordering] example 140400/167600
+  [mutation_ordering] example 140500/167600
+  [mutation_ordering] example 140600/167600
+  [mutation_ordering] example 140700/167600
+  [mutation_ordering] example 140800/167600
+  [mutation_ordering] example 140900/167600
+  [mutation_ordering] example 141000/167600
+  [mutation_ordering] example 141100/167600
+  [mutation_ordering] example 141200/167600
+  [mutation_ordering] example 141300/167600
+  [mutation_ordering] example 141400/167600
+  [mutation_ordering] example 141500/167600
+  [mutation_ordering] example 141600/167600
+  [mutation_ordering] example 141700/167600
+  [mutation_ordering] example 141800/167600
+  [mutation_ordering] example 141900/167600
+  [mutation_ordering] example 142000/167600
+  [mutation_ordering] example 142100/167600
+  [mutation_ordering] example 142200/167600
+  [mutation_ordering] example 142300/167600
+  [mutation_ordering] example 142400/167600
+  [mutation_ordering] example 142500/167600
+  [mutation_ordering] example 142600/167600
+  [mutation_ordering] example 142700/167600
+  [mutation_ordering] example 142800/167600
+  [mutation_ordering] example 142900/167600
+  [mutation_ordering] example 143000/167600
+  [mutation_ordering] example 143100/167600
+  [mutation_ordering] example 143200/167600
+  [mutation_ordering] example 143300/167600
+  [mutation_ordering] example 143400/167600
+  [mutation_ordering] example 143500/167600
+  [mutation_ordering] example 143600/167600
+  [mutation_ordering] example 143700/167600
+  [mutation_ordering] example 143800/167600
+  [mutation_ordering] example 143900/167600
+  [mutation_ordering] example 144000/167600
+  [mutation_ordering] example 144100/167600
+  [mutation_ordering] example 144200/167600
+  [mutation_ordering] example 144300/167600
+  [mutation_ordering] example 144400/167600
+  [mutation_ordering] example 144500/167600
+  [mutation_ordering] example 144600/167600
+  [mutation_ordering] example 144700/167600
+  [mutation_ordering] example 144800/167600
+  [mutation_ordering] example 144900/167600
+  [mutation_ordering] example 145000/167600
+  [mutation_ordering] example 145100/167600
+  [mutation_ordering] example 145200/167600
+  [mutation_ordering] example 145300/167600
+  [mutation_ordering] example 145400/167600
+  [mutation_ordering] example 145500/167600
+  [mutation_ordering] example 145600/167600
+  [mutation_ordering] example 145700/167600
+  [mutation_ordering] example 145800/167600
+  [mutation_ordering] example 145900/167600
+  [mutation_ordering] example 146000/167600
+  [mutation_ordering] example 146100/167600
+  [mutation_ordering] example 146200/167600
+  [mutation_ordering] example 146300/167600
+  [mutation_ordering] example 146400/167600
+  [mutation_ordering] example 146500/167600
+  [mutation_ordering] example 146600/167600
+  [mutation_ordering] example 146700/167600
+  [mutation_ordering] example 146800/167600
+  [mutation_ordering] example 146900/167600
+  [mutation_ordering] example 147000/167600
+  [mutation_ordering] example 147100/167600
+  [mutation_ordering] example 147200/167600
+  [mutation_ordering] example 147300/167600
+  [mutation_ordering] example 147400/167600
+  [mutation_ordering] example 147500/167600
+  [mutation_ordering] example 147600/167600
+  [mutation_ordering] example 147700/167600
+  [mutation_ordering] example 147800/167600
+  [mutation_ordering] example 147900/167600
+  [mutation_ordering] example 148000/167600
+  [mutation_ordering] example 148100/167600
+  [mutation_ordering] example 148200/167600
+  [mutation_ordering] example 148300/167600
+  [mutation_ordering] example 148400/167600
+  [mutation_ordering] example 148500/167600
+  [mutation_ordering] example 148600/167600
+  [mutation_ordering] example 148700/167600
+  [mutation_ordering] example 148800/167600
+  [mutation_ordering] example 148900/167600
+  [mutation_ordering] example 149000/167600
+  [mutation_ordering] example 149100/167600
+  [mutation_ordering] example 149200/167600
+  [mutation_ordering] example 149300/167600
+  [mutation_ordering] example 149400/167600
+  [mutation_ordering] example 149500/167600
+  [mutation_ordering] example 149600/167600
+  [mutation_ordering] example 149700/167600
+  [mutation_ordering] example 149800/167600
+  [mutation_ordering] example 149900/167600
+  [mutation_ordering] example 150000/167600
+  [mutation_ordering] example 150100/167600
+  [mutation_ordering] example 150200/167600
+  [mutation_ordering] example 150300/167600
+  [mutation_ordering] example 150400/167600
+  [mutation_ordering] example 150500/167600
+  [mutation_ordering] example 150600/167600
+  [mutation_ordering] example 150700/167600
+  [mutation_ordering] example 150800/167600
+  [mutation_ordering] example 150900/167600
+  [mutation_ordering] example 151000/167600
+  [mutation_ordering] example 151100/167600
+  [mutation_ordering] example 151200/167600
+  [mutation_ordering] example 151300/167600
+  [mutation_ordering] example 151400/167600
+  [mutation_ordering] example 151500/167600
+  [mutation_ordering] example 151600/167600
+  [mutation_ordering] example 151700/167600
+  [mutation_ordering] example 151800/167600
+  [mutation_ordering] example 151900/167600
+  [mutation_ordering] example 152000/167600
+  [mutation_ordering] example 152100/167600
+  [mutation_ordering] example 152200/167600
+  [mutation_ordering] example 152300/167600
+  [mutation_ordering] example 152400/167600
+  [mutation_ordering] example 152500/167600
+  [mutation_ordering] example 152600/167600
+  [mutation_ordering] example 152700/167600
+  [mutation_ordering] example 152800/167600
+  [mutation_ordering] example 152900/167600
+  [mutation_ordering] example 153000/167600
+  [mutation_ordering] example 153100/167600
+  [mutation_ordering] example 153200/167600
+  [mutation_ordering] example 153300/167600
+  [mutation_ordering] example 153400/167600
+  [mutation_ordering] example 153500/167600
+  [mutation_ordering] example 153600/167600
+  [mutation_ordering] example 153700/167600
+  [mutation_ordering] example 153800/167600
+  [mutation_ordering] example 153900/167600
+  [mutation_ordering] example 154000/167600
+  [mutation_ordering] example 154100/167600
+  [mutation_ordering] example 154200/167600
+  [mutation_ordering] example 154300/167600
+  [mutation_ordering] example 154400/167600
+  [mutation_ordering] example 154500/167600
+  [mutation_ordering] example 154600/167600
+  [mutation_ordering] example 154700/167600
+  [mutation_ordering] example 154800/167600
+  [mutation_ordering] example 154900/167600
+  [mutation_ordering] example 155000/167600
+  [mutation_ordering] example 155100/167600
+  [mutation_ordering] example 155200/167600
+  [mutation_ordering] example 155300/167600
+  [mutation_ordering] example 155400/167600
+  [mutation_ordering] example 155500/167600
+  [mutation_ordering] example 155600/167600
+  [mutation_ordering] example 155700/167600
+  [mutation_ordering] example 155800/167600
+  [mutation_ordering] example 155900/167600
+  [mutation_ordering] example 156000/167600
+  [mutation_ordering] example 156100/167600
+  [mutation_ordering] example 156200/167600
+  [mutation_ordering] example 156300/167600
+  [mutation_ordering] example 156400/167600
+  [mutation_ordering] example 156500/167600
+  [mutation_ordering] example 156600/167600
+  [mutation_ordering] example 156700/167600
+  [mutation_ordering] example 156800/167600
+  [mutation_ordering] example 156900/167600
+  [mutation_ordering] example 157000/167600
+  [mutation_ordering] example 157100/167600
+  [mutation_ordering] example 157200/167600
+  [mutation_ordering] example 157300/167600
+  [mutation_ordering] example 157400/167600
+  [mutation_ordering] example 157500/167600
+  [mutation_ordering] example 157600/167600
+  [mutation_ordering] example 157700/167600
+  [mutation_ordering] example 157800/167600
+  [mutation_ordering] example 157900/167600
+  [mutation_ordering] example 158000/167600
+  [mutation_ordering] example 158100/167600
+  [mutation_ordering] example 158200/167600
+  [mutation_ordering] example 158300/167600
+  [mutation_ordering] example 158400/167600
+  [mutation_ordering] example 158500/167600
+  [mutation_ordering] example 158600/167600
+  [mutation_ordering] example 158700/167600
+  [mutation_ordering] example 158800/167600
+  [mutation_ordering] example 158900/167600
+  [mutation_ordering] example 159000/167600
+  [mutation_ordering] example 159100/167600
+  [mutation_ordering] example 159200/167600
+  [mutation_ordering] example 159300/167600
+  [mutation_ordering] example 159400/167600
+  [mutation_ordering] example 159500/167600
+  [mutation_ordering] example 159600/167600
+  [mutation_ordering] example 159700/167600
+  [mutation_ordering] example 159800/167600
+  [mutation_ordering] example 159900/167600
+  [mutation_ordering] example 160000/167600
+  [mutation_ordering] example 160100/167600
+  [mutation_ordering] example 160200/167600
+  [mutation_ordering] example 160300/167600
+  [mutation_ordering] example 160400/167600
+  [mutation_ordering] example 160500/167600
+  [mutation_ordering] example 160600/167600
+  [mutation_ordering] example 160700/167600
+  [mutation_ordering] example 160800/167600
+  [mutation_ordering] example 160900/167600
+  [mutation_ordering] example 161000/167600
+  [mutation_ordering] example 161100/167600
+  [mutation_ordering] example 161200/167600
+  [mutation_ordering] example 161300/167600
+  [mutation_ordering] example 161400/167600
+  [mutation_ordering] example 161500/167600
+  [mutation_ordering] example 161600/167600
+  [mutation_ordering] example 161700/167600
+  [mutation_ordering] example 161800/167600
+  [mutation_ordering] example 161900/167600
+  [mutation_ordering] example 162000/167600
+  [mutation_ordering] example 162100/167600
+  [mutation_ordering] example 162200/167600
+  [mutation_ordering] example 162300/167600
+  [mutation_ordering] example 162400/167600
+  [mutation_ordering] example 162500/167600
+  [mutation_ordering] example 162600/167600
+  [mutation_ordering] example 162700/167600
+  [mutation_ordering] example 162800/167600
+  [mutation_ordering] example 162900/167600
+  [mutation_ordering] example 163000/167600
+  [mutation_ordering] example 163100/167600
+  [mutation_ordering] example 163200/167600
+  [mutation_ordering] example 163300/167600
+  [mutation_ordering] example 163400/167600
+  [mutation_ordering] example 163500/167600
+  [mutation_ordering] example 163600/167600
+  [mutation_ordering] example 163700/167600
+  [mutation_ordering] example 163800/167600
+  [mutation_ordering] example 163900/167600
+  [mutation_ordering] example 164000/167600
+  [mutation_ordering] example 164100/167600
+  [mutation_ordering] example 164200/167600
+  [mutation_ordering] example 164300/167600
+  [mutation_ordering] example 164400/167600
+  [mutation_ordering] example 164500/167600
+  [mutation_ordering] example 164600/167600
+  [mutation_ordering] example 164700/167600
+  [mutation_ordering] example 164800/167600
+  [mutation_ordering] example 164900/167600
+  [mutation_ordering] example 165000/167600
+  [mutation_ordering] example 165100/167600
+  [mutation_ordering] example 165200/167600
+  [mutation_ordering] example 165300/167600
+  [mutation_ordering] example 165400/167600
+  [mutation_ordering] example 165500/167600
+  [mutation_ordering] example 165600/167600
+  [mutation_ordering] example 165700/167600
+  [mutation_ordering] example 165800/167600
+  [mutation_ordering] example 165900/167600
+  [mutation_ordering] example 166000/167600
+  [mutation_ordering] example 166100/167600
+  [mutation_ordering] example 166200/167600
+  [mutation_ordering] example 166300/167600
+  [mutation_ordering] example 166400/167600
+  [mutation_ordering] example 166500/167600
+  [mutation_ordering] example 166600/167600
+  [mutation_ordering] example 166700/167600
+  [mutation_ordering] example 166800/167600
+  [mutation_ordering] example 166900/167600
+  [mutation_ordering] example 167000/167600
+  [mutation_ordering] example 167100/167600
+  [mutation_ordering] example 167200/167600
+  [mutation_ordering] example 167300/167600
+  [mutation_ordering] example 167400/167600
+  [mutation_ordering] example 167500/167600
+Mutation ordering eval: 390775 triples, mean score=0.7962, accuracy=0.8599
+Mutation ordering results written to /large_storage/hielab/ispecht/fitness-inference/sweep/mutation_ordering_simple_d64_n4_lr0.0003_20260411_193742.csv
+Variant root predictions (1273 x 22) saved to /large_storage/hielab/ispecht/fitness-inference/sweep/variant_root_predictions_simple_d64_n4_lr0.0003_20260411_193742.csv
+Unseen variant root predictions saved to /large_storage/hielab/ispecht/fitness-inference/sweep/variant_root_predictions_unseen_simple_d64_n4_lr0.0003_20260411_193742.csv
+Saving model to /large_storage/hielab/ispecht/fitness-inference/sweep/fitness_simple_d64_n4_lr0.0003_20260411_193742.pt...
+Done.
+Job finished at: Sat Apr 11 08:51:53 PM PDT 2026

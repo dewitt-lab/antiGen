@@ -1,0 +1,14 @@
+Job started at: Thu Apr  9 12:50:58 PM PDT 2026
+Running on node: GPU7220
+Job ID: 1989851
+GPU: 0
+Alphabet size: 22
+Using device: cuda
+Loading examples from /home/ivan.specht/antiGen-data/output1/examples_cutoff_1.txt...
+Loaded 171248 examples from /home/ivan.specht/antiGen-data/output1/examples_cutoff_1.txt
+  1 variant testing root(s), 52835 variant-descended for 'BA.2'
+Sequence length: 1273
+Training examples: 3648, Testing examples: 167600
+Total mutations in training set: 12024
+Train batches per epoch: 228
+Job finished at: Thu Apr  9 12:52:01 PM PDT 2026

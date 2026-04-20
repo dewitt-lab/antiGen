@@ -1,0 +1,46 @@
+Job started at: Sun Apr 12 06:04:36 PM PDT 2026
+Running on node: GPU708E
+Job ID: 2026103
+GPU: 0
+Alphabet size: 22
+Using device: cuda
+Loading examples from /home/ivan.specht/antiGen-data/output1/examples_cutoff_1.txt...
+Loaded 171248 examples from /home/ivan.specht/antiGen-data/output1/examples_cutoff_1.txt
+  1 variant testing root(s), 52835 variant-descended for 'BA.2'
+Sequence length: 1273
+Training examples: 3648, Testing examples: 167600
+Total mutations in training set: 12024
+Train batches per epoch: 57
+Model: BLOSUM62 (no training, eval only)
+Model: 0 trainable params
+BLOSUM62 mode: skipping training, running evaluation only.
+Loaded pssm_root: torch.Size([1273, 22])
+Loaded 60 variant PSSMs from /home/ivan.specht/antiGen-data/output1/pssms/BA.2
+Loaded baseline: BLOSUM62 (torch.Size([1273, 22]))
+Loaded baseline: ESM2_650M (torch.Size([1273, 22]))
+Loaded baseline: EVEscape (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA1_bind (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA1_expr (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA2_bind (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA2_expr (torch.Size([1273, 22]))
+Loaded baseline: Pre_Wuhan1_MSA (torch.Size([1273, 22]))
+Loaded baseline: Pre_Wuhan1_MSATransformer (torch.Size([1273, 22]))
+  [evaluate_full] batch 0/2619
+  [evaluate_full] batch 10/2619
+  [evaluate_full] batch 20/2619
+  [evaluate_full] batch 30/2619
+  [evaluate_full] batch 40/2619
+  [evaluate_full] batch 50/2619
+  [evaluate_full] batch 60/2619
+  [evaluate_full] batch 70/2619
+  [evaluate_full] batch 80/2619
+  [evaluate_full] batch 90/2619
+  [evaluate_full] batch 100/2619
+  [evaluate_full] batch 110/2619
+  [evaluate_full] batch 120/2619
+  [evaluate_full] batch 130/2619
+  [evaluate_full] batch 140/2619
+  [evaluate_full] batch 150/2619
+  [evaluate_full] batch 160/2619
+  [evaluate_full] batch 170/2619
+  [evaluate_full] batch 180/2619

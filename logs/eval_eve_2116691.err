@@ -1,0 +1,2 @@
+/var/spool/slurmd/job2116691/slurm_script: line 23: 548379 Killed                  python python/train.py --model-type eve --freeze-backbone --msa /home/ivan.specht/sc2-open-data/spike.fasta --metadata /home/ivan.specht/sc2-open-data/metadata.tsv --cutoff 1.0 --ignore-dead-ends --batch-size 64 --output-dir /large_storage/hielab/ispecht/fitness-inference --max-seqs 1000000000
+[2026-04-16T23:15:11.921] error: Detected 1 oom_kill event in StepId=2116691.batch. Some of the step tasks have been OOM Killed.

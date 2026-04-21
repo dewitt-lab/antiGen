@@ -1,0 +1,16 @@
+Job started at: Mon Apr 20 04:41:21 AM PDT 2026
+Running on node: GPU7130
+Job ID: 2186895
+GPU: 0
+Alphabet size: 22
+Using device: cuda
+Loading examples from /home/ivan.specht/antiGen-data/output_flu_full_cutoff12/examples_cutoff_12.txt...
+Loaded 26582 examples from /home/ivan.specht/antiGen-data/output_flu_full_cutoff12/examples_cutoff_12.txt
+  1 variant testing root(s), 6641 variant-descended for 'J'
+Sequence length: 566
+Training examples: 11532, Testing examples: 15050
+Total mutations in training set: 23320
+Train batches per epoch: 181
+Model: 474,646 trainable params
+Starting training...
+Job finished at: Mon Apr 20 04:41:30 AM PDT 2026

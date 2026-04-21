@@ -138,6 +138,7 @@ def score_msa(
     date_cutoff: str | None = None,
     filtered_fasta_path: str | None = None,
     seq_len: int | None = None,
+    query_seq: str | None = None,
 ) -> np.ndarray:
     """Compute masked marginal probabilities using MSA Transformer.
 
@@ -194,14 +195,6 @@ def score_msa(
         msa = [msa[0]] + msa[1:max_seqs]
     print(f"MSA: {len(msa)} sequences, length {len(msa[0][1])}")
 
-    # Verify alignment
-    lengths = {len(seq) for _, seq in msa}
-    if len(lengths) > 1:
-        raise ValueError(
-            f"MSA sequences have different lengths: {lengths}. "
-            "All sequences must be aligned to the same length."
-        )
-
     # Load model
     model, alphabet = torch.hub.load(
         "facebookresearch/esm:main", "esm_msa1b_t12_100M_UR50S"
@@ -223,6 +216,23 @@ def score_msa(
         for name, seq in msa
     ]
     print(f"  Sequence length after processing: {seq_len}")
+
+    # Optionally prepend a query sequence as row 0 (after trimming so lengths match)
+    if query_seq is not None:
+        query_processed = "".join(
+            ch if ch in valid_tokens else "X"
+            for ch in query_seq[:seq_len]
+        )
+        msa = [("query", query_processed)] + msa[:max_seqs - 1]
+        print(f"  Prepended query sequence as row 0 (length {len(query_processed)})")
+
+    # Verify alignment
+    lengths = {len(seq) for _, seq in msa}
+    if len(lengths) > 1:
+        raise ValueError(
+            f"MSA sequences have different lengths: {lengths}. "
+            "All sequences must be aligned to the same length."
+        )
 
     # Build token-index-to-output-column mapping
     tok_to_col = {}
@@ -379,6 +389,11 @@ def main():
              "stop codon). If not set, inferred from the query sequence."
     )
     parser.add_argument(
+        "--query-seq", type=str, default=None,
+        help="Override the query (row 0) sequence. The original MSA is "
+             "used only for context. Useful for scoring a specific variant."
+    )
+    parser.add_argument(
         "--device", type=str, default=None,
         help="PyTorch device (default: cuda if available, else cpu)."
     )
@@ -396,6 +411,7 @@ def main():
         date_cutoff=args.date_cutoff,
         filtered_fasta_path=args.filtered_fasta,
         seq_len=args.seq_len,
+        query_seq=args.query_seq,
     )
 
     # Write CSV matching the format of data/baselines/Pre_Wuhan1_MSATransformer.csv

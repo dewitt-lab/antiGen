@@ -15,6 +15,7 @@ echo "GPU: $CUDA_VISIBLE_DEVICES"
 
 python python/train.py \
     --model-type transformer \
+    --variant XFG \
     --cutoff 4.0 --ignore-dead-ends \
     --d-model 128 --num-layers 2 \
     --epochs 32 --batch-size 64 --lr 0.0001 \

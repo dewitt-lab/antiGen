@@ -1,19 +1,0 @@
-Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]Fetching 4 files: 100%|██████████| 4/4 [00:00<00:00, 56488.94it/s]
-Traceback (most recent call last):
-  File "/home/ivan.specht/fitness-inference/python/train.py", line 646, in <module>
-    main()
-  File "/home/ivan.specht/fitness-inference/python/train.py", line 484, in main
-    run_hit_rate_eval(test_loader, "All", "all")
-  File "/home/ivan.specht/fitness-inference/python/train.py", line 450, in run_hit_rate_eval
-    avg_loss, hit_rate_by_qtile, baseline_hits = evaluate_full(
-                                                 ^^^^^^^^^^^^^^
-  File "/home/ivan.specht/miniconda/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ivan.specht/fitness-inference/python/train.py", line 152, in evaluate_full
-    hits, rbd_muts = compute_hit_rate(probs, target_batch, aa_batch, qtile)
-                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/ivan.specht/fitness-inference/python/train.py", line 90, in compute_hit_rate
-    thresholds = torch.nanquantile(p_flat, 1.0 - qtile, dim=1)  # (B,)
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-RuntimeError: quantile() input tensor must be either float or double dtype

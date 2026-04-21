@@ -77,9 +77,9 @@ def compute_loss_full(probs, target_batch):
 
 RBD_RANGE = list(range(330, 531))  # 0-indexed, inclusive
 
-def compute_hit_rate(probs, target_batch, aa_batch, qtile=0.1, eval_range=None):
-    target_batch = target_batch.to(probs.device)
-    aa_batch = aa_batch.to(probs.device)
+def compute_hit_rate(scores, target_batch, aa_batch, qtile=0.1, eval_range=None):
+    target_batch = target_batch.to(scores.device)
+    aa_batch = aa_batch.to(scores.device)
 
     if eval_range is None:
         eval_range = RBD_RANGE
@@ -87,21 +87,17 @@ def compute_hit_rate(probs, target_batch, aa_batch, qtile=0.1, eval_range=None):
     # Subset to eval range
     target_batch = target_batch[:, eval_range, :]
     aa_batch_sub = aa_batch[:, eval_range]
-    if probs.shape[1] != len(eval_range):
-        probs = probs[:, eval_range, :]
+    if scores.shape[1] != len(eval_range):
+        scores = scores[:, eval_range, :]
 
     # Mask wild-type positions to NaN so they don't affect quantile thresholds
-    probs = probs.clone()
-    probs.scatter_(2, aa_batch_sub.unsqueeze(-1), float('nan'))
+    scores = scores.clone()
+    scores.scatter_(2, aa_batch_sub.unsqueeze(-1), float('nan'))
 
-    # Break ties that arise from float32 underflow + clamping (e.g. peaked
-    # autoregressive models where many exp(log_prob) round to 0 → clamp to 1e-8)
-    B = probs.shape[0]
-    probs = probs + torch.rand_like(probs) * 1e-10
-
-    p_flat = probs.reshape(B, -1).float()
+    B = scores.shape[0]
+    p_flat = scores.reshape(B, -1).float()
     thresholds = torch.nanquantile(p_flat, 1.0 - qtile, dim=1)  # (B,)
-    top_qtile_mask = probs >= thresholds.view(B, 1, 1)
+    top_qtile_mask = scores >= thresholds.view(B, 1, 1)
 
     n_hits = (top_qtile_mask * target_batch).sum().item()
     n_mutations = target_batch.sum().item()
@@ -140,6 +136,9 @@ def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10, seen_
 
         batch_size = aa_batch.shape[0]
 
+        # Use raw logits for ranking-based hit rate (softmax is monotonic, unnecessary)
+        scores = logits
+
         # Mask and normalize baseline probs per example (zero out wild-type, re-normalize)
         wt_mask = torch.ones(batch_size, aa_batch.shape[1], baselines[0][1].shape[-1], dtype=torch.bool) if baselines else None
         if wt_mask is not None:
@@ -153,8 +152,8 @@ def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10, seen_
         # Mask previously seen mutations if requested
         if seen_mask is not None:
             sm = seen_mask.unsqueeze(0).expand(batch_size, -1, -1)
-            probs = probs.clone()
-            probs[sm.to(device)] = float('nan')
+            scores = scores.clone()
+            scores[sm.to(device)] = float('nan')
             target_batch = target_batch.clone()
             target_batch[sm.to(device)] = 0
             for name in masked_baselines:
@@ -162,7 +161,7 @@ def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10, seen_
 
         for i in range(n_buckets - 1):
             qtile = (i + 1) / n_buckets
-            hits, rbd_muts = compute_hit_rate(probs, target_batch, aa_batch, qtile, eval_range=eval_range)
+            hits, rbd_muts = compute_hit_rate(scores, target_batch, aa_batch, qtile, eval_range=eval_range)
             total_hits_by_qtile[i] += hits
             if i == 0:
                 total_rbd_mutations += rbd_muts
@@ -234,138 +233,6 @@ def parse_args():
                         choices=['forward', 'backward', 'both'],
                         help='Autoregressive scoring direction for Tranception (default: both)')
     return parser.parse_args()
-
-
-# ── Mutation ordering eval ────────────────────────────────────────────────────
-
-@torch.no_grad()
-def evaluate_mutation_ordering(model, all_examples, testing_examples, testing_id_map,
-                                device, allowed_aas, output_dir, run_prefix):
-    """Rank-based mutation ordering eval.
-
-    For each triple (X -> Y via M1, Y -> Z via M2), report whether each
-    mutation lands in the top decile of predicted mutations from the relevant
-    sequence.  Four booleans per triple:
-        m1_top_from_x:   M1 in top decile relative to X
-        m2_top_from_y:   M2 in top decile relative to Y
-        m2_top_from_x:   M2 in top decile relative to X
-        m1_top_from_new: M1 in top decile relative to X+M2
-
-    testing_id_map: dict mapping id(example) -> index in all_examples for testing examples.
-    """
-    model.eval()
-    testing_ids = set(testing_id_map.values())
-
-    def forward_one(aa_idx_tensor):
-        """Run a single sequence through the model, return probs with wt masked to NaN."""
-        aa_batch = aa_idx_tensor.unsqueeze(0).to(device)
-        logits = model(aa_batch).float()
-        probs = compute_probs(logits, None, aa_batch)
-        # Replace wild-type entries with NaN so they don't affect quantile thresholds
-        probs.scatter_(2, aa_batch.unsqueeze(-1), float('nan'))
-        return probs.squeeze(0)  # (seq_len, E)
-
-    def is_top_decile(probs_2d, pos, aa):
-        """Check if probs_2d[pos, aa] is in the top decile (ignoring NaN wild-type)."""
-        val = probs_2d[pos, aa].item()
-        threshold = torch.nanquantile(probs_2d.flatten().float(), 0.9).item()
-        return val >= threshold
-
-    NEW_BATCH_SIZE = 64  # sub-batch NEW sequences to avoid OOM
-    rows = []
-    n_examples = len(testing_examples)
-
-    for s_num, s_example in enumerate(testing_examples):
-        if s_num % 100 == 0:
-            print(f"  [mutation_ordering] example {s_num}/{n_examples}", flush=True)
-
-        # Skip root examples
-        if s_example.parent_id is None or s_example.parent_mutation is None:
-            continue
-
-        # Parent must also be in testing set
-        if s_example.parent_id not in testing_ids:
-            continue
-
-        s_idx = testing_id_map[id(s_example)]
-
-        p_example = all_examples[s_example.parent_id]
-        pos1, alt1 = s_example.parent_mutation
-
-        # Collect child mutations from S.mat
-        child_mutations = []
-        nz = s_example.mat.nonzero(as_tuple=False)  # (N, 2)
-        for row in nz:
-            pos2, alt2 = row[0].item(), row[1].item()
-            if pos2 != pos1:
-                child_mutations.append((pos2, alt2))
-
-        if not child_mutations:
-            continue
-
-        # Forward pass on X (=P) and Y (=S), cached across child mutations
-        parent_probs = forward_one(p_example.aa_idx)   # (seq_len, E)
-        seq_probs = forward_one(s_example.aa_idx)       # (seq_len, E)
-
-        m1_top_from_x = is_top_decile(parent_probs, pos1, alt1)
-
-        # Batch forward passes for all NEW sequences, sub-batched to limit memory
-        all_new_probs = []
-        for batch_start in range(0, len(child_mutations), NEW_BATCH_SIZE):
-            batch_muts = child_mutations[batch_start:batch_start + NEW_BATCH_SIZE]
-            new_aa_list = []
-            for pos2, alt2 in batch_muts:
-                new_aa = p_example.aa_idx.clone()
-                new_aa[pos2] = alt2
-                new_aa_list.append(new_aa)
-
-            new_aa_batch = torch.stack(new_aa_list).to(device)
-            new_logits = model(new_aa_batch).float()
-            new_probs = compute_probs(new_logits, None, new_aa_batch)  # (B, seq_len, E)
-            # Replace wild-type entries with NaN
-            new_probs.scatter_(2, new_aa_batch.unsqueeze(-1), float('nan'))
-            all_new_probs.append(new_probs)
-
-        all_new_probs = torch.cat(all_new_probs, dim=0)  # (N_children, seq_len, E)
-
-        for i, (pos2, alt2) in enumerate(child_mutations):
-            m2_top_from_y = is_top_decile(seq_probs, pos2, alt2)
-            m2_top_from_x = is_top_decile(parent_probs, pos2, alt2)
-            m1_top_from_new = is_top_decile(all_new_probs[i], pos1, alt1)
-
-            rows.append((s_example.parent_id, s_idx, pos1, alt1, pos2, alt2,
-                         m1_top_from_x, m2_top_from_y, m2_top_from_x, m1_top_from_new))
-
-    # Write CSV
-    csv_path = os.path.join(output_dir, f"mutation_ordering_{run_prefix}.csv")
-    with open(csv_path, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["parent_idx", "seq_idx", "m1_pos", "m1_aa",
-                         "m2_pos", "m2_aa",
-                         "m1_top_from_x", "m2_top_from_y",
-                         "m2_top_from_x", "m1_top_from_new"])
-        for row in rows:
-            parent_idx, seq_idx, p1, a1, p2, a2, b1, b2, b3, b4 = row
-            writer.writerow([parent_idx, seq_idx, p1, a1, p2, a2,
-                             int(b1), int(b2), int(b3), int(b4)])
-
-    # Summary
-    n_total = len(rows)
-    if n_total > 0:
-        n_m1x = sum(r[6] for r in rows)
-        n_m2y = sum(r[7] for r in rows)
-        n_m2x = sum(r[8] for r in rows)
-        n_m1new = sum(r[9] for r in rows)
-        print(f"Mutation ordering eval: {n_total} triples")
-        print(f"  M1 top-decile from X:   {n_m1x}/{n_total} ({n_m1x/n_total:.4f})")
-        print(f"  M2 top-decile from Y:   {n_m2y}/{n_total} ({n_m2y/n_total:.4f})")
-        print(f"  M2 top-decile from X:   {n_m2x}/{n_total} ({n_m2x/n_total:.4f})")
-        print(f"  M1 top-decile from NEW: {n_m1new}/{n_total} ({n_m1new/n_total:.4f})")
-    else:
-        print("Mutation ordering eval: no valid triples found")
-
-    print(f"Mutation ordering results written to {csv_path}")
-    model.train()
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -745,6 +612,13 @@ def main():
     qtile_labels = [f"top_{(i+1)*100/n_buckets:.1f}%" for i in range(n_buckets - 1)]
     qtile_pcts = [(i + 1) * 100 / n_buckets for i in range(n_buckets - 1)]
 
+    # Mask for gap and stop tokens (used to repeat evals excluding these)
+    gap_idx = allowed_aas.index('-')
+    stop_idx = allowed_aas.index('*')
+    special_mask = torch.zeros(seq_len_aa, E, dtype=torch.bool)
+    special_mask[:, gap_idx] = True
+    special_mask[:, stop_idx] = True
+
     def run_hit_rate_eval(loader, label, file_suffix, seen_mask=None):
         """Run hit-rate eval on a dataloader, write CSV and plot."""
         avg_loss, hit_rate_by_qtile, baseline_hits = evaluate_full(
@@ -798,6 +672,12 @@ def main():
     hit_rate_seen_mask = pssm_root > 0  # (seq_len, E), True = seen
     run_hit_rate_eval(test_loader, "Unseen-mutations", "unseen", seen_mask=hit_rate_seen_mask)
 
+    # Repeat all hit-rate evals with gap/stop tokens masked out
+    run_hit_rate_eval(test_loader, "All (no gap/stop)", "all_nogapstop", seen_mask=special_mask)
+    if variant_testing_examples:
+        run_hit_rate_eval(variant_test_loader, "Variant-descended (no gap/stop)", "variant_nogapstop", seen_mask=special_mask)
+    run_hit_rate_eval(test_loader, "Unseen (no gap/stop)", "unseen_nogapstop", seen_mask=hit_rate_seen_mask | special_mask)
+
     # ── Testing-root eval ────────────────────────────────────────────────────
     testing_root_examples = [e for e in all_examples if e.is_testing_root]
     assert len(testing_root_examples) >= 1, (
@@ -810,17 +690,16 @@ def main():
     with torch.no_grad():
         model.eval()
         aa_input = testing_root_example.aa_idx.unsqueeze(0).to(device)
-        target_input = testing_root_example.mat.unsqueeze(0).to(device)
         logits = model(aa_input).float()
-        testing_root_probs = compute_probs(logits, target_input, aa_input)
-        print(f"Testing root probs shape: {testing_root_probs.shape}")
+        testing_root_scores = logits
+        print(f"Testing root scores shape: {testing_root_scores.shape}")
 
     # Remove batch dim -> (seq_len, E), then subset to eval range
-    testing_root_probs_2d = testing_root_probs.squeeze(0).cpu()[eval_range, :]
+    testing_root_scores_2d = testing_root_scores.squeeze(0).cpu()[eval_range, :]
 
     # Build wild-type mask for the testing root sequence (eval range only)
     wt_idx = testing_root_example.aa_idx[eval_range]
-    eval_len, E_size = testing_root_probs_2d.shape
+    eval_len, E_size = testing_root_scores_2d.shape
     wt_mask_2d = torch.ones(eval_len, E_size, dtype=torch.bool)
     wt_mask_2d.scatter_(1, wt_idx.unsqueeze(-1), False)
 
@@ -841,20 +720,22 @@ def main():
             hit_rates.append(n_hits / max(n_top, 1))
         return hit_rates
 
-    def run_variant_eval(pssm_variant_sub_list, label, file_suffix, model_probs=None, baselines_sub=None, threshold_count=100):
+    def run_variant_eval(pssm_variant_sub_list, label, file_suffix, model_probs=None, baselines_sub=None, threshold_count=100, wt_mask=None):
         """Run variant hit rate eval and write CSV + plot."""
         if model_probs is None:
-            model_probs = testing_root_probs_2d
+            model_probs = testing_root_scores_2d
         if baselines_sub is None:
             baselines_sub = [(name, bp[eval_range, :].clone()) for name, bp in baselines]
+        if wt_mask is None:
+            wt_mask = wt_mask_2d
 
         # Compute for model
-        model_hits = variant_hit_rates(model_probs, wt_mask_2d, pssm_variant_sub_list, threshold_count=threshold_count)
+        model_hits = variant_hit_rates(model_probs, wt_mask, pssm_variant_sub_list, threshold_count=threshold_count)
 
         # Compute for each baseline
         baseline_variant_hits = {}
         for name, bp_sub in baselines_sub:
-            baseline_variant_hits[name] = variant_hit_rates(bp_sub, wt_mask_2d, pssm_variant_sub_list, threshold_count=threshold_count)
+            baseline_variant_hits[name] = variant_hit_rates(bp_sub, wt_mask, pssm_variant_sub_list, threshold_count=threshold_count)
 
         # Write CSV: rows = time steps, columns = model + baselines
         variant_csv_path = os.path.join(args.output_dir, f"variant_emergence_{file_suffix}_{run_prefix}.csv")
@@ -906,7 +787,7 @@ def main():
         pssm_variant_sub_unseen.append(pv_masked)
 
     # Mask seen mutations in model probs
-    unseen_model_probs = testing_root_probs_2d.clone()
+    unseen_model_probs = testing_root_scores_2d.clone()
     unseen_model_probs[seen_mask] = float('nan')
 
     # Mask seen mutations in baselines
@@ -925,38 +806,85 @@ def main():
     run_variant_eval(pssm_variant_sub_unseen, "Unseen (threshold=1)", "unseen_thresh1",
                      model_probs=unseen_model_probs, baselines_sub=unseen_baselines_sub, threshold_count=1)
 
-    # ── Mutation ordering eval ──────────────────────────────────────────────────
-    testing_id_map = {}
-    for i, example in enumerate(all_examples):
-        if not example.is_training:
-            testing_id_map[id(example)] = i
+    # Repeat variant evals with gap/stop tokens masked out
+    wt_mask_2d_nogapstop = wt_mask_2d.clone()
+    wt_mask_2d_nogapstop[:, gap_idx] = False
+    wt_mask_2d_nogapstop[:, stop_idx] = False
 
-    evaluate_mutation_ordering(
-        model, all_examples, testing_examples, testing_id_map, device, allowed_aas,
-        args.output_dir, run_prefix,
-    )
+    nogapstop_model_probs = testing_root_scores_2d.clone()
+    nogapstop_model_probs[:, gap_idx] = float('nan')
+    nogapstop_model_probs[:, stop_idx] = float('nan')
 
-    # ── Save variant root predictions as CSV ────────────────────────────────────
-    testing_root_probs_full = testing_root_probs.squeeze(0).cpu()  # (seq_len, E)
+    nogapstop_baselines_sub = []
+    for name, bp in baselines:
+        bp_sub = bp[eval_range, :].clone()
+        bp_sub[:, gap_idx] = float('nan')
+        bp_sub[:, stop_idx] = float('nan')
+        nogapstop_baselines_sub.append((name, bp_sub))
+
+    run_variant_eval(pssm_variant_sub, f"All no gap/stop (threshold={variant_thresholds[0]})", "all_nogapstop",
+                     model_probs=nogapstop_model_probs, baselines_sub=nogapstop_baselines_sub,
+                     wt_mask=wt_mask_2d_nogapstop, threshold_count=variant_thresholds[0])
+    run_variant_eval(pssm_variant_sub, "All no gap/stop (threshold=1)", "all_nogapstop_thresh1",
+                     model_probs=nogapstop_model_probs, baselines_sub=nogapstop_baselines_sub,
+                     wt_mask=wt_mask_2d_nogapstop, threshold_count=1)
+
+    # Unseen + no gap/stop
+    combined_mask = seen_mask.clone()
+    combined_mask[:, gap_idx] = True
+    combined_mask[:, stop_idx] = True
+    wt_mask_2d_unseen_nogapstop = wt_mask_2d.clone()
+    wt_mask_2d_unseen_nogapstop[combined_mask] = False
+
+    unseen_nogapstop_model_probs = testing_root_scores_2d.clone()
+    unseen_nogapstop_model_probs[combined_mask] = float('nan')
+
+    unseen_nogapstop_baselines_sub = []
+    for name, bp in baselines:
+        bp_sub = bp[eval_range, :].clone()
+        bp_sub[combined_mask] = float('nan')
+        unseen_nogapstop_baselines_sub.append((name, bp_sub))
+
+    run_variant_eval(pssm_variant_sub_unseen, f"Unseen no gap/stop (threshold={variant_thresholds[0]})", "unseen_nogapstop",
+                     model_probs=unseen_nogapstop_model_probs, baselines_sub=unseen_nogapstop_baselines_sub,
+                     wt_mask=wt_mask_2d_unseen_nogapstop, threshold_count=variant_thresholds[0])
+    run_variant_eval(pssm_variant_sub_unseen, "Unseen no gap/stop (threshold=1)", "unseen_nogapstop_thresh1",
+                     model_probs=unseen_nogapstop_model_probs, baselines_sub=unseen_nogapstop_baselines_sub,
+                     wt_mask=wt_mask_2d_unseen_nogapstop, threshold_count=1)
+
+    # -- Save variant root predictions as CSV ----------------------------------------
+    testing_root_scores_full = testing_root_scores.squeeze(0).cpu()  # (seq_len, E)
     variant_preds_path = os.path.join(args.output_dir, f"variant_root_predictions_{run_prefix}.csv")
     with open(variant_preds_path, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(list(allowed_aas))
-        for row in testing_root_probs_full.numpy():
+        for row in testing_root_scores_full.numpy():
             writer.writerow([f"{v:.8f}" for v in row])
-    print(f"Variant root predictions ({testing_root_probs_full.shape[0]} x {testing_root_probs_full.shape[1]}) saved to {variant_preds_path}")
+    print(f"Variant root predictions ({testing_root_scores_full.shape[0]} x {testing_root_scores_full.shape[1]}) saved to {variant_preds_path}")
 
     # Save variant root predictions with previously seen mutations masked to NA
     seen_mask_full = pssm_root > 0  # (seq_len, E)
-    testing_root_probs_unseen = testing_root_probs_full.clone()
-    testing_root_probs_unseen[seen_mask_full] = float('nan')
+    testing_root_scores_unseen = testing_root_scores_full.clone()
+    testing_root_scores_unseen[seen_mask_full] = float('nan')
     unseen_preds_path = os.path.join(args.output_dir, f"variant_root_predictions_unseen_{run_prefix}.csv")
     with open(unseen_preds_path, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(list(allowed_aas))
-        for row in testing_root_probs_unseen.numpy():
+        for row in testing_root_scores_unseen.numpy():
             writer.writerow(["NA" if math.isnan(v) else f"{v:.8f}" for v in row])
     print(f"Unseen variant root predictions saved to {unseen_preds_path}")
+
+    # Save variant root predictions with gap/stop masked to NA
+    testing_root_scores_nogapstop = testing_root_scores_full.clone()
+    testing_root_scores_nogapstop[:, gap_idx] = float('nan')
+    testing_root_scores_nogapstop[:, stop_idx] = float('nan')
+    nogapstop_preds_path = os.path.join(args.output_dir, f"variant_root_predictions_nogapstop_{run_prefix}.csv")
+    with open(nogapstop_preds_path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(list(allowed_aas))
+        for row in testing_root_scores_nogapstop.numpy():
+            writer.writerow(["NA" if math.isnan(v) else f"{v:.8f}" for v in row])
+    print(f"No gap/stop variant root predictions saved to {nogapstop_preds_path}")
 
     output_path = os.path.join(args.output_dir, f"fitness_{run_prefix}.pt")
 

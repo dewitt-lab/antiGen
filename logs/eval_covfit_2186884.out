@@ -1,0 +1,22 @@
+Job started at: Mon Apr 20 01:03:00 AM PDT 2026
+Running on node: GPU70DC
+Job ID: 2186884
+GPU: 0
+Extracting testing root for variant 'XFG'...
+Sequence length: 1273
+Generated 26734 sequences (26733 mutants + 1 wildtype)
+Running: /large_storage/hielab/ispecht/CoVFit_CLI/covfit_cli -i /tmp/tmpgv1lfz7o/mutants.fasta -o /tmp/tmpgv1lfz7o/covfit_output -f 0 -b 16 -g
+Initializing model. Please wait...
+Tokenizing sequences for model input
+Running CoVFit
+Predictions completed
+Writing output to /tmp/tmpgv1lfz7o/covfit_output/CoVFit_Predictions_fold_0.tsv
+Done
+
+CoVFit output columns (19): ['seq_name', 'fitness_mean', 'fitness_Australia', 'fitness_Belgium', 'fitness_Brazil']...
+Parsed 26734 scores from CoVFit output
+Wildtype fitness: 0.885100
+  251 positions beyond CoVFit's 1022-residue limit marked as -1
+  Shifted scores by 0.05504102 so all valid values are >= 0
+Baseline written to ./data/baselines/CoVFit.csv (1273 x 22)
+Job finished at: Mon Apr 20 01:24:14 AM PDT 2026

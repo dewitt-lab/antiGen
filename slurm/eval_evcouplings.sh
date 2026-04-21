@@ -16,6 +16,7 @@ python python/train.py \
     --msa /home/ivan.specht/sc2-open-data/spike.fasta \
     --metadata /home/ivan.specht/sc2-open-data/metadata.tsv \
     --cutoff 1.0 --ignore-dead-ends \
+    --max-seqs 10000 \
     --batch-size 64 \
     --output-dir /large_storage/hielab/ispecht/fitness-inference
 

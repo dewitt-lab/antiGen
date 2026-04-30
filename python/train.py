@@ -223,12 +223,18 @@ def parse_args():
                         help='Variant name (default: BA.2 for SARS-CoV-2, J for flu)')
     parser.add_argument('--flu', action='store_true', default=False,
                         help='Flu mode: uses flu data, full-sequence eval, variant J or K')
+    parser.add_argument('--rsv-a', action='store_true', default=False,
+                        help='RSV-A mode: uses RSV-A data, full-sequence eval, variant A.D.1.6')
+    parser.add_argument('--denv2', action='store_true', default=False,
+                        help='DENV2 mode: uses DENV2 data, full-sequence eval, variant 2II_F.1.1.2_annotated')
     parser.add_argument('--msa', type=str, default=None,
                         help='Path to pandemic MSA FASTA (required for evcouplings/eve)')
     parser.add_argument('--metadata', type=str, default=None,
                         help='Path to metadata TSV with strain/date columns (required for evcouplings/eve)')
     parser.add_argument('--max-seqs', type=int, default=0,
                         help='Max MSA sequences for evcouplings/eve/tranception (0=unlimited)')
+    parser.add_argument('--evc-pseudo-count', type=float, default=0.5,
+                        help='Pseudo-count for EVcouplings mean-field DCA regularization (default: 0.5)')
     parser.add_argument('--scoring-direction', type=str, default='both',
                         choices=['forward', 'backward', 'both'],
                         help='Autoregressive scoring direction for Tranception (default: both)')
@@ -253,6 +259,9 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
 
+    if sum([args.flu, args.rsv_a, args.denv2]) > 1:
+        raise ValueError("Cannot specify more than one of --flu, --rsv-a, --denv2")
+
     if args.flu:
         # Flu mode: fixed data dir, only cutoff=12 allowed
         if args.variant is None:
@@ -264,6 +273,28 @@ def main():
             raise ValueError(f"Flu mode only supports cutoff=12, got {args.cutoff}")
         data_dir = "/home/ivan.specht/antiGen-data/output_flu_full_cutoff12"
         examples_path = os.path.join(data_dir, "examples_cutoff_12.txt")
+    elif args.rsv_a:
+        # RSV-A mode: fixed data dir, only cutoff=74 allowed
+        if args.variant is None:
+            args.variant = 'A.D.1.6'
+        if args.variant != 'A.D.1.6':
+            raise ValueError(f"RSV-A mode only supports variant A.D.1.6, got '{args.variant}'")
+        cutoff_int = int(args.cutoff)
+        if cutoff_int != 74:
+            raise ValueError(f"RSV-A mode only supports cutoff=74, got {args.cutoff}")
+        data_dir = "/home/ivan.specht/antiGen-data/output_rsv_a_full_cutoff74"
+        examples_path = os.path.join(data_dir, "examples_cutoff_74.txt")
+    elif args.denv2:
+        # DENV2 mode: fixed data dir, only cutoff=191 allowed
+        if args.variant is None:
+            args.variant = '2II_F.1.1.2_annotated'
+        if args.variant != '2II_F.1.1.2_annotated':
+            raise ValueError(f"DENV2 mode only supports variant 2II_F.1.1.2_annotated, got '{args.variant}'")
+        cutoff_int = int(args.cutoff)
+        if cutoff_int != 191:
+            raise ValueError(f"DENV2 mode only supports cutoff=191, got {args.cutoff}")
+        data_dir = "/home/ivan.specht/antiGen-data/output_denv2_full_cutoff191"
+        examples_path = os.path.join(data_dir, "examples_cutoff_191.txt")
     else:
         # SARS-CoV-2 mode
         if args.variant is None:
@@ -280,8 +311,8 @@ def main():
     seq_len_aa = len(all_examples[0].aa_idx)
     print(f"Sequence length: {seq_len_aa}")
 
-    # Eval range: full sequence for flu, RBD for SARS-CoV-2
-    if args.flu:
+    # Eval range: full sequence for flu/RSV-A/DENV2, RBD for SARS-CoV-2
+    if args.flu or args.rsv_a or args.denv2:
         eval_range = list(range(seq_len_aa))
     else:
         eval_range = RBD_RANGE
@@ -303,6 +334,10 @@ def main():
 
     print(f"Training examples: {len(training_examples)}, Testing examples: {len(testing_examples)}")
     print(f"Total mutations in training set: {total_mutations_train:.0f}")
+
+    # Global wild-type AA indices (starting sequence of first training example).
+    # Captured here because training_examples is freed before baseline construction.
+    global_wt_aa_idx = training_examples[0].aa_idx.clone()
 
 
 
@@ -394,6 +429,7 @@ def main():
                 metadata_path=args.metadata,
                 date_cutoff=date_cutoff,
                 max_seqs=args.max_seqs,
+                pseudo_count=args.evc_pseudo_count,
             ),
         )
         model = create_model(model_config, device)
@@ -554,15 +590,33 @@ def main():
 
     baselines = [("pssm_root", pssm_root)]
 
+    # Position-only baseline: each row filled with the count of non-WT observations
+    # at that position (sum over pssm_root[i, :] excluding the global wild-type entry,
+    # taken from the first training example's starting sequence). Captures positional
+    # mutability while ignoring the alt-AA distribution.
+    wt_aa_idx = global_wt_aa_idx.long().unsqueeze(1)  # (seq_len, 1)
+    pssm_root_clean = pssm_root.clamp(min=0)
+    non_wt_sum = pssm_root_clean.sum(dim=1) - pssm_root_clean.gather(1, wt_aa_idx).squeeze(1)
+    pssm_root_position = non_wt_sum.unsqueeze(1).expand_as(pssm_root).clone()
+    baselines.append(("pssm_root_position", pssm_root_position))
+
     # Load additional baselines from CSV files
     import glob as glob_mod
-    baseline_subdir = "baselines_flu" if args.flu else "baselines"
+    if args.flu:
+        baseline_subdir = "baselines_flu"
+    elif args.rsv_a:
+        baseline_subdir = "baselines_rsv_a"
+    elif args.denv2:
+        baseline_subdir = "baselines_denv2"
+    else:
+        baseline_subdir = "baselines"
     baseline_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", baseline_subdir)
     for csv_file in sorted(glob_mod.glob(os.path.join(baseline_dir, "*.csv"))):
         baseline_name = os.path.splitext(os.path.basename(csv_file))[0]
         with open(csv_file, "r") as f:
             reader = csv.reader(f)
             header = next(reader)
+            # Some baseline CSVs have a leading row-index column; detect and skip.
             expected = list(allowed_aas)
             #assert header == expected, (
             #    f"Baseline {baseline_name}: column names {header} do not match allowed_aas {expected}"
@@ -574,13 +628,19 @@ def main():
         baselines.append((baseline_name, baseline_tensor))
         print(f"Loaded baseline: {baseline_name} ({baseline_tensor.shape})")
 
-    # Fix sentinel values and break ties with small noise for reproducible quantile computation
+    # Fix sentinel values and break ties with small noise for reproducible quantile computation.
+    # Noise magnitude is scaled relative to each baseline's value range so it exceeds float32
+    # precision at that scale (e.g. 1e-9 noise added to a value ~10000 is below float32 epsilon
+    # and gets discarded, leaving ties unbroken).
     tiebreak_rng = np.random.RandomState(args.seed + 12345)
     for i in range(len(baselines)):
         name, tensor = baselines[i]
         tensor = tensor.clone()
         tensor[tensor < 0] = float('nan')
-        tensor += torch.tensor(tiebreak_rng.uniform(0, 1e-9, size=tensor.shape), dtype=tensor.dtype)
+        finite = tensor[~tensor.isnan()]
+        abs_max = finite.abs().max().item() if finite.numel() > 0 else 0.0
+        noise_scale = max(abs_max * 1e-5, 1e-9)
+        tensor += torch.tensor(tiebreak_rng.uniform(0, noise_scale, size=tensor.shape), dtype=tensor.dtype)
         baselines[i] = (name, tensor)
 
     # Build run-specific prefix for output files

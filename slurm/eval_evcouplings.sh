@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=eval_evcouplings
 #SBATCH --partition=cpu_high_mem
-#SBATCH --time=12:00:00
+#SBATCH --time=24:00:00
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=256G
 #SBATCH --output=logs/eval_evcouplings_%j.out

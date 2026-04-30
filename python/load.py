@@ -148,18 +148,28 @@ def load_pssms(pssm_dir, variant, E):
     print(f"Loaded pssm_root: {pssm_root.shape}")
 
     variant_pssm_dir = os.path.join(pssm_dir, variant)
-    # Auto-detect number of time steps
+    # Auto-detect time steps by parsing filenames (start time may not be 0)
     import glob as glob_mod
-    n_steps = len(glob_mod.glob(os.path.join(variant_pssm_dir, "time_*.csv")))
+    import re
+    time_pattern = re.compile(r"time_(\d+\.\d+)\.csv$")
+    times = []
+    for f in glob_mod.glob(os.path.join(variant_pssm_dir, "time_*.csv")):
+        m = time_pattern.search(os.path.basename(f))
+        if m:
+            times.append(float(m.group(1)))
+    times.sort()
     pssm_variant = []
-    for step in range(n_steps):
-        t = step * 0.1
+    for t in times:
         path = os.path.join(variant_pssm_dir, f"time_{t:.1f}.csv")
         pv = torch.tensor(
             np.loadtxt(path, delimiter=",", skiprows=1, usecols=range(1, E + 1)),
             dtype=torch.float32,
         )
         pssm_variant.append(pv)
-    print(f"Loaded {len(pssm_variant)} variant PSSMs from {variant_pssm_dir}")
+    if pssm_variant:
+        print(f"Loaded {len(pssm_variant)} variant PSSMs from {variant_pssm_dir} "
+              f"(t={times[0]:.1f} to t={times[-1]:.1f})")
+    else:
+        print(f"Loaded 0 variant PSSMs from {variant_pssm_dir}")
 
     return pssm_root, pssm_variant

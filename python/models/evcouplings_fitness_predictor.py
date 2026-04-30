@@ -70,36 +70,77 @@ def _prepare_alignment(msa, seq_len):
     return alignment, L
 
 
-def _fit_model(alignment, theta, pseudo_count):
-    """Fit mean-field DCA with progress logging."""
-    from evcouplings.couplings.mean_field import MeanFieldDCA
+def _fit_model_plmc(msa, seq_len, theta, plmc_binary, lambda_h=None,
+                    lambda_J=None, iterations=None, cpu=None, fast=False):
+    """Fit a Potts model via plmc (pseudo-likelihood maximization).
 
-    N, L, q = alignment.N, alignment.L, alignment.num_symbols
-    cov_dim = L * (q - 1)
-    j_mem_gb = (L * L * q * q * 4) / (1024 ** 3)
-    print(f"  Model dimensions: L={L}, q={q}, covariance={cov_dim}x{cov_dim}")
-    print(f"  J matrix will use ~{j_mem_gb:.1f} GB (float32)")
+    plmc is the gold-standard DCA estimator and is robust at high L with
+    sparse data, unlike mean-field DCA whose matrix inversion is unstable
+    when the covariance matrix is near-singular.
+    """
+    import os
+    import tempfile
+    import subprocess
+    from evcouplings.couplings.model import CouplingsModel
+    from evcouplings.align.alignment import ALPHABET_PROTEIN
 
-    print(f"  Creating MeanFieldDCA (focus column selection)...", flush=True)
-    mf_dca = MeanFieldDCA(alignment)
-    focus_L = mf_dca.alignment.L
-    focus_N = mf_dca.alignment.N
-    print(f"    Focus alignment: {focus_N} sequences x {focus_L} positions")
+    # Truncate / sanitize
+    ref_seq = msa[0][1].rstrip("*")
+    L = min(len(ref_seq), seq_len)
+    valid_chars = set(ALPHABET_PROTEIN)
 
-    print(f"  Computing sequence weights (theta={theta})...", flush=True)
-    t0 = time.time()
-    mf_dca.alignment.set_weights(theta)
-    n_eff = mf_dca.alignment.weights.sum()
-    print(f"    Done in {time.time() - t0:.1f}s (N_eff={n_eff:.1f})", flush=True)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        ali_path = os.path.join(tmpdir, "alignment.fasta")
+        couplings_path = os.path.join(tmpdir, "couplings.txt")
+        param_path = os.path.join(tmpdir, "params.bin")
 
-    # Prevent fit() from recomputing weights
-    mf_dca.alignment.set_weights = lambda *a, **kw: None
+        # Write FASTA in a2m-like focus mode: first sequence is the reference
+        # (all uppercase, so every column is a focus column).
+        focus_id = f"reference/0-{L - 1}"
+        with open(ali_path, "w") as f:
+            f.write(f">{focus_id}\n")
+            ref_clean = "".join(c if c in valid_chars else "-" for c in ref_seq[:L])
+            f.write(ref_clean + "\n")
+            for name, seq in msa[1:]:
+                seq = seq.rstrip("*")[:L]
+                cleaned = "".join(c if c in valid_chars else "-" for c in seq)
+                f.write(f">{name}\n{cleaned}\n")
 
-    print(f"  Computing frequencies, covariance matrix, and inverting...", flush=True)
-    t0 = time.time()
-    model = mf_dca.fit(theta=theta, pseudo_count=pseudo_count)
-    print(f"    Done in {time.time() - t0:.1f}s", flush=True)
+        N = len(msa)
+        print(f"  Model dimensions: L={L}, q={len(ALPHABET_PROTEIN)}, N={N}")
+        print(f"  Running plmc (pseudo-likelihood maximization)...", flush=True)
+        t0 = time.time()
+        cmd = [plmc_binary,
+               "-o", param_path,
+               "-c", couplings_path,
+               "-t", str(1.0 - theta),
+               "-f", focus_id]
+        if lambda_h is not None:
+            cmd.extend(["-lh", str(lambda_h)])
+        if lambda_J is not None:
+            cmd.extend(["-le", str(lambda_J)])
+        if iterations is not None:
+            cmd.extend(["-m", str(iterations)])
+        if cpu:
+            cmd.extend(["-n", str(cpu)])
+        if fast:
+            cmd.append("--fast")
+        cmd.append(ali_path)
+        print(f"  Command: {' '.join(cmd)}", flush=True)
+        proc = subprocess.run(cmd, capture_output=True, text=True)
+        if proc.returncode != 0:
+            print(proc.stdout[-2000:] if proc.stdout else "")
+            print(proc.stderr[-2000:] if proc.stderr else "")
+            raise RuntimeError(f"plmc failed (exit {proc.returncode})")
+        print(f"    plmc done in {time.time() - t0:.1f}s", flush=True)
+        # Show a tail of plmc output for visibility
+        tail = (proc.stdout or "").strip().splitlines()[-10:]
+        for line in tail:
+            print(f"    [plmc] {line}")
 
+        print(f"  Loading plmc parameters...", flush=True)
+        with open(param_path, "rb") as f:
+            model = CouplingsModel(f)
     return model
 
 
@@ -122,19 +163,27 @@ class EVcouplingsFitnessPredictor(BaseFitnessPredictor):
         print("EVcouplings: Loading and filtering MSA...")
         msa = _load_and_filter_msa(evc.msa_path, evc.metadata_path, evc.date_cutoff, evc.max_seqs)
 
-        print("EVcouplings: Preparing alignment...")
-        alignment, _ = _prepare_alignment(msa, config.seq_len)
+        print("EVcouplings: Fitting model via plmc...")
+        model = _fit_model_plmc(
+            msa, config.seq_len,
+            theta=evc.theta,
+            plmc_binary=evc.plmc_binary,
+            lambda_h=evc.lambda_h,
+            lambda_J=evc.lambda_J,
+            iterations=evc.plmc_iterations,
+            cpu=evc.plmc_cpu,
+            fast=evc.plmc_fast,
+        )
         del msa
-
-        print("EVcouplings: Fitting model...")
-        model = _fit_model(alignment, evc.theta, evc.pseudo_count)
-        del alignment
 
         # Extract parameters (keep on CPU — J can be multi-GB)
         self._h_i = torch.tensor(model.h_i, dtype=torch.float32)        # (L, q)
         self._J_ij = torch.tensor(model.J_ij, dtype=torch.float32)      # (L, L, q, q)
+        print(f"  Fit stats: h_i abs mean={self._h_i.abs().mean():.4f} max={self._h_i.abs().max():.4f}")
+        print(f"             J_ij abs mean={self._J_ij.abs().mean():.6f} max={self._J_ij.abs().max():.4f}")
         model_alphabet = "".join(model.alphabet)
         model_index_list = np.array(model.index_list, dtype=np.int64)
+        print(f"  Model alphabet={model_alphabet!r} L={self._h_i.shape[0]} index_list[:5]={model_index_list[:5].tolist()} [-3:]={model_index_list[-3:].tolist()}")
 
         self._model_L = int(self._h_i.shape[0])
         self._model_q = int(self._h_i.shape[1])
@@ -155,8 +204,12 @@ class EVcouplingsFitnessPredictor(BaseFitnessPredictor):
                 mti[i] = internal_alpha_map[c]
         self.register_buffer("_model_to_internal", mti)
 
-        # Position mapping: model positions → aligned positions
+        # Position mapping: model positions → aligned positions.
+        # plmc writes 1-indexed positions (from focus header "reference/0-{L-1}",
+        # interpreted as 1..L); shift to 0-indexed to match our alignment.
         m2a = torch.tensor(model_index_list, dtype=torch.long)
+        if m2a.min().item() >= 1:
+            m2a = m2a - 1
         valid = (m2a >= 0) & (m2a < config.seq_len)
         if not valid.all():
             valid_idx = torch.where(valid)[0]
@@ -174,6 +227,12 @@ class EVcouplingsFitnessPredictor(BaseFitnessPredictor):
         # CPU copies for inner loop (avoid repeated .cpu() calls)
         self._valid_model_aa_cpu = self._valid_model_aa.cpu()
 
+        # Per-sequence output cache. Test examples often repeat their WT across
+        # the 6 hit-rate eval variants (which differ only by post-hoc masking),
+        # so caching cuts forward compute by ~6x. Keyed by WT bytes at model
+        # positions. Memory: ~108 KB per unique WT — bounded by dataset size.
+        self._forward_cache: dict = {}
+
         elapsed = time.time() - t_total
         n_mapped = len(m2a)
         print(f"EVcouplings: Ready. L={self._model_L}, q={self._model_q}, "
@@ -183,53 +242,65 @@ class EVcouplingsFitnessPredictor(BaseFitnessPredictor):
         del model
 
     def _forward_impl(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass implementing delta-Hamiltonian computation.
+
+        ΔH = Δh + ΔJ where
+        Δh = h_i(B) - h_i(A)
+        ΔJ = Σⱼ≠ᵢ [J_ij(B, Aⱼ) - J_ij(A, Aⱼ)]
+
+        Fitness = ΔH (EVcouplings convention: P ∝ exp(+H), so higher ΔH is more
+        favorable — NOT the classical Boltzmann exp(-H/kT); verified in
+        evcouplings/couplings/model.py:908 where P = exp(x)/Z).
+        """
         B, seq_len = x.shape
         E = self.vocab_size
         L = self._model_L
         q = self._model_q
 
-        h = self._h_i       # (L, q) on CPU
-        J = self._J_ij       # (L, L, q, q) on CPU
-        m2a = self._model_to_aligned  # (L,) on model device
-        itm = self._internal_to_model  # (E_internal,) on model device
+        h = self._h_i                   # (L, q)
+        J = self._J_ij                  # (L, L, q, q)
+        m2a = self._model_to_aligned    # (L,)
+        itm = self._internal_to_model   # (E_internal,)
         valid_m_aa = self._valid_model_aa       # (n_aa,)
         valid_i_aa = self._valid_internal_aa    # (n_aa,)
-        n_aa = len(valid_m_aa)
-
-        arange_L = torch.arange(L)
-
-        # Pre-compute expanded index grids for scatter (on output device)
-        pos_grid = m2a.unsqueeze(1).expand(L, n_aa)         # (L, n_aa)
-        aa_grid = valid_i_aa.unsqueeze(0).expand(L, n_aa)   # (L, n_aa)
 
         output = torch.full((B, seq_len, E), _SENTINEL, device=x.device)
 
+        pos_idx = torch.arange(L)
+        eye_L = torch.eye(L, dtype=torch.bool)
+
         for b in range(B):
-            # Extract AAs at model positions, convert to model alphabet (on CPU)
-            seq_at_model = x[b, m2a]                  # (L,) on x.device
-            model_aa = itm[seq_at_model].cpu()        # (L,) on CPU
+            a = itm[x[b, m2a]].cpu()  # (L,) WT AAs in model alphabet
+            key = a.numpy().tobytes()
+            cached = self._forward_cache.get(key)
+            if cached is not None:
+                output[b] = cached.to(x.device)
+                continue
 
-            # Field term: h[k, :] - h[k, a[k]]
-            h_wt = h[arange_L, model_aa]              # (L,)
-            field_delta = h - h_wt.unsqueeze(1)       # (L, q)
+            # Field term: (L, q)
+            h_wt = h[pos_idx, a]                    # (L,)
+            delta_h = h - h_wt.unsqueeze(1)         # (L, q)
 
-            # Coupling term (exclude self-coupling j=k)
-            # J_context[k, j, b] = J[k, j, b, a[j]]
-            a_exp = model_aa.view(1, L, 1, 1).expand(L, L, q, 1)
-            J_context = J.gather(3, a_exp).squeeze(3)    # (L, L, q)
-            coupling_to_mut = J_context.sum(dim=1) - J_context[arange_L, arange_L]  # (L, q)
+            # Coupling term: gather J[:, :, :, a[j]] over last dim
+            #   J_ctx[i, j, mut] = J[i, j, mut, a[j]]
+            a_exp = a.view(1, L, 1, 1).expand(L, L, q, 1)
+            J_ctx = J.gather(3, a_exp).squeeze(3)   # (L, L, q)
+            J_ctx = J_ctx.masked_fill(eye_L.unsqueeze(-1), 0.0)  # zero diagonal (j!=i)
 
-            # coupling_to_wt[k] = sum_{j!=k} J[k, j, a[k], a[j]]
-            a_k = model_aa.view(L, 1, 1).expand(L, L, 1)
-            J_wt = J_context.gather(2, a_k).squeeze(2)  # (L, L)
-            coupling_to_wt = J_wt.sum(dim=1) - J_wt[arange_L, arange_L]  # (L,)
+            sum_to_mut = J_ctx.sum(dim=1)           # (L, q): Σⱼ≠ᵢ J[i,j,mut,a[j]]
+            sum_to_wt = sum_to_mut[pos_idx, a]      # (L,):  Σⱼ≠ᵢ J[i,j,a[i],a[j]]
+            delta_J = sum_to_mut - sum_to_wt.unsqueeze(1)  # (L, q)
 
-            delta_H = field_delta + coupling_to_mut - coupling_to_wt.unsqueeze(1)
-            scores = -delta_H  # negate: higher = more favorable
+            scores = delta_h + delta_J              # (L, q)
+            # Force WT entry to exactly 0 (suppress any float drift)
+            scores[pos_idx, a] = 0.0
 
-            # Extract valid AA columns and scatter into output
-            scores_valid = scores[:, self._valid_model_aa_cpu]   # (L, n_aa) on CPU
-            output[b, pos_grid, aa_grid] = scores_valid.to(x.device)
+            # Scatter into output via alphabet mapping
+            seq_out = torch.full((seq_len, E), _SENTINEL)
+            sel = scores[:, valid_m_aa.cpu()]       # (L, n_aa)
+            seq_out[m2a.cpu().unsqueeze(1), valid_i_aa.cpu().unsqueeze(0)] = sel
+            self._forward_cache[key] = seq_out
+            output[b] = seq_out.to(x.device)
 
         return output
 

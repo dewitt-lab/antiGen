@@ -129,21 +129,31 @@ class VespaGConfig:
 
 @dataclass(frozen=True)
 class EVcouplingsConfig:
-    """Configuration for EVcouplings mean-field DCA model.
+    """Configuration for EVcouplings (plmc-based) DCA model.
 
     Attributes:
         msa_path: Path to pandemic MSA in FASTA format.
         metadata_path: Path to metadata TSV with 'strain' and 'date' columns.
         date_cutoff: YYYY-MM-DD cutoff for filtering MSA to training window.
-        theta: Sequence reweighting threshold for clustering.
-        pseudo_count: Pseudo-count for frequency regularization.
+        theta: Sequence reweighting threshold (evcouplings convention; plmc uses 1-theta).
+        pseudo_count: (Legacy/unused under plmc.) Retained for backwards compatibility.
+        plmc_binary: Path to the plmc executable.
+        lambda_h, lambda_J: L2 regularization on fields / couplings (None = plmc defaults).
+        plmc_iterations: Max L-BFGS iterations (None = plmc default).
+        plmc_cpu: OpenMP threads ("max" or int); None = single-threaded.
     """
     msa_path: str = ""
     metadata_path: str = ""
     date_cutoff: str = ""
-    theta: float = 1.0
+    theta: float = 0.8
     pseudo_count: float = 0.5
     max_seqs: int = 10000
+    plmc_binary: str = "/home/ivan.specht/bin/plmc"
+    lambda_h: Optional[float] = None
+    lambda_J: Optional[float] = None
+    plmc_iterations: Optional[int] = None
+    plmc_cpu: Optional[str] = "max"
+    plmc_fast: bool = False
 
 
 @dataclass(frozen=True)

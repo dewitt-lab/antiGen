@@ -1,2 +1,0 @@
-Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]Fetching 4 files: 100%|██████████| 4/4 [00:00<00:00, 64527.75it/s]
-[2026-03-10T10:41:31.561] error: *** JOB 1777659 ON GPU71BA CANCELLED AT 2026-03-10T10:41:31 DUE to SIGNAL Terminated ***

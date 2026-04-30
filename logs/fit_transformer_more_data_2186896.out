@@ -1,0 +1,16 @@
+Job started at: Mon Apr 20 04:41:30 AM PDT 2026
+Running on node: GPU7130
+Job ID: 2186896
+GPU: 0
+Alphabet size: 22
+Using device: cuda
+Loading examples from /home/ivan.specht/antiGen-data/output4/examples_cutoff_4.txt...
+Loaded 149064 examples from /home/ivan.specht/antiGen-data/output4/examples_cutoff_4.txt
+  1 variant testing root(s), 1040 variant-descended for 'XFG'
+Sequence length: 1273
+Training examples: 131894, Testing examples: 17170
+Total mutations in training set: 392736
+Train batches per epoch: 2061
+Model: 565,142 trainable params
+Starting training...
+Job finished at: Mon Apr 20 04:42:18 AM PDT 2026

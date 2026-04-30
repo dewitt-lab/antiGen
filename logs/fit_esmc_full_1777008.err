@@ -1,3 +1,0 @@
-Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]Fetching 4 files: 100%|██████████| 4/4 [00:00<00:00, 65536.00it/s]
-/var/spool/slurmd/job1777008/slurm_script: line 21: 1163401 Killed                  python python/train.py --model-type esmc --esmc-model-name esmc_300m --cutoff 1.0 --ignore-dead-ends --epochs 32 --batch-size 8 --lr 0.00001 --output-dir /large_storage/hielab/ispecht/fitness-inference
-[2026-03-09T23:58:53.488] error: Detected 1 oom_kill event in StepId=1777008.batch. Some of the step tasks have been OOM Killed.

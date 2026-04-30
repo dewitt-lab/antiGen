@@ -48,6 +48,18 @@ def create_model(
     elif config.model_type == ModelType.VESPAG_FITNESS:
         from models.vespag_fitness_predictor import VespaGFitnessPredictor
         model = VespaGFitnessPredictor(config)
+    elif config.model_type == ModelType.BLOSUM62:
+        from models.blosum62_fitness_predictor import BLOSUM62FitnessPredictor
+        model = BLOSUM62FitnessPredictor(config)
+    elif config.model_type == ModelType.EVCOUPLINGS:
+        from models.evcouplings_fitness_predictor import EVcouplingsFitnessPredictor
+        model = EVcouplingsFitnessPredictor(config)
+    elif config.model_type == ModelType.EVE:
+        from models.eve_fitness_predictor import EVEFitnessPredictor
+        model = EVEFitnessPredictor(config)
+    elif config.model_type == ModelType.TRANCEPTION:
+        from models.tranception_fitness_predictor import TranceptionFitnessPredictor
+        model = TranceptionFitnessPredictor(config)
     else:
         raise ValueError(f"Unknown model type: {config.model_type}")
 

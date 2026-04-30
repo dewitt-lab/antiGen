@@ -21,9 +21,9 @@ from collections import defaultdict
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from config import ModelConfig, ModelType, TransformerConfig, AlphabetConfig, ESM2Config, ESMCConfig, VespaGConfig
+from config import ModelConfig, ModelType, TransformerConfig, AlphabetConfig, ESM2Config, ESMCConfig, VespaGConfig, EVcouplingsConfig, EVEConfig, TranceptionConfig
 from models.factory import create_model
-from parse_tree import parse_big_tree
+from load import Example, load_examples, load_pssms
 
 
 # ── Dataset ───────────────────────────────────────────────────────────────────
@@ -45,11 +45,11 @@ class MutationDataset(Dataset):
 def compute_probs(logits, target_batch, aa_batch):
     wt_mask = torch.ones_like(logits, dtype=torch.bool)
     wt_mask.scatter_(2, aa_batch.unsqueeze(-1), False)
- 
+
     #probs = torch.sigmoid(logits)
-    probs = torch.softmax(logits.flatten(), dim=0).reshape(logits.shape)
-    probs = probs * wt_mask  # zero out wild-type before normalizing
-    probs = probs / probs.sum(dim=(1, 2), keepdim=True)  # per-example normalization
+    probs = torch.softmax(logits.flatten(1), dim=1).reshape(logits.shape)
+    probs = probs * wt_mask  # zero out wild-type, but DON'T renormalize
+    # Sum can now vary - higher sum = more mutational potential
     probs = probs.clamp(1e-8, 1 - 1e-8)
     return probs
 
@@ -57,7 +57,10 @@ def compute_loss_batch(probs, target_batch):
     """Compute masked multinomial NLL, ignoring wild-type positions."""
     target_batch = target_batch.to(probs.device)
 
-    loss = -(target_batch * torch.log(probs))
+    # Renormalize probs for loss computation (training expects normalized probabilities)
+    normalized_probs = probs / probs.sum(dim=(1, 2), keepdim=True).clamp(min=1e-8)
+
+    loss = -(target_batch * torch.log(normalized_probs))
     n_mutations = target_batch.sum().clamp(min=1)
     return loss.sum() / n_mutations
 
@@ -65,31 +68,36 @@ def compute_loss_full(probs, target_batch):
     """Compute masked multinomial NLL, ignoring wild-type positions."""
     target_batch = target_batch.to(probs.device)
 
-    loss = -(target_batch * torch.log(probs))
+    # Renormalize probs for loss computation (training expects normalized probabilities)
+    normalized_probs = probs / probs.sum(dim=(1, 2), keepdim=True).clamp(min=1e-8)
+
+    loss = -(target_batch * torch.log(normalized_probs))
     n_mutations = target_batch.sum().clamp(min=1)
     return loss.sum(), n_mutations
 
 RBD_RANGE = list(range(330, 531))  # 0-indexed, inclusive
 
-def compute_hit_rate(probs, target_batch, aa_batch, qtile=0.1):
-    target_batch = target_batch.to(probs.device)
-    aa_batch = aa_batch.to(probs.device)
+def compute_hit_rate(scores, target_batch, aa_batch, qtile=0.1, eval_range=None):
+    target_batch = target_batch.to(scores.device)
+    aa_batch = aa_batch.to(scores.device)
 
-    # Subset to RBD range
-    target_batch = target_batch[:, RBD_RANGE, :]
-    aa_batch_rbd = aa_batch[:, RBD_RANGE]
-    if probs.shape[1] != len(RBD_RANGE):
-        probs = probs[:, RBD_RANGE, :]
+    if eval_range is None:
+        eval_range = RBD_RANGE
+
+    # Subset to eval range
+    target_batch = target_batch[:, eval_range, :]
+    aa_batch_sub = aa_batch[:, eval_range]
+    if scores.shape[1] != len(eval_range):
+        scores = scores[:, eval_range, :]
 
     # Mask wild-type positions to NaN so they don't affect quantile thresholds
-    probs = probs.clone()
-    probs.scatter_(2, aa_batch_rbd.unsqueeze(-1), float('nan'))
+    scores = scores.clone()
+    scores.scatter_(2, aa_batch_sub.unsqueeze(-1), float('nan'))
 
-    # Vectorized: compute per-example quantile thresholds in one call
-    B = probs.shape[0]
-    p_flat = probs.reshape(B, -1).float()
+    B = scores.shape[0]
+    p_flat = scores.reshape(B, -1).float()
     thresholds = torch.nanquantile(p_flat, 1.0 - qtile, dim=1)  # (B,)
-    top_qtile_mask = probs >= thresholds.view(B, 1, 1)
+    top_qtile_mask = scores >= thresholds.view(B, 1, 1)
 
     n_hits = (top_qtile_mask * target_batch).sum().item()
     n_mutations = target_batch.sum().item()
@@ -98,7 +106,7 @@ def compute_hit_rate(probs, target_batch, aa_batch, qtile=0.1):
         
 
 @torch.no_grad()
-def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10, seen_mask=None):
+def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10, seen_mask=None, eval_range=None):
     """Evaluate loss and hit rates over the entire dataloader.
 
     baselines: list of (name, probs_2d) where probs_2d is a (seq_len, E) tensor
@@ -128,6 +136,9 @@ def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10, seen_
 
         batch_size = aa_batch.shape[0]
 
+        # Use raw logits for ranking-based hit rate (softmax is monotonic, unnecessary)
+        scores = logits
+
         # Mask and normalize baseline probs per example (zero out wild-type, re-normalize)
         wt_mask = torch.ones(batch_size, aa_batch.shape[1], baselines[0][1].shape[-1], dtype=torch.bool) if baselines else None
         if wt_mask is not None:
@@ -141,8 +152,8 @@ def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10, seen_
         # Mask previously seen mutations if requested
         if seen_mask is not None:
             sm = seen_mask.unsqueeze(0).expand(batch_size, -1, -1)
-            probs = probs.clone()
-            probs[sm.to(device)] = float('nan')
+            scores = scores.clone()
+            scores[sm.to(device)] = float('nan')
             target_batch = target_batch.clone()
             target_batch[sm.to(device)] = 0
             for name in masked_baselines:
@@ -150,17 +161,17 @@ def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10, seen_
 
         for i in range(n_buckets - 1):
             qtile = (i + 1) / n_buckets
-            hits, rbd_muts = compute_hit_rate(probs, target_batch, aa_batch, qtile)
+            hits, rbd_muts = compute_hit_rate(scores, target_batch, aa_batch, qtile, eval_range=eval_range)
             total_hits_by_qtile[i] += hits
             if i == 0:
                 total_rbd_mutations += rbd_muts
 
             for name, _ in baselines:
-                b_hits, _ = compute_hit_rate(masked_baselines[name], target_batch, aa_batch, qtile)
+                b_hits, _ = compute_hit_rate(masked_baselines[name], target_batch, aa_batch, qtile, eval_range=eval_range)
                 baseline_hits_by_qtile[name][i] += b_hits
 
         # Prevent gradual memory buildup over long eval loops
-        if batch_idx % 100 == 0:
+        if batch_idx % 10 == 0:
             gc.collect()
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
@@ -169,9 +180,9 @@ def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10, seen_
     model.train()
 
     for i in range(n_buckets - 1):
-        total_hits_by_qtile[i] /= total_rbd_mutations
+        total_hits_by_qtile[i] /= max(total_rbd_mutations, 1)
         for name, _ in baselines:
-            baseline_hits_by_qtile[name][i] /= total_rbd_mutations
+            baseline_hits_by_qtile[name][i] /= max(total_rbd_mutations, 1)
 
     return total_loss / max(total_n_mutations, 1), total_hits_by_qtile, baseline_hits_by_qtile
 
@@ -183,8 +194,8 @@ def parse_args():
     parser.add_argument('--cutoff', type=float, default=1.0, help='Train/test cutoff (years since MRCA)')
     parser.add_argument('--ignore-dead-ends', action='store_true', default=False, help='Do not make examples for sequences with no downstream mutants')
 
-    parser.add_argument('--model-type', type=str, default='transformer', choices=['transformer', 'esm2', 'esmc', 'vespag'],
-                        help='Model architecture: from-scratch transformer, ESM-2 finetune, ESM C finetune, or VespaG')
+    parser.add_argument('--model-type', type=str, default='transformer', choices=['transformer', 'esm2', 'esmc', 'vespag', 'blosum62', 'evcouplings', 'eve', 'tranception'],
+                        help='Model architecture: from-scratch transformer, ESM-2 finetune, ESM C finetune, VespaG, BLOSUM62 (eval only), EVcouplings (eval only), EVE VAE, or Tranception LM')
     parser.add_argument('--d-model', type=int, default=512, help='Model dimension (transformer only)')
     parser.add_argument('--num-layers', type=int, default=4, help='Number of transformer layers (transformer only)')
     parser.add_argument('--esm2-model-name', type=str, default='facebook/esm2_t12_35M_UR50D',
@@ -208,124 +219,26 @@ def parse_args():
                         help='Number of quantile buckets for hit-rate evaluation')
     parser.add_argument('--dms-eval-dir', type=str, default=None,
                         help='Directory with DMS TSV files for evaluation')
+    parser.add_argument('--variant', type=str, default=None,
+                        help='Variant name (default: BA.2 for SARS-CoV-2, J for flu)')
+    parser.add_argument('--flu', action='store_true', default=False,
+                        help='Flu mode: uses flu data, full-sequence eval, variant J or K')
+    parser.add_argument('--rsv-a', action='store_true', default=False,
+                        help='RSV-A mode: uses RSV-A data, full-sequence eval, variant A.D.1.6')
+    parser.add_argument('--denv2', action='store_true', default=False,
+                        help='DENV2 mode: uses DENV2 data, full-sequence eval, variant 2II_F.1.1.2_annotated')
+    parser.add_argument('--msa', type=str, default=None,
+                        help='Path to pandemic MSA FASTA (required for evcouplings/eve)')
+    parser.add_argument('--metadata', type=str, default=None,
+                        help='Path to metadata TSV with strain/date columns (required for evcouplings/eve)')
+    parser.add_argument('--max-seqs', type=int, default=0,
+                        help='Max MSA sequences for evcouplings/eve/tranception (0=unlimited)')
+    parser.add_argument('--evc-pseudo-count', type=float, default=0.5,
+                        help='Pseudo-count for EVcouplings mean-field DCA regularization (default: 0.5)')
+    parser.add_argument('--scoring-direction', type=str, default='both',
+                        choices=['forward', 'backward', 'both'],
+                        help='Autoregressive scoring direction for Tranception (default: both)')
     return parser.parse_args()
-
-
-# ── Mutation ordering eval ────────────────────────────────────────────────────
-
-@torch.no_grad()
-def evaluate_mutation_ordering(model, all_examples, testing_examples, testing_id_map,
-                                device, allowed_aas, output_dir, run_prefix):
-    """Evaluate whether the model predicts the correct order of two sequential mutations.
-
-    For each testing example S with parent P (also in testing set), and each child
-    mutation M2 from S.mat, compare:
-        p_actual  = P(P->S) * P(S->C)
-        p_swapped = P(P->NEW) * P(NEW->C)
-    where NEW applies M2 to P first instead of M1.
-
-    testing_id_map: dict mapping id(example) -> index in all_examples for testing examples.
-    """
-    model.eval()
-    testing_ids = set(testing_id_map.values())
-
-    def forward_one(aa_idx_tensor):
-        """Run a single sequence through the model, return per-mutation probs (seq_len, E)."""
-        aa_batch = aa_idx_tensor.unsqueeze(0).to(device)
-        logits = model(aa_batch).float()
-        probs = compute_probs(logits, None, aa_batch)
-        return probs.squeeze(0)  # (seq_len, E)
-
-    NEW_BATCH_SIZE = 64  # sub-batch NEW sequences to avoid OOM
-    rows = []
-    n_correct = 0
-    n_total = 0
-    n_examples = len(testing_examples)
-
-    for s_num, s_example in enumerate(testing_examples):
-        if s_num % 100 == 0:
-            print(f"  [mutation_ordering] example {s_num}/{n_examples}", flush=True)
-
-        # Skip root examples
-        if s_example.parent_id is None or s_example.parent_mutation is None:
-            continue
-
-        # Parent must also be in testing set
-        if s_example.parent_id not in testing_ids:
-            continue
-
-        s_idx = testing_id_map[id(s_example)]
-
-        p_example = all_examples[s_example.parent_id]
-        pos1, alt1 = s_example.parent_mutation
-
-        # Collect child mutations from S.mat
-        child_mutations = []
-        nz = s_example.mat.nonzero(as_tuple=False)  # (N, 2)
-        for row in nz:
-            pos2, alt2 = row[0].item(), row[1].item()
-            if pos2 != pos1:
-                child_mutations.append((pos2, alt2))
-
-        if not child_mutations:
-            continue
-
-        # Forward pass on P and S (cached across child mutations)
-        parent_probs = forward_one(p_example.aa_idx)   # (seq_len, E)
-        seq_probs = forward_one(s_example.aa_idx)       # (seq_len, E)
-
-        p_parent_to_s = parent_probs[pos1, alt1].item()
-
-        # Batch forward passes for all NEW sequences, sub-batched to limit memory
-        all_new_probs = []
-        for batch_start in range(0, len(child_mutations), NEW_BATCH_SIZE):
-            batch_muts = child_mutations[batch_start:batch_start + NEW_BATCH_SIZE]
-            new_aa_list = []
-            for pos2, alt2 in batch_muts:
-                new_aa = p_example.aa_idx.clone()
-                new_aa[pos2] = alt2
-                new_aa_list.append(new_aa)
-
-            new_aa_batch = torch.stack(new_aa_list).to(device)
-            new_logits = model(new_aa_batch).float()
-            new_probs = compute_probs(new_logits, None, new_aa_batch)  # (B, seq_len, E)
-            all_new_probs.append(new_probs)
-
-        all_new_probs = torch.cat(all_new_probs, dim=0)  # (N_children, seq_len, E)
-
-        for i, (pos2, alt2) in enumerate(child_mutations):
-            p_s_to_c = seq_probs[pos2, alt2].item()
-            p_parent_to_new = parent_probs[pos2, alt2].item()
-            p_new_to_c = all_new_probs[i, pos1, alt1].item()
-
-            p_actual = p_parent_to_s * p_s_to_c
-            p_swapped = p_parent_to_new * p_new_to_c
-
-            score = p_actual / (p_actual + p_swapped) if (p_actual + p_swapped) > 0 else 0.5
-
-            rows.append((s_example.parent_id, s_idx, pos2, alt2, score))
-            n_total += 1
-            if score > 0.5:
-                n_correct += 1
-
-    # Write CSV
-    csv_path = os.path.join(output_dir, f"mutation_ordering_{run_prefix}.csv")
-    with open(csv_path, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["parent_idx", "seq_idx", "child_pos", "child_aa", "score"])
-        for parent_idx, seq_idx, pos2, alt2, score in rows:
-            writer.writerow([parent_idx, seq_idx, pos2, alt2, f"{score:.8f}"])
-
-    # Summary
-    if n_total > 0:
-        mean_score = sum(r[4] for r in rows) / n_total
-        accuracy = n_correct / n_total
-        print(f"Mutation ordering eval: {n_total} triples, mean score={mean_score:.4f}, accuracy={accuracy:.4f}")
-    else:
-        print("Mutation ordering eval: no valid triples found")
-
-    print(f"Mutation ordering results written to {csv_path}")
-    model.train()
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -346,37 +259,85 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
 
-    print("Loading tree...")
-    all_examples, pssm_root, pssm_variant = parse_big_tree(
-        "/home/ivan.specht/fitness-inference-data/covid.jsonl",
-        "/home/ivan.specht/fitness-inference/data/test_sequences/root.txt",
-        "/home/ivan.specht/fitness-inference/data/test_sequences/BA.2.txt",
-        allowed_aas,
-        args.cutoff
-    )
+    if sum([args.flu, args.rsv_a, args.denv2]) > 1:
+        raise ValueError("Cannot specify more than one of --flu, --rsv-a, --denv2")
+
+    if args.flu:
+        # Flu mode: fixed data dir, only cutoff=12 allowed
+        if args.variant is None:
+            args.variant = 'J'
+        if args.variant not in ('J', 'K'):
+            raise ValueError(f"Flu mode only supports variants J and K, got '{args.variant}'")
+        cutoff_int = int(args.cutoff)
+        if cutoff_int != 12:
+            raise ValueError(f"Flu mode only supports cutoff=12, got {args.cutoff}")
+        data_dir = "/home/ivan.specht/antiGen-data/output_flu_full_cutoff12"
+        examples_path = os.path.join(data_dir, "examples_cutoff_12.txt")
+    elif args.rsv_a:
+        # RSV-A mode: fixed data dir, only cutoff=74 allowed
+        if args.variant is None:
+            args.variant = 'A.D.1.6'
+        if args.variant != 'A.D.1.6':
+            raise ValueError(f"RSV-A mode only supports variant A.D.1.6, got '{args.variant}'")
+        cutoff_int = int(args.cutoff)
+        if cutoff_int != 74:
+            raise ValueError(f"RSV-A mode only supports cutoff=74, got {args.cutoff}")
+        data_dir = "/home/ivan.specht/antiGen-data/output_rsv_a_full_cutoff74"
+        examples_path = os.path.join(data_dir, "examples_cutoff_74.txt")
+    elif args.denv2:
+        # DENV2 mode: fixed data dir, only cutoff=191 allowed
+        if args.variant is None:
+            args.variant = '2II_F.1.1.2_annotated'
+        if args.variant != '2II_F.1.1.2_annotated':
+            raise ValueError(f"DENV2 mode only supports variant 2II_F.1.1.2_annotated, got '{args.variant}'")
+        cutoff_int = int(args.cutoff)
+        if cutoff_int != 191:
+            raise ValueError(f"DENV2 mode only supports cutoff=191, got {args.cutoff}")
+        data_dir = "/home/ivan.specht/antiGen-data/output_denv2_full_cutoff191"
+        examples_path = os.path.join(data_dir, "examples_cutoff_191.txt")
+    else:
+        # SARS-CoV-2 mode
+        if args.variant is None:
+            args.variant = 'BA.2'
+        cutoff_int = int(args.cutoff)
+        if cutoff_int not in (1, 4, 5):
+            raise ValueError(f"Unsupported cutoff {args.cutoff}. Supported values: 1, 4, 5")
+        data_dir = f"/home/ivan.specht/antiGen-data/output{cutoff_int}"
+        examples_path = os.path.join(data_dir, f"examples_cutoff_{cutoff_int}.txt")
+    print(f"Loading examples from {examples_path}...")
+    all_examples = load_examples(examples_path, allowed_aas, args.variant)
+
 
     seq_len_aa = len(all_examples[0].aa_idx)
     print(f"Sequence length: {seq_len_aa}")
+
+    # Eval range: full sequence for flu/RSV-A/DENV2, RBD for SARS-CoV-2
+    if args.flu or args.rsv_a or args.denv2:
+        eval_range = list(range(seq_len_aa))
+    else:
+        eval_range = RBD_RANGE
 
     training_examples = []
     testing_examples = []
     total_mutations_train = 0.0
 
-    training_ids = set()
     for i, example in enumerate(all_examples):
         if args.ignore_dead_ends:
             if example.mat.sum() < 0.5:
                 continue
 
-        if example.last_mutation_time <= args.cutoff:
+        if example.is_training:
             training_examples.append(example)
-            training_ids.add(i)
             total_mutations_train += example.mat.sum()
         else:
             testing_examples.append(example)
 
-
     print(f"Training examples: {len(training_examples)}, Testing examples: {len(testing_examples)}")
+    print(f"Total mutations in training set: {total_mutations_train:.0f}")
+
+    # Global wild-type AA indices (starting sequence of first training example).
+    # Captured here because training_examples is freed before baseline construction.
+    global_wt_aa_idx = training_examples[0].aa_idx.clone()
 
 
 
@@ -441,6 +402,87 @@ def main():
         )
         model = create_model(model_config, device)
         print(f"Model: VespaG (ESM2-3B + FNN), freeze_backbone={args.freeze_backbone}, load_pretrained={args.load_pretrained}")
+    elif args.model_type == 'blosum62':
+        model_config = ModelConfig(
+            model_type=ModelType.BLOSUM62,
+            seq_len=seq_len_aa,
+            alphabet=alphabet_config,
+        )
+        model = create_model(model_config, device)
+        print("Model: BLOSUM62 (no training, eval only)")
+    elif args.model_type == 'evcouplings':
+        if args.msa is None or args.metadata is None:
+            raise ValueError("--msa and --metadata are required for evcouplings model type")
+        from datetime import timedelta
+        if args.flu:
+            mrca_date = datetime(2007, 10, 1)
+        else:
+            mrca_date = datetime(2019, 12, 23)
+        date_cutoff = (mrca_date + timedelta(days=args.cutoff * 365.25)).strftime("%Y-%m-%d")
+        print(f"EVcouplings: date cutoff = {date_cutoff} (MRCA + {args.cutoff} years)")
+        model_config = ModelConfig(
+            model_type=ModelType.EVCOUPLINGS,
+            seq_len=seq_len_aa,
+            alphabet=alphabet_config,
+            evcouplings=EVcouplingsConfig(
+                msa_path=args.msa,
+                metadata_path=args.metadata,
+                date_cutoff=date_cutoff,
+                max_seqs=args.max_seqs,
+                pseudo_count=args.evc_pseudo_count,
+            ),
+        )
+        model = create_model(model_config, device)
+        print("Model: EVcouplings mean-field DCA (no training, eval only)")
+    elif args.model_type == 'eve':
+        if args.msa is None or args.metadata is None:
+            raise ValueError("--msa and --metadata are required for eve model type")
+        from datetime import timedelta
+        if args.flu:
+            mrca_date = datetime(2007, 10, 1)
+        else:
+            mrca_date = datetime(2019, 12, 23)
+        date_cutoff = (mrca_date + timedelta(days=args.cutoff * 365.25)).strftime("%Y-%m-%d")
+        print(f"EVE: date cutoff = {date_cutoff} (MRCA + {args.cutoff} years)")
+        model_config = ModelConfig(
+            model_type=ModelType.EVE,
+            seq_len=seq_len_aa,
+            alphabet=alphabet_config,
+            eve=EVEConfig(
+                msa_path=args.msa,
+                metadata_path=args.metadata,
+                date_cutoff=date_cutoff,
+                freeze_backbone=args.freeze_backbone,
+                max_seqs=args.max_seqs,
+            ),
+        )
+        model = create_model(model_config, device)
+        print(f"Model: EVE VAE, freeze_backbone={args.freeze_backbone}")
+    elif args.model_type == 'tranception':
+        if args.msa is None or args.metadata is None:
+            raise ValueError("--msa and --metadata are required for tranception model type")
+        from datetime import timedelta
+        if args.flu:
+            mrca_date = datetime(2007, 10, 1)
+        else:
+            mrca_date = datetime(2019, 12, 23)
+        date_cutoff = (mrca_date + timedelta(days=args.cutoff * 365.25)).strftime("%Y-%m-%d")
+        print(f"Tranception: date cutoff = {date_cutoff} (MRCA + {args.cutoff} years)")
+        model_config = ModelConfig(
+            model_type=ModelType.TRANCEPTION,
+            seq_len=seq_len_aa,
+            alphabet=alphabet_config,
+            tranception=TranceptionConfig(
+                msa_path=args.msa,
+                metadata_path=args.metadata,
+                date_cutoff=date_cutoff,
+                freeze_backbone=args.freeze_backbone,
+                max_seqs=args.max_seqs,
+                scoring_direction=args.scoring_direction,
+            ),
+        )
+        model = create_model(model_config, device)
+        print(f"Model: Tranception LM, scoring={args.scoring_direction}, freeze_backbone={args.freeze_backbone}")
     else:
         model_config = ModelConfig(
             model_type=ModelType.FITNESS_PREDICTOR,
@@ -456,86 +498,125 @@ def main():
         model = create_model(model_config, device)
     print(f"Model: {model.get_num_parameters(trainable_only=True):,} trainable params")
 
-    optimizer = optim.Adam(model.parameters(), lr=args.lr)
-
-    if args.warmup_steps > 0:
-        def warmup_fn(step):
-            if step < args.warmup_steps:
-                return float(step) / float(max(1, args.warmup_steps))
-            return 1.0
-        scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=warmup_fn)
-    else:
-        scheduler = None
-
-
     os.makedirs(args.output_dir, exist_ok=True)
 
     global_step = 0
     epoch = 0
     avg_train_loss = float('nan')
-    print("Starting training...")
+    optimizer_state = None
 
-    for epoch in range(args.epochs):
-        total_train_loss = 0.0
-        n_batches = 0
+    skip_training = args.model_type in ('blosum62', 'evcouplings') or \
+        (args.model_type == 'eve' and args.freeze_backbone) or \
+        (args.model_type == 'tranception' and args.freeze_backbone)
+    if skip_training:
+        print(f"{args.model_type} mode: skipping training, running evaluation only.")
+        model.eval()
+        del train_loader, train_dataset, training_examples
+    else:
+        optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
-        for batch_num, (aa_batch, target_batch) in enumerate(train_loader):
-            model.train()
-            optimizer.zero_grad()
+        if args.warmup_steps > 0:
+            def warmup_fn(step):
+                if step < args.warmup_steps:
+                    return float(step) / float(max(1, args.warmup_steps))
+                return 1.0
+            scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=warmup_fn)
+        else:
+            scheduler = None
 
-            aa_batch = aa_batch.to(device)
-            target_batch = target_batch.to(device)
+        print("Starting training...")
 
-            logits = model(aa_batch).float()
-            probs = compute_probs(logits, target_batch, aa_batch)
-            loss = compute_loss_batch(probs, target_batch)
-            loss.backward()
+        for epoch in range(args.epochs):
+            total_train_loss = 0.0
+            n_batches = 0
 
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-            optimizer.step()
-            if scheduler is not None:
-                scheduler.step()
+            for batch_num, (aa_batch, target_batch) in enumerate(train_loader):
+                model.train()
+                optimizer.zero_grad()
 
-            train_loss_val = loss.item()
-            total_train_loss += train_loss_val
-            n_batches += 1
-            global_step += 1
+                aa_batch = aa_batch.to(device)
+                target_batch = target_batch.to(device)
 
-            # Test minibatch loss (cheap, per-batch monitoring)
-            test_aa, test_target = next(test_iter)
-            with torch.no_grad():
-                model.eval()
-                test_aa = test_aa.to(device)
-                test_target = test_target.to(device)
-                test_logits = model(test_aa).float()
-                test_probs = compute_probs(test_logits, test_target, test_aa)
-                test_batch_loss_val = compute_loss_batch(test_probs, test_target).item()
+                logits = model(aa_batch).float()
+                probs = compute_probs(logits, target_batch, aa_batch)
+                loss = compute_loss_batch(probs, target_batch)
+                loss.backward()
 
-            if batch_num % 10 == 0:
-                print(f"  Epoch {epoch}, batch {batch_num}: train_loss={train_loss_val:.8f}, test_batch_loss={test_batch_loss_val:.8f}")
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                optimizer.step()
+                if scheduler is not None:
+                    scheduler.step()
+
+                train_loss_val = loss.item()
+                total_train_loss += train_loss_val
+                n_batches += 1
+                global_step += 1
+
+                # Test minibatch loss (cheap, per-batch monitoring)
+                test_aa, test_target = next(test_iter)
+                with torch.no_grad():
+                    model.eval()
+                    test_aa = test_aa.to(device)
+                    test_target = test_target.to(device)
+                    test_logits = model(test_aa).float()
+                    test_probs = compute_probs(test_logits, test_target, test_aa)
+                    test_batch_loss_val = compute_loss_batch(test_probs, test_target).item()
+
+                if batch_num % 10 == 0:
+                    print(f"  Epoch {epoch}, batch {batch_num}: train_loss={train_loss_val:.8f}, test_batch_loss={test_batch_loss_val:.8f}")
+
+                if args.max_batches is not None and global_step >= args.max_batches:
+                    print(f"Reached max batches ({args.max_batches}), stopping.")
+                    break
+
+            avg_train_loss = total_train_loss / max(n_batches, 1)
+            print(f"Epoch {epoch}: avg_train_loss={avg_train_loss:.8f}")
 
             if args.max_batches is not None and global_step >= args.max_batches:
-                print(f"Reached max batches ({args.max_batches}), stopping.")
                 break
 
-        avg_train_loss = total_train_loss / max(n_batches, 1)
-        print(f"Epoch {epoch}: avg_train_loss={avg_train_loss:.8f}")
-
-        if args.max_batches is not None and global_step >= args.max_batches:
-            break
+        # Free training-only objects to reclaim memory before eval
+        optimizer_state = optimizer.state_dict()
+        del optimizer, scheduler, train_loader, train_dataset, training_examples
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        print("Freed training objects (optimizer, scheduler, train_loader, etc.) before eval")
 
     n_buckets = args.hit_rate_buckets
 
+    pssm_dir = os.path.join(data_dir, "pssms")
+    pssm_root, pssm_variant = load_pssms(pssm_dir, args.variant, E)
+
     baselines = [("pssm_root", pssm_root)]
+
+    # Position-only baseline: each row filled with the count of non-WT observations
+    # at that position (sum over pssm_root[i, :] excluding the global wild-type entry,
+    # taken from the first training example's starting sequence). Captures positional
+    # mutability while ignoring the alt-AA distribution.
+    wt_aa_idx = global_wt_aa_idx.long().unsqueeze(1)  # (seq_len, 1)
+    pssm_root_clean = pssm_root.clamp(min=0)
+    non_wt_sum = pssm_root_clean.sum(dim=1) - pssm_root_clean.gather(1, wt_aa_idx).squeeze(1)
+    pssm_root_position = non_wt_sum.unsqueeze(1).expand_as(pssm_root).clone()
+    baselines.append(("pssm_root_position", pssm_root_position))
 
     # Load additional baselines from CSV files
     import glob as glob_mod
-    baseline_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "baselines")
+    if args.flu:
+        baseline_subdir = "baselines_flu"
+    elif args.rsv_a:
+        baseline_subdir = "baselines_rsv_a"
+    elif args.denv2:
+        baseline_subdir = "baselines_denv2"
+    else:
+        baseline_subdir = "baselines"
+    baseline_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", baseline_subdir)
     for csv_file in sorted(glob_mod.glob(os.path.join(baseline_dir, "*.csv"))):
         baseline_name = os.path.splitext(os.path.basename(csv_file))[0]
         with open(csv_file, "r") as f:
             reader = csv.reader(f)
             header = next(reader)
+            # Some baseline CSVs have a leading row-index column; detect and skip.
             expected = list(allowed_aas)
             #assert header == expected, (
             #    f"Baseline {baseline_name}: column names {header} do not match allowed_aas {expected}"
@@ -547,13 +628,19 @@ def main():
         baselines.append((baseline_name, baseline_tensor))
         print(f"Loaded baseline: {baseline_name} ({baseline_tensor.shape})")
 
-    # Fix sentinel values and break ties with small noise for reproducible quantile computation
+    # Fix sentinel values and break ties with small noise for reproducible quantile computation.
+    # Noise magnitude is scaled relative to each baseline's value range so it exceeds float32
+    # precision at that scale (e.g. 1e-9 noise added to a value ~10000 is below float32 epsilon
+    # and gets discarded, leaving ties unbroken).
     tiebreak_rng = np.random.RandomState(args.seed + 12345)
     for i in range(len(baselines)):
         name, tensor = baselines[i]
         tensor = tensor.clone()
         tensor[tensor < 0] = float('nan')
-        tensor += torch.tensor(tiebreak_rng.uniform(0, 1e-9, size=tensor.shape), dtype=tensor.dtype)
+        finite = tensor[~tensor.isnan()]
+        abs_max = finite.abs().max().item() if finite.numel() > 0 else 0.0
+        noise_scale = max(abs_max * 1e-5, 1e-9)
+        tensor += torch.tensor(tiebreak_rng.uniform(0, noise_scale, size=tensor.shape), dtype=tensor.dtype)
         baselines[i] = (name, tensor)
 
     # Build run-specific prefix for output files
@@ -565,17 +652,38 @@ def main():
         run_prefix = f"esmc_{args.esmc_model_name}_lr{args.lr}_{timestamp}"
     elif args.model_type == 'vespag':
         run_prefix = f"vespag_lr{args.lr}_{timestamp}"
+    elif args.model_type == 'blosum62':
+        run_prefix = f"blosum62_{timestamp}"
+    elif args.model_type == 'evcouplings':
+        run_prefix = f"evcouplings_{timestamp}"
+    elif args.model_type == 'eve':
+        if args.freeze_backbone:
+            run_prefix = f"eve_frozen_{timestamp}"
+        else:
+            run_prefix = f"eve_ft_lr{args.lr}_{timestamp}"
+    elif args.model_type == 'tranception':
+        if args.freeze_backbone:
+            run_prefix = f"tranception_frozen_{args.scoring_direction}_{timestamp}"
+        else:
+            run_prefix = f"tranception_ft_{args.scoring_direction}_lr{args.lr}_{timestamp}"
     else:
         run_prefix = f"simple_d{args.d_model}_n{args.num_layers}_lr{args.lr}_{timestamp}"
 
     qtile_labels = [f"top_{(i+1)*100/n_buckets:.1f}%" for i in range(n_buckets - 1)]
     qtile_pcts = [(i + 1) * 100 / n_buckets for i in range(n_buckets - 1)]
 
+    # Mask for gap and stop tokens (used to repeat evals excluding these)
+    gap_idx = allowed_aas.index('-')
+    stop_idx = allowed_aas.index('*')
+    special_mask = torch.zeros(seq_len_aa, E, dtype=torch.bool)
+    special_mask[:, gap_idx] = True
+    special_mask[:, stop_idx] = True
+
     def run_hit_rate_eval(loader, label, file_suffix, seen_mask=None):
         """Run hit-rate eval on a dataloader, write CSV and plot."""
         avg_loss, hit_rate_by_qtile, baseline_hits = evaluate_full(
             model, loader, device, baselines=baselines, n_buckets=n_buckets,
-            seen_mask=seen_mask
+            seen_mask=seen_mask, eval_range=eval_range
         )
         print(f"{label} test loss: {avg_loss:.8f}")
         for i in range(len(hit_rate_by_qtile)):
@@ -624,32 +732,39 @@ def main():
     hit_rate_seen_mask = pssm_root > 0  # (seq_len, E), True = seen
     run_hit_rate_eval(test_loader, "Unseen-mutations", "unseen", seen_mask=hit_rate_seen_mask)
 
+    # Repeat all hit-rate evals with gap/stop tokens masked out
+    run_hit_rate_eval(test_loader, "All (no gap/stop)", "all_nogapstop", seen_mask=special_mask)
+    if variant_testing_examples:
+        run_hit_rate_eval(variant_test_loader, "Variant-descended (no gap/stop)", "variant_nogapstop", seen_mask=special_mask)
+    run_hit_rate_eval(test_loader, "Unseen (no gap/stop)", "unseen_nogapstop", seen_mask=hit_rate_seen_mask | special_mask)
+
     # ── Testing-root eval ────────────────────────────────────────────────────
     testing_root_examples = [e for e in all_examples if e.is_testing_root]
-    assert len(testing_root_examples) == 1, (
-        f"Expected exactly 1 example with is_testing_root=True, found {len(testing_root_examples)}"
+    assert len(testing_root_examples) >= 1, (
+        f"Expected at least 1 example with is_testing_root=True, found {len(testing_root_examples)}"
     )
     testing_root_example = testing_root_examples[0]
+    testing_root_aa_seq = "".join(allowed_aas[i] for i in testing_root_example.aa_idx.tolist())
+    print(f"Testing root amino acid sequence: {testing_root_aa_seq}")
 
     with torch.no_grad():
         model.eval()
         aa_input = testing_root_example.aa_idx.unsqueeze(0).to(device)
-        target_input = testing_root_example.mat.unsqueeze(0).to(device)
         logits = model(aa_input).float()
-        testing_root_probs = compute_probs(logits, target_input, aa_input)
-        print(f"Testing root probs shape: {testing_root_probs.shape}")
+        testing_root_scores = logits
+        print(f"Testing root scores shape: {testing_root_scores.shape}")
 
-    # Remove batch dim -> (seq_len, E), then subset to RBD
-    testing_root_probs_2d = testing_root_probs.squeeze(0).cpu()[RBD_RANGE, :]
+    # Remove batch dim -> (seq_len, E), then subset to eval range
+    testing_root_scores_2d = testing_root_scores.squeeze(0).cpu()[eval_range, :]
 
-    # Build wild-type mask for the testing root sequence (RBD only)
-    wt_idx = testing_root_example.aa_idx[RBD_RANGE]  # (rbd_len,)
-    rbd_len, E_size = testing_root_probs_2d.shape
-    wt_mask_2d = torch.ones(rbd_len, E_size, dtype=torch.bool)
+    # Build wild-type mask for the testing root sequence (eval range only)
+    wt_idx = testing_root_example.aa_idx[eval_range]
+    eval_len, E_size = testing_root_scores_2d.shape
+    wt_mask_2d = torch.ones(eval_len, E_size, dtype=torch.bool)
     wt_mask_2d.scatter_(1, wt_idx.unsqueeze(-1), False)
 
-    # Subset pssm_variant to RBD
-    pssm_variant_rbd = [pv[RBD_RANGE, :] for pv in pssm_variant]
+    # Subset pssm_variant to eval range
+    pssm_variant_sub = [pv[eval_range, :] for pv in pssm_variant]
 
     # Helper: mask wild-type, re-normalize, return top-decile hit rate vs pssm_variant
     def variant_hit_rates(prob_2d, wt_mask, pssm_variant_list, threshold_count=100):
@@ -665,39 +780,41 @@ def main():
             hit_rates.append(n_hits / max(n_top, 1))
         return hit_rates
 
-    def run_variant_eval(pssm_variant_rbd_list, label, file_suffix, model_probs=None, baselines_rbd=None, threshold_count=100):
+    def run_variant_eval(pssm_variant_sub_list, label, file_suffix, model_probs=None, baselines_sub=None, threshold_count=100, wt_mask=None):
         """Run variant hit rate eval and write CSV + plot."""
         if model_probs is None:
-            model_probs = testing_root_probs_2d
-        if baselines_rbd is None:
-            baselines_rbd = [(name, bp[RBD_RANGE, :].clone()) for name, bp in baselines]
+            model_probs = testing_root_scores_2d
+        if baselines_sub is None:
+            baselines_sub = [(name, bp[eval_range, :].clone()) for name, bp in baselines]
+        if wt_mask is None:
+            wt_mask = wt_mask_2d
 
         # Compute for model
-        model_hits = variant_hit_rates(model_probs, wt_mask_2d, pssm_variant_rbd_list, threshold_count=threshold_count)
+        model_hits = variant_hit_rates(model_probs, wt_mask, pssm_variant_sub_list, threshold_count=threshold_count)
 
         # Compute for each baseline
         baseline_variant_hits = {}
-        for name, bp_rbd in baselines_rbd:
-            baseline_variant_hits[name] = variant_hit_rates(bp_rbd, wt_mask_2d, pssm_variant_rbd_list, threshold_count=threshold_count)
+        for name, bp_sub in baselines_sub:
+            baseline_variant_hits[name] = variant_hit_rates(bp_sub, wt_mask, pssm_variant_sub_list, threshold_count=threshold_count)
 
         # Write CSV: rows = time steps, columns = model + baselines
         variant_csv_path = os.path.join(args.output_dir, f"variant_emergence_{file_suffix}_{run_prefix}.csv")
         with open(variant_csv_path, "w", newline="") as f:
             writer = csv.writer(f)
-            header = ["step", "trained"] + [name for name, _ in baselines]
+            header = ["step", "trained"] + [name for name, _ in baselines_sub]
             writer.writerow(header)
-            for i in range(len(pssm_variant_rbd_list)):
+            for i in range(len(pssm_variant_sub_list)):
                 row = [i, f"{model_hits[i]:.8f}"]
-                for name, _ in baselines:
+                for name, _ in baselines_sub:
                     row.append(f"{baseline_variant_hits[name][i]:.8f}")
                 writer.writerow(row)
         print(f"{label} variant hit rates written to {variant_csv_path}")
 
         # Plot variant hit rates over time
-        time_years = [(i + 1) * 0.1 for i in range(len(pssm_variant_rbd_list))]
+        time_years = [(i + 1) * 0.1 for i in range(len(pssm_variant_sub_list))]
         fig, ax = plt.subplots(figsize=(8, 5))
         ax.plot(time_years, model_hits, marker='o', label="trained")
-        for name, _ in baselines:
+        for name, _ in baselines_sub:
             ax.plot(time_years, baseline_variant_hits[name], marker='o', label=name)
         ax.set_xlabel("Years since beginning of pandemic")
         ax.set_ylabel("Hit rate")
@@ -710,64 +827,131 @@ def main():
         plt.close(fig)
         print(f"{label} variant hit rate plot saved to {variant_plot_path}")
 
+    # Variant emergence thresholds: BA.2 uses 100/1, everything else uses 10/1
+    if not args.flu and args.variant == 'BA.2':
+        variant_thresholds = [100, 1]
+    else:
+        variant_thresholds = [10, 1]
+
     # (1) All variants
-    run_variant_eval(pssm_variant_rbd, "All", "all")
+    run_variant_eval(pssm_variant_sub, f"All (threshold={variant_thresholds[0]})", "all",
+                     threshold_count=variant_thresholds[0])
 
     # (2) Never-before-seen variants only: mask out positions that are non-zero in pssm_root
-    pssm_root_rbd = pssm_root[RBD_RANGE, :]
-    seen_mask = pssm_root_rbd > 0  # positions seen in training root PSSM (exclude sentinels)
-    pssm_variant_rbd_unseen = []
-    for pv in pssm_variant_rbd:
+    pssm_root_sub = pssm_root[eval_range, :]
+    seen_mask = pssm_root_sub > 0  # positions seen in training root PSSM (exclude sentinels)
+    pssm_variant_sub_unseen = []
+    for pv in pssm_variant_sub:
         pv_masked = pv.clone()
         pv_masked[seen_mask] = float('nan')
-        pssm_variant_rbd_unseen.append(pv_masked)
+        pssm_variant_sub_unseen.append(pv_masked)
 
     # Mask seen mutations in model probs
-    unseen_model_probs = testing_root_probs_2d.clone()
+    unseen_model_probs = testing_root_scores_2d.clone()
     unseen_model_probs[seen_mask] = float('nan')
 
     # Mask seen mutations in baselines
-    unseen_baselines_rbd = []
+    unseen_baselines_sub = []
     for name, bp in baselines:
-        bp_rbd = bp[RBD_RANGE, :].clone()
-        bp_rbd[seen_mask] = float('nan')
-        unseen_baselines_rbd.append((name, bp_rbd))
+        bp_sub = bp[eval_range, :].clone()
+        bp_sub[seen_mask] = float('nan')
+        unseen_baselines_sub.append((name, bp_sub))
 
-    run_variant_eval(pssm_variant_rbd_unseen, "Unseen", "unseen",
-                     model_probs=unseen_model_probs, baselines_rbd=unseen_baselines_rbd)
+    run_variant_eval(pssm_variant_sub_unseen, f"Unseen (threshold={variant_thresholds[0]})", "unseen",
+                     model_probs=unseen_model_probs, baselines_sub=unseen_baselines_sub,
+                     threshold_count=variant_thresholds[0])
 
-    # Repeat variant evals with pandemic threshold of 1 instead of 100
-    run_variant_eval(pssm_variant_rbd, "All (threshold=1)", "all_thresh1", threshold_count=1)
-    run_variant_eval(pssm_variant_rbd_unseen, "Unseen (threshold=1)", "unseen_thresh1",
-                     model_probs=unseen_model_probs, baselines_rbd=unseen_baselines_rbd, threshold_count=1)
+    # Repeat variant evals with threshold of 1
+    run_variant_eval(pssm_variant_sub, "All (threshold=1)", "all_thresh1", threshold_count=1)
+    run_variant_eval(pssm_variant_sub_unseen, "Unseen (threshold=1)", "unseen_thresh1",
+                     model_probs=unseen_model_probs, baselines_sub=unseen_baselines_sub, threshold_count=1)
 
-    # ── Mutation ordering eval ──────────────────────────────────────────────────
-    testing_id_map = {}
-    for i, example in enumerate(all_examples):
-        if example.last_mutation_time > args.cutoff:
-            testing_id_map[id(example)] = i
+    # Repeat variant evals with gap/stop tokens masked out
+    wt_mask_2d_nogapstop = wt_mask_2d.clone()
+    wt_mask_2d_nogapstop[:, gap_idx] = False
+    wt_mask_2d_nogapstop[:, stop_idx] = False
 
-    evaluate_mutation_ordering(
-        model, all_examples, testing_examples, testing_id_map, device, allowed_aas,
-        args.output_dir, run_prefix,
-    )
+    nogapstop_model_probs = testing_root_scores_2d.clone()
+    nogapstop_model_probs[:, gap_idx] = float('nan')
+    nogapstop_model_probs[:, stop_idx] = float('nan')
 
-    # ── Save variant root predictions as CSV ────────────────────────────────────
-    testing_root_probs_full = testing_root_probs.squeeze(0).cpu()  # (seq_len, E)
+    nogapstop_baselines_sub = []
+    for name, bp in baselines:
+        bp_sub = bp[eval_range, :].clone()
+        bp_sub[:, gap_idx] = float('nan')
+        bp_sub[:, stop_idx] = float('nan')
+        nogapstop_baselines_sub.append((name, bp_sub))
+
+    run_variant_eval(pssm_variant_sub, f"All no gap/stop (threshold={variant_thresholds[0]})", "all_nogapstop",
+                     model_probs=nogapstop_model_probs, baselines_sub=nogapstop_baselines_sub,
+                     wt_mask=wt_mask_2d_nogapstop, threshold_count=variant_thresholds[0])
+    run_variant_eval(pssm_variant_sub, "All no gap/stop (threshold=1)", "all_nogapstop_thresh1",
+                     model_probs=nogapstop_model_probs, baselines_sub=nogapstop_baselines_sub,
+                     wt_mask=wt_mask_2d_nogapstop, threshold_count=1)
+
+    # Unseen + no gap/stop
+    combined_mask = seen_mask.clone()
+    combined_mask[:, gap_idx] = True
+    combined_mask[:, stop_idx] = True
+    wt_mask_2d_unseen_nogapstop = wt_mask_2d.clone()
+    wt_mask_2d_unseen_nogapstop[combined_mask] = False
+
+    unseen_nogapstop_model_probs = testing_root_scores_2d.clone()
+    unseen_nogapstop_model_probs[combined_mask] = float('nan')
+
+    unseen_nogapstop_baselines_sub = []
+    for name, bp in baselines:
+        bp_sub = bp[eval_range, :].clone()
+        bp_sub[combined_mask] = float('nan')
+        unseen_nogapstop_baselines_sub.append((name, bp_sub))
+
+    run_variant_eval(pssm_variant_sub_unseen, f"Unseen no gap/stop (threshold={variant_thresholds[0]})", "unseen_nogapstop",
+                     model_probs=unseen_nogapstop_model_probs, baselines_sub=unseen_nogapstop_baselines_sub,
+                     wt_mask=wt_mask_2d_unseen_nogapstop, threshold_count=variant_thresholds[0])
+    run_variant_eval(pssm_variant_sub_unseen, "Unseen no gap/stop (threshold=1)", "unseen_nogapstop_thresh1",
+                     model_probs=unseen_nogapstop_model_probs, baselines_sub=unseen_nogapstop_baselines_sub,
+                     wt_mask=wt_mask_2d_unseen_nogapstop, threshold_count=1)
+
+    # -- Save variant root predictions as CSV ----------------------------------------
+    testing_root_scores_full = testing_root_scores.squeeze(0).cpu()  # (seq_len, E)
     variant_preds_path = os.path.join(args.output_dir, f"variant_root_predictions_{run_prefix}.csv")
     with open(variant_preds_path, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(list(allowed_aas))
-        for row in testing_root_probs_full.numpy():
+        for row in testing_root_scores_full.numpy():
             writer.writerow([f"{v:.8f}" for v in row])
-    print(f"Variant root predictions ({testing_root_probs_full.shape[0]} x {testing_root_probs_full.shape[1]}) saved to {variant_preds_path}")
+    print(f"Variant root predictions ({testing_root_scores_full.shape[0]} x {testing_root_scores_full.shape[1]}) saved to {variant_preds_path}")
+
+    # Save variant root predictions with previously seen mutations masked to NA
+    seen_mask_full = pssm_root > 0  # (seq_len, E)
+    testing_root_scores_unseen = testing_root_scores_full.clone()
+    testing_root_scores_unseen[seen_mask_full] = float('nan')
+    unseen_preds_path = os.path.join(args.output_dir, f"variant_root_predictions_unseen_{run_prefix}.csv")
+    with open(unseen_preds_path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(list(allowed_aas))
+        for row in testing_root_scores_unseen.numpy():
+            writer.writerow(["NA" if math.isnan(v) else f"{v:.8f}" for v in row])
+    print(f"Unseen variant root predictions saved to {unseen_preds_path}")
+
+    # Save variant root predictions with gap/stop masked to NA
+    testing_root_scores_nogapstop = testing_root_scores_full.clone()
+    testing_root_scores_nogapstop[:, gap_idx] = float('nan')
+    testing_root_scores_nogapstop[:, stop_idx] = float('nan')
+    nogapstop_preds_path = os.path.join(args.output_dir, f"variant_root_predictions_nogapstop_{run_prefix}.csv")
+    with open(nogapstop_preds_path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(list(allowed_aas))
+        for row in testing_root_scores_nogapstop.numpy():
+            writer.writerow(["NA" if math.isnan(v) else f"{v:.8f}" for v in row])
+    print(f"No gap/stop variant root predictions saved to {nogapstop_preds_path}")
 
     output_path = os.path.join(args.output_dir, f"fitness_{run_prefix}.pt")
 
     print(f"Saving model to {output_path}...")
     checkpoint = {
         'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict(),
+        'optimizer_state_dict': optimizer_state,
         'epoch': epoch,
         'global_step': global_step,
         'loss': avg_train_loss,

@@ -17,6 +17,7 @@ class ModelType(str, Enum):
     EVCOUPLINGS = "evcouplings"  # EVcouplings mean-field DCA (no training)
     EVE = "eve"  # EVE VAE (pre-train on MSA, optional finetune)
     TRANCEPTION = "tranception"  # Tranception autoregressive LM (pre-train on MSA, optional finetune)
+    GATED_FITNESS_PREDICTOR = "gated_fitness_predictor"  # BLOSUM62 + ESM C blended via per-position gate
 
 
 class TrainingMode(str, Enum):
@@ -220,6 +221,23 @@ class TranceptionConfig:
 
 
 @dataclass(frozen=True)
+class GatedFitnessConfig:
+    """Configuration for gated mixture of BLOSUM62 + ESM C.
+
+    The gate is a per-position learnable logit (L, 1) → sigmoid → (B, L, 1)
+    blending z-normalized ESM C logits with z-normalized BLOSUM62 scores.
+
+    Attributes:
+        esmc_model_name: ESM C model identifier (esmc_300m, esmc_600m, esmc_6b).
+        freeze_plm: Freeze ESM C backbone; only the gate trains.
+        finetune_layers: With freeze_plm=True, unfreeze last N transformer blocks.
+    """
+    esmc_model_name: str = "esmc_300m"
+    freeze_plm: bool = True
+    finetune_layers: int = 0
+
+
+@dataclass(frozen=True)
 class ModelConfig:
     """Unified model configuration.
 
@@ -240,6 +258,7 @@ class ModelConfig:
     evcouplings: EVcouplingsConfig = field(default_factory=EVcouplingsConfig)
     eve: EVEConfig = field(default_factory=EVEConfig)
     tranception: TranceptionConfig = field(default_factory=TranceptionConfig)
+    gated: GatedFitnessConfig = field(default_factory=GatedFitnessConfig)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize config to dictionary for checkpoint storage."""
@@ -310,6 +329,11 @@ class ModelConfig:
                 "freeze_backbone": self.tranception.freeze_backbone,
                 "max_seqs": self.tranception.max_seqs,
                 "scoring_direction": self.tranception.scoring_direction,
+            },
+            "gated": {
+                "esmc_model_name": self.gated.esmc_model_name,
+                "freeze_plm": self.gated.freeze_plm,
+                "finetune_layers": self.gated.finetune_layers,
             },
         }
 
@@ -384,6 +408,14 @@ class ModelConfig:
             scoring_direction=tc_dict.get("scoring_direction", "both"),
         )
 
+        # Parse Gated config (with backward compat for old checkpoints)
+        gated_dict = d.get("gated", {})
+        gated_config = GatedFitnessConfig(
+            esmc_model_name=gated_dict.get("esmc_model_name", "esmc_300m"),
+            freeze_plm=gated_dict.get("freeze_plm", True),
+            finetune_layers=gated_dict.get("finetune_layers", 0),
+        )
+
         return cls(
             model_type=ModelType(d["model_type"]),
             seq_len=d["seq_len"],
@@ -395,6 +427,7 @@ class ModelConfig:
             evcouplings=evcouplings_config,
             eve=eve_config,
             tranception=tranception_config,
+            gated=gated_config,
         )
 
 

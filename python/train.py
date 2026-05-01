@@ -21,7 +21,7 @@ from collections import defaultdict
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from config import ModelConfig, ModelType, TransformerConfig, AlphabetConfig, ESM2Config, ESMCConfig, VespaGConfig, EVcouplingsConfig, EVEConfig, TranceptionConfig
+from config import ModelConfig, ModelType, TransformerConfig, AlphabetConfig, ESM2Config, ESMCConfig, VespaGConfig, EVcouplingsConfig, EVEConfig, TranceptionConfig, GatedFitnessConfig
 from models.factory import create_model
 from load import Example, load_examples, load_pssms
 
@@ -194,8 +194,8 @@ def parse_args():
     parser.add_argument('--cutoff', type=float, default=1.0, help='Train/test cutoff (years since MRCA)')
     parser.add_argument('--ignore-dead-ends', action='store_true', default=False, help='Do not make examples for sequences with no downstream mutants')
 
-    parser.add_argument('--model-type', type=str, default='transformer', choices=['transformer', 'esm2', 'esmc', 'vespag', 'blosum62', 'evcouplings', 'eve', 'tranception'],
-                        help='Model architecture: from-scratch transformer, ESM-2 finetune, ESM C finetune, VespaG, BLOSUM62 (eval only), EVcouplings (eval only), EVE VAE, or Tranception LM')
+    parser.add_argument('--model-type', type=str, default='transformer', choices=['transformer', 'esm2', 'esmc', 'vespag', 'blosum62', 'evcouplings', 'eve', 'tranception', 'gated'],
+                        help='Model architecture: from-scratch transformer, ESM-2 finetune, ESM C finetune, VespaG, BLOSUM62 (eval only), EVcouplings (eval only), EVE VAE, Tranception LM, or gated BLOSUM62+ESM C blend')
     parser.add_argument('--d-model', type=int, default=512, help='Model dimension (transformer only)')
     parser.add_argument('--num-layers', type=int, default=4, help='Number of transformer layers (transformer only)')
     parser.add_argument('--esm2-model-name', type=str, default='facebook/esm2_t12_35M_UR50D',
@@ -483,6 +483,19 @@ def main():
         )
         model = create_model(model_config, device)
         print(f"Model: Tranception LM, scoring={args.scoring_direction}, freeze_backbone={args.freeze_backbone}")
+    elif args.model_type == 'gated':
+        model_config = ModelConfig(
+            model_type=ModelType.GATED_FITNESS_PREDICTOR,
+            seq_len=seq_len_aa,
+            alphabet=alphabet_config,
+            gated=GatedFitnessConfig(
+                esmc_model_name=args.esmc_model_name,
+                freeze_plm=args.freeze_backbone,
+                finetune_layers=args.finetune_layers,
+            ),
+        )
+        model = create_model(model_config, device)
+        print(f"Model: Gated BLOSUM62 + ESM C ({args.esmc_model_name}), freeze_plm={args.freeze_backbone}, finetune_layers={args.finetune_layers}")
     else:
         model_config = ModelConfig(
             model_type=ModelType.FITNESS_PREDICTOR,
@@ -666,6 +679,8 @@ def main():
             run_prefix = f"tranception_frozen_{args.scoring_direction}_{timestamp}"
         else:
             run_prefix = f"tranception_ft_{args.scoring_direction}_lr{args.lr}_{timestamp}"
+    elif args.model_type == 'gated':
+        run_prefix = f"gated_{args.esmc_model_name}_lr{args.lr}_{timestamp}"
     else:
         run_prefix = f"simple_d{args.d_model}_n{args.num_layers}_lr{args.lr}_{timestamp}"
 

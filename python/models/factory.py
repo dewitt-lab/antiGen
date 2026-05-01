@@ -60,6 +60,9 @@ def create_model(
     elif config.model_type == ModelType.TRANCEPTION:
         from models.tranception_fitness_predictor import TranceptionFitnessPredictor
         model = TranceptionFitnessPredictor(config)
+    elif config.model_type == ModelType.GATED_FITNESS_PREDICTOR:
+        from models.gated_fitness_predictor import GatedFitnessPredictor
+        model = GatedFitnessPredictor(config)
     else:
         raise ValueError(f"Unknown model type: {config.model_type}")
 

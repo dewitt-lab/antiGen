@@ -238,6 +238,11 @@ def parse_args():
     parser.add_argument('--scoring-direction', type=str, default='both',
                         choices=['forward', 'backward', 'both'],
                         help='Autoregressive scoring direction for Tranception (default: both)')
+    parser.add_argument('--data-dir', type=str, default=None,
+                        help='Override data directory (skips the cutoff-based path lookup; expects '
+                             'examples_cutoff_<cutoff>.txt and pssms/ inside). When set, --cutoff '
+                             'is used only to derive MRCA-based date cutoffs for MSA-based models, '
+                             'and the {1,4,5}/12/74/191 allow-list is bypassed.')
     return parser.parse_args()
 
 
@@ -299,11 +304,27 @@ def main():
         # SARS-CoV-2 mode
         if args.variant is None:
             args.variant = 'BA.2'
-        cutoff_int = int(args.cutoff)
-        if cutoff_int not in (1, 4, 5):
-            raise ValueError(f"Unsupported cutoff {args.cutoff}. Supported values: 1, 4, 5")
-        data_dir = f"/home/ivan.specht/antiGen-data/output{cutoff_int}"
-        examples_path = os.path.join(data_dir, f"examples_cutoff_{cutoff_int}.txt")
+        if args.data_dir is not None:
+            data_dir = args.data_dir
+            # Locate examples file: prefer cutoff-named, fall back to whichever
+            # examples_cutoff_*.txt is present in the directory.
+            cutoff_str = f"{args.cutoff:g}"
+            candidate = os.path.join(data_dir, f"examples_cutoff_{cutoff_str}.txt")
+            if not os.path.exists(candidate):
+                import glob as glob_mod
+                hits = sorted(glob_mod.glob(os.path.join(data_dir, "examples_cutoff_*.txt")))
+                if not hits:
+                    raise FileNotFoundError(
+                        f"No examples_cutoff_*.txt under --data-dir={data_dir}"
+                    )
+                candidate = hits[0]
+            examples_path = candidate
+        else:
+            cutoff_int = int(args.cutoff)
+            if cutoff_int not in (1, 4, 5):
+                raise ValueError(f"Unsupported cutoff {args.cutoff}. Supported values: 1, 4, 5")
+            data_dir = f"/home/ivan.specht/antiGen-data/output{cutoff_int}"
+            examples_path = os.path.join(data_dir, f"examples_cutoff_{cutoff_int}.txt")
     print(f"Loading examples from {examples_path}...")
     all_examples = load_examples(examples_path, allowed_aas, args.variant)
 

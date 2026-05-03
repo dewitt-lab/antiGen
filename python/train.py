@@ -257,6 +257,95 @@ def parse_args():
     return parser.parse_args()
 
 
+# ── Run-identity helpers ──────────────────────────────────────────────────────
+
+_PARTNER_SHORT = {
+    'esmc_fitness_predictor': 'esmc',
+    'esm2_fitness_predictor': 'esm2',
+    'fitness_predictor': 'xfmr',
+    'vespag_fitness': 'vespag',
+    'blosum62': 'blosum62',
+    'evcouplings': 'evc',
+    'eve': 'eve',
+    'tranception': 'tran',
+}
+
+
+def compute_run_family(args) -> str:
+    """Stable run-family identifier (no timestamps) for grouping outputs.
+
+    Non-gated: returns the model_type. Gated: returns
+        gated_<gate_variant>_<partner_a_short>_<partner_b_short>
+    so future gate variants (time, uncertainty, ...) live in sibling dirs
+    with unambiguous names.
+    """
+    if args.model_type == 'gated':
+        a = _PARTNER_SHORT.get(args.gate_partner_a, args.gate_partner_a)
+        b = _PARTNER_SHORT.get(args.gate_partner_b, args.gate_partner_b)
+        # v0 only ships the static gate variant; bump when adding time/uncertainty
+        return f"gated_static_{a}_{b}"
+    return args.model_type
+
+
+def write_manifest(args, model_config, output_dir, run_prefix) -> None:
+    """Drop manifest.json next to the run's outputs capturing the full recipe.
+
+    Aggregators consume this rather than guessing from filenames; lets us add
+    new gate variants / model combos without breaking discovery.
+    """
+    import json
+    import subprocess
+    git_commit = "unknown"
+    try:
+        git_commit = subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=os.path.dirname(os.path.abspath(__file__)),
+            stderr=subprocess.DEVNULL,
+        ).decode().strip()
+    except Exception:
+        pass
+
+    manifest = {
+        "schema_version": 1,
+        "run_family": compute_run_family(args),
+        "run_prefix": run_prefix,
+        "model_type": args.model_type,
+        "model_config": model_config.to_dict(),
+        "training": {
+            "epochs": args.epochs,
+            "batch_size": args.batch_size,
+            "lr": args.lr,
+            "max_batches": args.max_batches,
+            "warmup_steps": args.warmup_steps,
+            "freeze_backbone": args.freeze_backbone,
+            "finetune_layers": args.finetune_layers,
+        },
+        "data": {
+            "cutoff_years": args.cutoff,
+            "data_dir": args.data_dir,
+            "ignore_dead_ends": args.ignore_dead_ends,
+            "variant": args.variant,
+            "dataset_mode": (
+                "flu" if args.flu else
+                "rsv_a" if args.rsv_a else
+                "denv2" if args.denv2 else
+                "sc2"
+            ),
+        },
+        "git_commit": git_commit,
+    }
+    if args.model_type == 'gated':
+        manifest["gating"] = {
+            "gate_variant": "static",
+            "partner_a": args.gate_partner_a,
+            "partner_b": args.gate_partner_b,
+        }
+    path = os.path.join(output_dir, "manifest.json")
+    with open(path, "w") as f:
+        json.dump(manifest, f, indent=2)
+    print(f"Wrote manifest: {path}")
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
@@ -746,6 +835,8 @@ def main():
         run_prefix = f"gated_{_short(args.gate_partner_a)}_{_short(args.gate_partner_b)}_lr{args.lr}_{timestamp}"
     else:
         run_prefix = f"simple_d{args.d_model}_n{args.num_layers}_lr{args.lr}_{timestamp}"
+
+    write_manifest(args, model_config, args.output_dir, run_prefix)
 
     qtile_labels = [f"top_{(i+1)*100/n_buckets:.1f}%" for i in range(n_buckets - 1)]
     qtile_pcts = [(i + 1) * 100 / n_buckets for i in range(n_buckets - 1)]

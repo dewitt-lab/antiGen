@@ -91,4 +91,19 @@ class GatedFitnessPredictor(BaseFitnessPredictor):
         a_z = _row_zscore(a)
         b_z = _row_zscore(b)
         g = self.gate(x.shape[0]).to(a_z.dtype).to(a_z.device)
-        return g * a_z + (1.0 - g) * b_z
+
+        # Cells where either operand is non-finite (e.g. BLOSUM62 sentinels at
+        # stop/gap rows) would compute 0*inf=NaN inside the convex combination
+        # if the gate ever saturates. Mask those cells, blend the finite parts,
+        # then restore the non-finite values so they propagate as -inf into
+        # downstream softmax (where exp(-inf)=0 kills the cell cleanly).
+        a_finite = torch.isfinite(a_z)
+        b_finite = torch.isfinite(b_z)
+        both_finite = a_finite & b_finite
+        a_safe = torch.where(a_finite, a_z, torch.zeros_like(a_z))
+        b_safe = torch.where(b_finite, b_z, torch.zeros_like(b_z))
+        blend = g * a_safe + (1.0 - g) * b_safe
+        # If only b is non-finite, take b; if only a, take a; if both, take a (rare).
+        result = torch.where(both_finite, blend,
+                             torch.where(a_finite, b_z, a_z))
+        return result

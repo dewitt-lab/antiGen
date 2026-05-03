@@ -121,6 +121,87 @@ def test_partner_types_are_swappable():
     assert out.shape == (2, L, config.alphabet.vocab_size)
 
 
+def test_no_nan_when_partner_b_has_neg_inf():
+    """Simulates BLOSUM62 sentinels: partner_b returns -inf in some cells.
+    The gated forward must not produce NaN for any gate value, including
+    saturating gates that would trigger 0*inf=NaN under naive blending.
+    """
+    L, E = 8, 22
+
+    class _BWithInf(nn.Module):
+        """Returns logits with -inf at the last position's last 2 entries
+        (mimicking BLOSUM62 stop/gap sentinels at WT='*' rows)."""
+        def __init__(self, L, E):
+            super().__init__()
+            base = torch.randn(L, E) * 2.0
+            base[L - 1, E - 2:] = float("-inf")  # 2 sentinel cells
+            base[0, :] = float("-inf")           # whole-row sentinel
+            self.register_buffer("fixed_logits", base)
+
+        def forward(self, x):
+            B = x.shape[0]
+            return self.fixed_logits.unsqueeze(0).expand(B, -1, -1).clone()
+
+    config = ModelConfig(
+        model_type=ModelType.GATED_FITNESS_PREDICTOR,
+        seq_len=L,
+        alphabet=AlphabetConfig(),
+        gated=GatedFitnessConfig(),
+    )
+
+    stubs = iter([_StubPartner(L, E, seed=0), _BWithInf(L, E)])
+
+    def stub_create(cfg, device=None):
+        return next(stubs)
+
+    with mock.patch("models.factory.create_model", stub_create):
+        from models.gated_fitness_predictor import GatedFitnessPredictor
+        model = GatedFitnessPredictor(config)
+
+    x = torch.zeros(2, L, dtype=torch.long)
+    for gate_value in [-50.0, -5.0, 0.0, 5.0, 50.0]:
+        with torch.no_grad():
+            model.gate.gate_logit.fill_(gate_value)
+        out = model(x)
+        assert not torch.isnan(out).any(), (
+            f"NaN appeared in gated output at gate_logit={gate_value}; "
+            f"NaN cells: {torch.isnan(out).sum().item()}"
+        )
+
+
+def test_neg_inf_cells_propagate_through_blend():
+    """Cells where partner_b is -inf and partner_a is finite should propagate
+    -inf through the gated output (so downstream softmax treats them as
+    'cell cannot substitute'). Verifies the torch.where masking preserves
+    semantics rather than smoothing the sentinels away."""
+    L, E = 8, 22
+
+    class _BWithInf(nn.Module):
+        def __init__(self, L, E):
+            super().__init__()
+            base = torch.randn(L, E) * 2.0
+            base[3, 5] = float("-inf")
+            self.register_buffer("fixed_logits", base)
+
+        def forward(self, x):
+            return self.fixed_logits.unsqueeze(0).expand(x.shape[0], -1, -1).clone()
+
+    config = ModelConfig(
+        model_type=ModelType.GATED_FITNESS_PREDICTOR,
+        seq_len=L, alphabet=AlphabetConfig(), gated=GatedFitnessConfig(),
+    )
+    stubs = iter([_StubPartner(L, E, seed=0), _BWithInf(L, E)])
+    with mock.patch("models.factory.create_model", lambda cfg, device=None: next(stubs)):
+        from models.gated_fitness_predictor import GatedFitnessPredictor
+        model = GatedFitnessPredictor(config)
+
+    x = torch.zeros(1, L, dtype=torch.long)
+    out = model(x)
+    assert torch.isinf(out[0, 3, 5]) and out[0, 3, 5] < 0, (
+        f"expected -inf at the b-sentinel cell, got {out[0, 3, 5].item()}"
+    )
+
+
 def test_trainable_params_only_gate_when_partners_have_no_params():
     L = 8
     model, config = _make_predictor(L=L)
@@ -138,5 +219,7 @@ if __name__ == "__main__":
     test_g_one_recovers_partner_a()
     test_g_zero_recovers_partner_b()
     test_partner_types_are_swappable()
+    test_no_nan_when_partner_b_has_neg_inf()
+    test_neg_inf_cells_propagate_through_blend()
     test_trainable_params_only_gate_when_partners_have_no_params()
     print("All gated predictor tests passed.")

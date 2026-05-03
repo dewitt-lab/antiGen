@@ -224,8 +224,8 @@ class TranceptionConfig:
 class GatedFitnessConfig:
     """Configuration for gated mixture of two fitness predictors.
 
-    The gate is a per-position learnable logit (L, 1) → sigmoid → (B, L, 1)
-    blending z-normalized partner_a outputs with z-normalized partner_b outputs.
+    The gate produces a per-(batch, position) sigmoid weight blending
+    z-normalized partner_a logits with z-normalized partner_b logits.
     Each partner inherits the outer ModelConfig, so its specific sub-config
     (e.g. ESMCConfig, TransformerConfig) routes through the existing CLI flags
     for that model type (--esmc-model-name, --d-model, --freeze-backbone, etc.).
@@ -235,9 +235,13 @@ class GatedFitnessConfig:
             model type works (e.g. "esmc_fitness_predictor", "fitness_predictor",
             "blosum62", "esm2_fitness_predictor"). Cannot be "gated_fitness_predictor".
         partner_b_type: ModelType.value for the second partner.
+        gate_variant: Which gate module to use. "static" = per-position learnable
+            logit (data-blind). "uncertainty" = per-position MLP on partner
+            softmax entropies (data-conditioned).
     """
     partner_a_type: str = "esmc_fitness_predictor"
     partner_b_type: str = "blosum62"
+    gate_variant: str = "static"
 
 
 @dataclass(frozen=True)
@@ -336,6 +340,7 @@ class ModelConfig:
             "gated": {
                 "partner_a_type": self.gated.partner_a_type,
                 "partner_b_type": self.gated.partner_b_type,
+                "gate_variant": self.gated.gate_variant,
             },
         }
 
@@ -414,6 +419,7 @@ class ModelConfig:
         gated_config = GatedFitnessConfig(
             partner_a_type=gated_dict.get("partner_a_type", "esmc_fitness_predictor"),
             partner_b_type=gated_dict.get("partner_b_type", "blosum62"),
+            gate_variant=gated_dict.get("gate_variant", "static"),
         )
 
         return cls(

@@ -15,7 +15,7 @@ import torch.nn as nn
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from config import AlphabetConfig, GatedFitnessConfig, ModelConfig, ModelType
-from models.gated_fitness_predictor import _StaticGate, _row_zscore
+from models.gated_fitness_predictor import _StaticGate, _UncertaintyGate, _make_gate, _row_zscore
 
 
 class _StubPartner(nn.Module):
@@ -72,9 +72,56 @@ def test_row_zscore_preserves_neg_inf():
 
 def test_static_gate_init_at_half():
     gate = _StaticGate(seq_len=5)
-    out = gate(batch_size=3)
+    a = torch.randn(3, 5, 22)
+    b = torch.randn(3, 5, 22)
+    out = gate(a, b)
     assert out.shape == (3, 5, 1)
     assert torch.allclose(out, torch.full_like(out, 0.5))
+
+
+def test_uncertainty_gate_shape_and_finite():
+    gate = _UncertaintyGate()
+    a = torch.randn(3, 5, 22)
+    b = torch.randn(3, 5, 22)
+    out = gate(a, b)
+    assert out.shape == (3, 5, 1)
+    assert ((out > 0) & (out < 1)).all(), "sigmoid gate values must lie in (0, 1)"
+    assert torch.isfinite(out).all()
+
+
+def test_uncertainty_gate_no_nan_with_neg_inf_partner_b():
+    """BLOSUM-style sentinels in b shouldn't produce NaN through softmax+entropy."""
+    L, E = 5, 22
+    gate = _UncertaintyGate()
+    a = torch.randn(2, L, E)
+    b = torch.randn(2, L, E)
+    b[:, 0, :] = float("-inf")        # whole-row sentinel
+    b[:, 3, E - 2:] = float("-inf")   # 2-cell sentinel
+    out = gate(a, b)
+    assert torch.isfinite(out).all(), "uncertainty gate produced NaN with -inf cells in b"
+
+
+def test_uncertainty_gate_inits_near_half():
+    """Initializing the MLP's last layer to zero gives sigmoid(0)=0.5 at start
+    so untrained gated runs blend equally rather than biasing one side."""
+    gate = _UncertaintyGate()
+    a = torch.randn(2, 5, 22)
+    b = torch.randn(2, 5, 22)
+    out = gate(a, b)
+    assert torch.allclose(out, torch.full_like(out, 0.5), atol=1e-6)
+
+
+def test_make_gate_dispatch():
+    s = _make_gate(seq_len=5, gate_variant="static")
+    u = _make_gate(seq_len=5, gate_variant="uncertainty")
+    assert isinstance(s, _StaticGate)
+    assert isinstance(u, _UncertaintyGate)
+    try:
+        _make_gate(seq_len=5, gate_variant="nonsense")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected ValueError for unknown gate_variant")
 
 
 def test_forward_shape():
@@ -221,5 +268,9 @@ if __name__ == "__main__":
     test_partner_types_are_swappable()
     test_no_nan_when_partner_b_has_neg_inf()
     test_neg_inf_cells_propagate_through_blend()
+    test_uncertainty_gate_shape_and_finite()
+    test_uncertainty_gate_no_nan_with_neg_inf_partner_b()
+    test_uncertainty_gate_inits_near_half()
+    test_make_gate_dispatch()
     test_trainable_params_only_gate_when_partners_have_no_params()
     print("All gated predictor tests passed.")

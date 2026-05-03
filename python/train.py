@@ -254,6 +254,11 @@ def parse_args():
                                  'esmc_fitness_predictor', 'vespag_fitness', 'blosum62',
                                  'evcouplings', 'eve', 'tranception'],
                         help='ModelType.value for the second partner in --model-type gated.')
+    parser.add_argument('--gate-variant', type=str, default='static',
+                        choices=['static', 'uncertainty'],
+                        help='Gate module variant. "static" = per-position learnable '
+                             'logit (data-blind). "uncertainty" = per-position MLP on '
+                             'partner softmax entropies (data-conditioned).')
     return parser.parse_args()
 
 
@@ -282,8 +287,7 @@ def compute_run_family(args) -> str:
     if args.model_type == 'gated':
         a = _PARTNER_SHORT.get(args.gate_partner_a, args.gate_partner_a)
         b = _PARTNER_SHORT.get(args.gate_partner_b, args.gate_partner_b)
-        # v0 only ships the static gate variant; bump when adding time/uncertainty
-        return f"gated_static_{a}_{b}"
+        return f"gated_{args.gate_variant}_{a}_{b}"
     return args.model_type
 
 
@@ -631,10 +635,11 @@ def main():
             gated=GatedFitnessConfig(
                 partner_a_type=args.gate_partner_a,
                 partner_b_type=args.gate_partner_b,
+                gate_variant=args.gate_variant,
             ),
         )
         model = create_model(model_config, device)
-        print(f"Model: Gated[{args.gate_partner_a} + {args.gate_partner_b}], "
+        print(f"Model: Gated[{args.gate_partner_a} + {args.gate_partner_b}, gate={args.gate_variant}], "
               f"freeze_backbone={args.freeze_backbone}, finetune_layers={args.finetune_layers}")
     else:
         model_config = ModelConfig(
@@ -820,19 +825,9 @@ def main():
         else:
             run_prefix = f"tranception_ft_{args.scoring_direction}_lr{args.lr}_{timestamp}"
     elif args.model_type == 'gated':
-        # short tag per partner so {esmc + blosum62} and {esmc + transformer} runs are distinguishable
-        def _short(t):
-            return {
-                'esmc_fitness_predictor': 'esmc',
-                'esm2_fitness_predictor': 'esm2',
-                'fitness_predictor': 'xfmr',
-                'vespag_fitness': 'vespag',
-                'blosum62': 'blosum',
-                'evcouplings': 'evc',
-                'eve': 'eve',
-                'tranception': 'tran',
-            }.get(t, t)
-        run_prefix = f"gated_{_short(args.gate_partner_a)}_{_short(args.gate_partner_b)}_lr{args.lr}_{timestamp}"
+        a = _PARTNER_SHORT.get(args.gate_partner_a, args.gate_partner_a)
+        b = _PARTNER_SHORT.get(args.gate_partner_b, args.gate_partner_b)
+        run_prefix = f"gated_{args.gate_variant}_{a}_{b}_lr{args.lr}_{timestamp}"
     else:
         run_prefix = f"simple_d{args.d_model}_n{args.num_layers}_lr{args.lr}_{timestamp}"
 

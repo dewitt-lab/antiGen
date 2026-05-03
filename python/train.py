@@ -243,6 +243,17 @@ def parse_args():
                              'examples_cutoff_<cutoff>.txt and pssms/ inside). When set, --cutoff '
                              'is used only to derive MRCA-based date cutoffs for MSA-based models, '
                              'and the {1,4,5}/12/74/191 allow-list is bypassed.')
+    parser.add_argument('--gate-partner-a', type=str, default='esmc_fitness_predictor',
+                        choices=['fitness_predictor', 'esm2_fitness_predictor',
+                                 'esmc_fitness_predictor', 'vespag_fitness', 'blosum62',
+                                 'evcouplings', 'eve', 'tranception'],
+                        help='ModelType.value for the first partner in --model-type gated. '
+                             'Reuses the per-model CLI flags (--esmc-model-name, --d-model, etc.).')
+    parser.add_argument('--gate-partner-b', type=str, default='blosum62',
+                        choices=['fitness_predictor', 'esm2_fitness_predictor',
+                                 'esmc_fitness_predictor', 'vespag_fitness', 'blosum62',
+                                 'evcouplings', 'eve', 'tranception'],
+                        help='ModelType.value for the second partner in --model-type gated.')
     return parser.parse_args()
 
 
@@ -505,18 +516,37 @@ def main():
         model = create_model(model_config, device)
         print(f"Model: Tranception LM, scoring={args.scoring_direction}, freeze_backbone={args.freeze_backbone}")
     elif args.model_type == 'gated':
+        # Populate every per-partner sub-config so any partner_type works.
+        # Defaults are fine for partners not selected; the selected ones pick
+        # up their CLI flags through their existing sub-config dataclass.
         model_config = ModelConfig(
             model_type=ModelType.GATED_FITNESS_PREDICTOR,
             seq_len=seq_len_aa,
             alphabet=alphabet_config,
-            gated=GatedFitnessConfig(
-                esmc_model_name=args.esmc_model_name,
-                freeze_plm=args.freeze_backbone,
+            transformer=TransformerConfig(
+                d_model=args.d_model,
+                nhead=4,
+                dim_feedforward=4 * args.d_model,
+                num_layers=args.num_layers,
+            ),
+            esm2=ESM2Config(
+                model_name=args.esm2_model_name,
+                freeze_backbone=args.freeze_backbone,
                 finetune_layers=args.finetune_layers,
+            ),
+            esmc=ESMCConfig(
+                model_name=args.esmc_model_name,
+                freeze_backbone=args.freeze_backbone,
+                finetune_layers=args.finetune_layers,
+            ),
+            gated=GatedFitnessConfig(
+                partner_a_type=args.gate_partner_a,
+                partner_b_type=args.gate_partner_b,
             ),
         )
         model = create_model(model_config, device)
-        print(f"Model: Gated BLOSUM62 + ESM C ({args.esmc_model_name}), freeze_plm={args.freeze_backbone}, finetune_layers={args.finetune_layers}")
+        print(f"Model: Gated[{args.gate_partner_a} + {args.gate_partner_b}], "
+              f"freeze_backbone={args.freeze_backbone}, finetune_layers={args.finetune_layers}")
     else:
         model_config = ModelConfig(
             model_type=ModelType.FITNESS_PREDICTOR,
@@ -701,7 +731,19 @@ def main():
         else:
             run_prefix = f"tranception_ft_{args.scoring_direction}_lr{args.lr}_{timestamp}"
     elif args.model_type == 'gated':
-        run_prefix = f"gated_{args.esmc_model_name}_lr{args.lr}_{timestamp}"
+        # short tag per partner so {esmc + blosum62} and {esmc + transformer} runs are distinguishable
+        def _short(t):
+            return {
+                'esmc_fitness_predictor': 'esmc',
+                'esm2_fitness_predictor': 'esm2',
+                'fitness_predictor': 'xfmr',
+                'vespag_fitness': 'vespag',
+                'blosum62': 'blosum',
+                'evcouplings': 'evc',
+                'eve': 'eve',
+                'tranception': 'tran',
+            }.get(t, t)
+        run_prefix = f"gated_{_short(args.gate_partner_a)}_{_short(args.gate_partner_b)}_lr{args.lr}_{timestamp}"
     else:
         run_prefix = f"simple_d{args.d_model}_n{args.num_layers}_lr{args.lr}_{timestamp}"
 

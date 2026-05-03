@@ -222,19 +222,22 @@ class TranceptionConfig:
 
 @dataclass(frozen=True)
 class GatedFitnessConfig:
-    """Configuration for gated mixture of BLOSUM62 + ESM C.
+    """Configuration for gated mixture of two fitness predictors.
 
     The gate is a per-position learnable logit (L, 1) → sigmoid → (B, L, 1)
-    blending z-normalized ESM C logits with z-normalized BLOSUM62 scores.
+    blending z-normalized partner_a outputs with z-normalized partner_b outputs.
+    Each partner inherits the outer ModelConfig, so its specific sub-config
+    (e.g. ESMCConfig, TransformerConfig) routes through the existing CLI flags
+    for that model type (--esmc-model-name, --d-model, --freeze-backbone, etc.).
 
     Attributes:
-        esmc_model_name: ESM C model identifier (esmc_300m, esmc_600m, esmc_6b).
-        freeze_plm: Freeze ESM C backbone; only the gate trains.
-        finetune_layers: With freeze_plm=True, unfreeze last N transformer blocks.
+        partner_a_type: ModelType.value for the first partner. Any registered
+            model type works (e.g. "esmc_fitness_predictor", "fitness_predictor",
+            "blosum62", "esm2_fitness_predictor"). Cannot be "gated_fitness_predictor".
+        partner_b_type: ModelType.value for the second partner.
     """
-    esmc_model_name: str = "esmc_300m"
-    freeze_plm: bool = True
-    finetune_layers: int = 0
+    partner_a_type: str = "esmc_fitness_predictor"
+    partner_b_type: str = "blosum62"
 
 
 @dataclass(frozen=True)
@@ -331,9 +334,8 @@ class ModelConfig:
                 "scoring_direction": self.tranception.scoring_direction,
             },
             "gated": {
-                "esmc_model_name": self.gated.esmc_model_name,
-                "freeze_plm": self.gated.freeze_plm,
-                "finetune_layers": self.gated.finetune_layers,
+                "partner_a_type": self.gated.partner_a_type,
+                "partner_b_type": self.gated.partner_b_type,
             },
         }
 
@@ -408,12 +410,10 @@ class ModelConfig:
             scoring_direction=tc_dict.get("scoring_direction", "both"),
         )
 
-        # Parse Gated config (with backward compat for old checkpoints)
         gated_dict = d.get("gated", {})
         gated_config = GatedFitnessConfig(
-            esmc_model_name=gated_dict.get("esmc_model_name", "esmc_300m"),
-            freeze_plm=gated_dict.get("freeze_plm", True),
-            finetune_layers=gated_dict.get("finetune_layers", 0),
+            partner_a_type=gated_dict.get("partner_a_type", "esmc_fitness_predictor"),
+            partner_b_type=gated_dict.get("partner_b_type", "blosum62"),
         )
 
         return cls(

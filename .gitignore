@@ -39,3 +39,6 @@ vespag/
 
 # Scratch/temp files
 plan_optimizations.md
+
+# Per-session context for future Claude Code sessions; not tracked
+context/

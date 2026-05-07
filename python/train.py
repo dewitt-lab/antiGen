@@ -902,11 +902,33 @@ def main():
         run_hit_rate_eval(variant_test_loader, "Variant-descended (no gap/stop)", "variant_nogapstop", seen_mask=special_mask)
     run_hit_rate_eval(test_loader, "Unseen (no gap/stop)", "unseen_nogapstop", seen_mask=hit_rate_seen_mask | special_mask)
 
+    # Save checkpoint here (before variant-root analysis) so downstream DMS eval
+    # has a checkpoint to score even when no testing-root example exists at this
+    # cutoff. With the attached-tree-cache binary's `--grid-interior` mode,
+    # variant-root examples are only emitted while the variant subtree still has
+    # test-side descendants; once the variant is fully saturated in training
+    # (cutoff > variant_emergence_date + ~1y), the binary emits zero variant
+    # roots and the downstream variant-root analysis is skipped (see below).
+    output_path = os.path.join(args.output_dir, f"fitness_{run_prefix}.pt")
+    print(f"Saving model to {output_path}...")
+    checkpoint = {
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer_state,
+        'epoch': epoch,
+        'global_step': global_step,
+        'loss': avg_train_loss,
+    }
+    checkpoint['config'] = model_config.to_dict()
+    torch.save(checkpoint, output_path)
+
     # ── Testing-root eval ────────────────────────────────────────────────────
     testing_root_examples = [e for e in all_examples if e.is_testing_root]
-    assert len(testing_root_examples) >= 1, (
-        f"Expected at least 1 example with is_testing_root=True, found {len(testing_root_examples)}"
-    )
+    if not testing_root_examples:
+        print("WARNING: no testing-root examples at this cutoff (variant fully "
+              "in training). Skipping variant-root analysis. Headline CSVs and "
+              "checkpoint already saved.")
+        print("Done.")
+        return
     testing_root_example = testing_root_examples[0]
     testing_root_aa_seq = "".join(allowed_aas[i] for i in testing_root_example.aa_idx.tolist())
     print(f"Testing root amino acid sequence: {testing_root_aa_seq}")
@@ -1109,19 +1131,6 @@ def main():
         for row in testing_root_scores_nogapstop.numpy():
             writer.writerow(["NA" if math.isnan(v) else f"{v:.8f}" for v in row])
     print(f"No gap/stop variant root predictions saved to {nogapstop_preds_path}")
-
-    output_path = os.path.join(args.output_dir, f"fitness_{run_prefix}.pt")
-
-    print(f"Saving model to {output_path}...")
-    checkpoint = {
-        'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer_state,
-        'epoch': epoch,
-        'global_step': global_step,
-        'loss': avg_train_loss,
-    }
-    checkpoint['config'] = model_config.to_dict()
-    torch.save(checkpoint, output_path)
 
     print("Done.")
 

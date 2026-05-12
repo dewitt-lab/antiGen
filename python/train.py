@@ -21,7 +21,7 @@ from collections import defaultdict
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from config import ModelConfig, ModelType, TransformerConfig, AlphabetConfig, ESM2Config, ESMCConfig, VespaGConfig, EVcouplingsConfig, EVEConfig, TranceptionConfig, GatedFitnessConfig
+from config import ModelConfig, ModelType, TransformerConfig, AlphabetConfig, ESM2Config, ESMCConfig, VespaGConfig, EVcouplingsConfig, EVEConfig, TranceptionConfig, PSSMConfig, GatedFitnessConfig
 from models.factory import create_model
 from load import Example, load_examples, load_pssms
 
@@ -194,7 +194,7 @@ def parse_args():
     parser.add_argument('--cutoff', type=float, default=1.0, help='Train/test cutoff (years since MRCA)')
     parser.add_argument('--ignore-dead-ends', action='store_true', default=False, help='Do not make examples for sequences with no downstream mutants')
 
-    parser.add_argument('--model-type', type=str, default='transformer', choices=['transformer', 'esm2', 'esmc', 'vespag', 'blosum62', 'evcouplings', 'eve', 'tranception', 'gated'],
+    parser.add_argument('--model-type', type=str, default='transformer', choices=['transformer', 'esm2', 'esmc', 'vespag', 'blosum62', 'pssm', 'evcouplings', 'eve', 'tranception', 'gated'],
                         help='Model architecture: from-scratch transformer, ESM-2 finetune, ESM C finetune, VespaG, BLOSUM62 (eval only), EVcouplings (eval only), EVE VAE, Tranception LM, or gated BLOSUM62+ESM C blend')
     parser.add_argument('--d-model', type=int, default=512, help='Model dimension (transformer only)')
     parser.add_argument('--num-layers', type=int, default=4, help='Number of transformer layers (transformer only)')
@@ -246,12 +246,14 @@ def parse_args():
     parser.add_argument('--gate-partner-a', type=str, default='esmc_fitness_predictor',
                         choices=['fitness_predictor', 'esm2_fitness_predictor',
                                  'esmc_fitness_predictor', 'vespag_fitness', 'blosum62',
+                                 'pssm',
                                  'evcouplings', 'eve', 'tranception'],
                         help='ModelType.value for the first partner in --model-type gated. '
                              'Reuses the per-model CLI flags (--esmc-model-name, --d-model, etc.).')
     parser.add_argument('--gate-partner-b', type=str, default='blosum62',
                         choices=['fitness_predictor', 'esm2_fitness_predictor',
                                  'esmc_fitness_predictor', 'vespag_fitness', 'blosum62',
+                                 'pssm',
                                  'evcouplings', 'eve', 'tranception'],
                         help='ModelType.value for the second partner in --model-type gated.')
     parser.add_argument('--gate-variant', type=str, default='static',
@@ -270,6 +272,7 @@ _PARTNER_SHORT = {
     'fitness_predictor': 'xfmr',
     'vespag_fitness': 'vespag',
     'blosum62': 'blosum62',
+    'pssm': 'pssm',
     'evcouplings': 'evc',
     'eve': 'eve',
     'tranception': 'tran',
@@ -535,6 +538,15 @@ def main():
         )
         model = create_model(model_config, device)
         print("Model: BLOSUM62 (no training, eval only)")
+    elif args.model_type == 'pssm':
+        model_config = ModelConfig(
+            model_type=ModelType.PSSM,
+            seq_len=seq_len_aa,
+            alphabet=alphabet_config,
+            pssm=PSSMConfig(data_dir=data_dir),
+        )
+        model = create_model(model_config, device)
+        print(f"Model: PSSM log(count+1) (no training, eval only) — source: {data_dir}/pssms/root.csv")
     elif args.model_type == 'evcouplings':
         if args.msa is None or args.metadata is None:
             raise ValueError("--msa and --metadata are required for evcouplings model type")
@@ -632,6 +644,7 @@ def main():
                 freeze_backbone=args.freeze_backbone,
                 finetune_layers=args.finetune_layers,
             ),
+            pssm=PSSMConfig(data_dir=data_dir),
             gated=GatedFitnessConfig(
                 partner_a_type=args.gate_partner_a,
                 partner_b_type=args.gate_partner_b,
@@ -663,7 +676,7 @@ def main():
     avg_train_loss = float('nan')
     optimizer_state = None
 
-    skip_training = args.model_type in ('blosum62', 'evcouplings') or \
+    skip_training = args.model_type in ('blosum62', 'pssm', 'evcouplings') or \
         (args.model_type == 'eve' and args.freeze_backbone) or \
         (args.model_type == 'tranception' and args.freeze_backbone)
     if skip_training:

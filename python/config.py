@@ -14,6 +14,7 @@ class ModelType(str, Enum):
     ESMC_FITNESS_PREDICTOR = "esmc_fitness_predictor"  # ESM C finetune
     VESPAG_FITNESS = "vespag_fitness"  # VespaG: ESM2-3B embeddings + FNN
     BLOSUM62 = "blosum62"  # BLOSUM62 substitution matrix (no training)
+    PSSM = "pssm"  # Per-position log(count+1) from variant-root PSSM (no training)
     EVCOUPLINGS = "evcouplings"  # EVcouplings mean-field DCA (no training)
     EVE = "eve"  # EVE VAE (pre-train on MSA, optional finetune)
     TRANCEPTION = "tranception"  # Tranception autoregressive LM (pre-train on MSA, optional finetune)
@@ -221,6 +222,24 @@ class TranceptionConfig:
 
 
 @dataclass(frozen=True)
+class PSSMConfig:
+    """Configuration for the PSSM (per-position log-count) predictor.
+
+    The predictor reads `<data_dir>/pssms/root.csv` at construction time
+    (the same per-cutoff PSSM that's already auto-loaded as the
+    `pssm_root` baseline). No learnable parameters; just a frozen lookup.
+
+    Attributes:
+        path: Explicit path to the PSSM CSV. Used by tests; overrides data_dir.
+        data_dir: Directory containing `pssms/root.csv`. Auto-resolved from
+            `args.data_dir` in train.py when this predictor is selected as a
+            top-level model or as a gate partner.
+    """
+    path: Optional[str] = None
+    data_dir: Optional[str] = None
+
+
+@dataclass(frozen=True)
 class GatedFitnessConfig:
     """Configuration for gated mixture of two fitness predictors.
 
@@ -265,6 +284,7 @@ class ModelConfig:
     evcouplings: EVcouplingsConfig = field(default_factory=EVcouplingsConfig)
     eve: EVEConfig = field(default_factory=EVEConfig)
     tranception: TranceptionConfig = field(default_factory=TranceptionConfig)
+    pssm: PSSMConfig = field(default_factory=PSSMConfig)
     gated: GatedFitnessConfig = field(default_factory=GatedFitnessConfig)
 
     def to_dict(self) -> dict[str, Any]:
@@ -336,6 +356,10 @@ class ModelConfig:
                 "freeze_backbone": self.tranception.freeze_backbone,
                 "max_seqs": self.tranception.max_seqs,
                 "scoring_direction": self.tranception.scoring_direction,
+            },
+            "pssm": {
+                "path": self.pssm.path,
+                "data_dir": self.pssm.data_dir,
             },
             "gated": {
                 "partner_a_type": self.gated.partner_a_type,
@@ -415,6 +439,12 @@ class ModelConfig:
             scoring_direction=tc_dict.get("scoring_direction", "both"),
         )
 
+        pssm_dict = d.get("pssm", {})
+        pssm_config = PSSMConfig(
+            path=pssm_dict.get("path"),
+            data_dir=pssm_dict.get("data_dir"),
+        )
+
         gated_dict = d.get("gated", {})
         gated_config = GatedFitnessConfig(
             partner_a_type=gated_dict.get("partner_a_type", "esmc_fitness_predictor"),
@@ -433,6 +463,7 @@ class ModelConfig:
             evcouplings=evcouplings_config,
             eve=eve_config,
             tranception=tranception_config,
+            pssm=pssm_config,
             gated=gated_config,
         )
 

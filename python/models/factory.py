@@ -51,6 +51,9 @@ def create_model(
     elif config.model_type == ModelType.BLOSUM62:
         from models.blosum62_fitness_predictor import BLOSUM62FitnessPredictor
         model = BLOSUM62FitnessPredictor(config)
+    elif config.model_type == ModelType.PSSM:
+        from models.pssm_fitness_predictor import PSSMFitnessPredictor
+        model = PSSMFitnessPredictor(config)
     elif config.model_type == ModelType.EVCOUPLINGS:
         from models.evcouplings_fitness_predictor import EVcouplingsFitnessPredictor
         model = EVcouplingsFitnessPredictor(config)

@@ -1,0 +1,214 @@
+Job started at: Sun Apr 26 02:16:29 PM PDT 2026
+Running on node: GPU7130
+Job ID: 2223217
+GPU: 0
+Alphabet size: 22
+Using device: cuda
+Loading examples from /home/ivan.specht/antiGen-data/output_rsv_a_full_cutoff74/examples_cutoff_74.txt...
+Loaded 1975 examples from /home/ivan.specht/antiGen-data/output_rsv_a_full_cutoff74/examples_cutoff_74.txt
+  88 variant testing root(s), 1290 variant-descended for 'A.D.1.6'
+Sequence length: 574
+Training examples: 347, Testing examples: 1628
+Total mutations in training set: 826
+Train batches per epoch: 6
+Model: 475,670 trainable params
+Starting training...
+  Epoch 0, batch 0: train_loss=9.68748093, test_batch_loss=9.62446499
+Epoch 0: avg_train_loss=9.49400997
+  Epoch 1, batch 0: train_loss=9.26492596, test_batch_loss=9.23481274
+Epoch 1: avg_train_loss=9.16424068
+  Epoch 2, batch 0: train_loss=8.95732689, test_batch_loss=9.08916092
+Epoch 2: avg_train_loss=8.89876429
+  Epoch 3, batch 0: train_loss=8.79530811, test_batch_loss=8.79832554
+Epoch 3: avg_train_loss=8.69890944
+  Epoch 4, batch 0: train_loss=8.43558693, test_batch_loss=8.79364204
+Epoch 4: avg_train_loss=8.48237260
+  Epoch 5, batch 0: train_loss=8.43525696, test_batch_loss=8.68424416
+Epoch 5: avg_train_loss=8.33563757
+  Epoch 6, batch 0: train_loss=8.32674694, test_batch_loss=8.40412807
+Epoch 6: avg_train_loss=8.23439964
+  Epoch 7, batch 0: train_loss=8.11796093, test_batch_loss=8.62603855
+Epoch 7: avg_train_loss=8.12890116
+  Epoch 8, batch 0: train_loss=8.00443554, test_batch_loss=8.49585247
+Epoch 8: avg_train_loss=8.08464734
+  Epoch 9, batch 0: train_loss=8.13337231, test_batch_loss=8.38443947
+Epoch 9: avg_train_loss=7.97153592
+  Epoch 10, batch 0: train_loss=7.82411861, test_batch_loss=8.15533638
+Epoch 10: avg_train_loss=7.92770521
+  Epoch 11, batch 0: train_loss=7.91725445, test_batch_loss=8.38441467
+Epoch 11: avg_train_loss=7.89896750
+  Epoch 12, batch 0: train_loss=7.88684225, test_batch_loss=8.39576721
+Epoch 12: avg_train_loss=7.93264635
+  Epoch 13, batch 0: train_loss=7.80921936, test_batch_loss=8.55323029
+Epoch 13: avg_train_loss=7.82859945
+  Epoch 14, batch 0: train_loss=7.81492090, test_batch_loss=8.69682026
+Epoch 14: avg_train_loss=7.77226384
+  Epoch 15, batch 0: train_loss=7.58981562, test_batch_loss=7.72681284
+Epoch 15: avg_train_loss=7.82448220
+  Epoch 16, batch 0: train_loss=7.66281271, test_batch_loss=8.38064766
+Epoch 16: avg_train_loss=7.76777967
+  Epoch 17, batch 0: train_loss=7.64594984, test_batch_loss=8.51426220
+Epoch 17: avg_train_loss=7.74167713
+  Epoch 18, batch 0: train_loss=7.86895990, test_batch_loss=8.58482933
+Epoch 18: avg_train_loss=7.72235521
+  Epoch 19, batch 0: train_loss=7.77307272, test_batch_loss=8.04626846
+Epoch 19: avg_train_loss=7.67831794
+  Epoch 20, batch 0: train_loss=7.87328768, test_batch_loss=8.18307495
+Epoch 20: avg_train_loss=7.71300403
+  Epoch 21, batch 0: train_loss=7.62443352, test_batch_loss=8.48588657
+Epoch 21: avg_train_loss=7.72830208
+  Epoch 22, batch 0: train_loss=7.75781345, test_batch_loss=8.21501637
+Epoch 22: avg_train_loss=7.63888415
+  Epoch 23, batch 0: train_loss=7.61237478, test_batch_loss=8.20446205
+Epoch 23: avg_train_loss=7.70180416
+  Epoch 24, batch 0: train_loss=7.64811468, test_batch_loss=8.02260017
+Epoch 24: avg_train_loss=7.65410956
+  Epoch 25, batch 0: train_loss=7.61120224, test_batch_loss=8.34943295
+Epoch 25: avg_train_loss=7.66979829
+  Epoch 26, batch 0: train_loss=7.56359529, test_batch_loss=8.12777328
+Epoch 26: avg_train_loss=7.66557995
+  Epoch 27, batch 0: train_loss=7.56270027, test_batch_loss=8.13351822
+Epoch 27: avg_train_loss=7.62504371
+  Epoch 28, batch 0: train_loss=7.69518805, test_batch_loss=8.30147457
+Epoch 28: avg_train_loss=7.67579810
+  Epoch 29, batch 0: train_loss=7.80683422, test_batch_loss=8.36260796
+Epoch 29: avg_train_loss=7.65800436
+  Epoch 30, batch 0: train_loss=7.65087223, test_batch_loss=8.11878490
+Epoch 30: avg_train_loss=7.60299524
+  Epoch 31, batch 0: train_loss=7.66064262, test_batch_loss=8.33583927
+Epoch 31: avg_train_loss=7.63253204
+Freed training objects (optimizer, scheduler, train_loader, etc.) before eval
+Loaded pssm_root: torch.Size([574, 22])
+Loaded 66 variant PSSMs from /home/ivan.specht/antiGen-data/output_rsv_a_full_cutoff74/pssms/A.D.1.6 (t=74.0 to t=80.5)
+Loaded baseline: Clesrovimab.Fab.escape (torch.Size([574, 22]))
+Loaded baseline: Clesrovimab.IgG.escape (torch.Size([574, 22]))
+Loaded baseline: Nirsevimab.Fab.escape (torch.Size([574, 22]))
+Loaded baseline: Nirsevimab.IgG.escape (torch.Size([574, 22]))
+Loaded baseline: Palivizumab.Fab.escape (torch.Size([574, 22]))
+Loaded baseline: Palivizumab.IgG.escape (torch.Size([574, 22]))
+Loaded baseline: RSM01.Fab.escape (torch.Size([574, 22]))
+Loaded baseline: RSM01.IgG.escape (torch.Size([574, 22]))
+Loaded baseline: Suptavumab.Fab.escape (torch.Size([574, 22]))
+Loaded baseline: Suptavumab.IgG.escape (torch.Size([574, 22]))
+Loaded baseline: cell.entry (torch.Size([574, 22]))
+  [evaluate_full] batch 0/26
+  [evaluate_full] batch 10/26
+  [evaluate_full] batch 20/26
+  [evaluate_full] done (26 batches, 2558 mutations)
+All test loss: 8.19410917
+  All hit rate for top 10.0%: 0.68021892
+  All hit rate for top 20.0%: 0.79437060
+  All hit rate for top 30.0%: 0.86004691
+  All hit rate for top 40.0%: 0.88702111
+  All hit rate for top 50.0%: 0.91516810
+  All hit rate for top 60.0%: 0.93197811
+  All hit rate for top 70.0%: 0.94996091
+  All hit rate for top 80.0%: 0.96520719
+  All hit rate for top 90.0%: 0.98397185
+All hit rates written to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_all_simple_d128_n2_lr0.0001_20260426_141639.csv
+All hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_all_simple_d128_n2_lr0.0001_20260426_141639.png
+Variant-descended testing examples: 1290
+  [evaluate_full] batch 0/21
+  [evaluate_full] batch 10/21
+  [evaluate_full] batch 20/21
+  [evaluate_full] done (21 batches, 2212 mutations)
+Variant-descended test loss: 7.93515134
+  Variant-descended hit rate for top 10.0%: 0.73327306
+  Variant-descended hit rate for top 20.0%: 0.85443038
+  Variant-descended hit rate for top 30.0%: 0.92405063
+  Variant-descended hit rate for top 40.0%: 0.94755877
+  Variant-descended hit rate for top 50.0%: 0.96925859
+  Variant-descended hit rate for top 60.0%: 0.97423146
+  Variant-descended hit rate for top 70.0%: 0.98191682
+  Variant-descended hit rate for top 80.0%: 0.99186257
+  Variant-descended hit rate for top 90.0%: 0.99819168
+Variant-descended hit rates written to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_variant_simple_d128_n2_lr0.0001_20260426_141639.csv
+Variant-descended hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_variant_simple_d128_n2_lr0.0001_20260426_141639.png
+  [evaluate_full] batch 0/26
+  [evaluate_full] batch 10/26
+  [evaluate_full] batch 20/26
+  [evaluate_full] done (26 batches, 2558 mutations)
+Unseen-mutations test loss: 8.19410916
+  Unseen-mutations hit rate for top 10.0%: 0.47591522
+  Unseen-mutations hit rate for top 20.0%: 0.64065511
+  Unseen-mutations hit rate for top 30.0%: 0.68208092
+  Unseen-mutations hit rate for top 40.0%: 0.75144509
+  Unseen-mutations hit rate for top 50.0%: 0.81695568
+  Unseen-mutations hit rate for top 60.0%: 0.84393064
+  Unseen-mutations hit rate for top 70.0%: 0.88342967
+  Unseen-mutations hit rate for top 80.0%: 0.92196532
+  Unseen-mutations hit rate for top 90.0%: 0.96146435
+Unseen-mutations hit rates written to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_unseen_simple_d128_n2_lr0.0001_20260426_141639.csv
+Unseen-mutations hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_unseen_simple_d128_n2_lr0.0001_20260426_141639.png
+  [evaluate_full] batch 0/26
+  [evaluate_full] batch 10/26
+  [evaluate_full] batch 20/26
+  [evaluate_full] done (26 batches, 2558 mutations)
+All (no gap/stop) test loss: 8.19410927
+  All (no gap/stop) hit rate for top 10.0%: 0.70101781
+  All (no gap/stop) hit rate for top 20.0%: 0.84944869
+  All (no gap/stop) hit rate for top 30.0%: 0.92663274
+  All (no gap/stop) hit rate for top 40.0%: 0.94868533
+  All (no gap/stop) hit rate for top 50.0%: 0.97158609
+  All (no gap/stop) hit rate for top 60.0%: 0.97964377
+  All (no gap/stop) hit rate for top 70.0%: 0.98388465
+  All (no gap/stop) hit rate for top 80.0%: 0.99151824
+  All (no gap/stop) hit rate for top 90.0%: 0.99872774
+All (no gap/stop) hit rates written to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_all_nogapstop_simple_d128_n2_lr0.0001_20260426_141639.csv
+All (no gap/stop) hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_all_nogapstop_simple_d128_n2_lr0.0001_20260426_141639.png
+  [evaluate_full] batch 0/21
+  [evaluate_full] batch 10/21
+  [evaluate_full] batch 20/21
+  [evaluate_full] done (21 batches, 2212 mutations)
+Variant-descended (no gap/stop) test loss: 7.93515143
+  Variant-descended (no gap/stop) hit rate for top 10.0%: 0.70585544
+  Variant-descended (no gap/stop) hit rate for top 20.0%: 0.85178408
+  Variant-descended (no gap/stop) hit rate for top 30.0%: 0.92863678
+  Variant-descended (no gap/stop) hit rate for top 40.0%: 0.95059469
+  Variant-descended (no gap/stop) hit rate for top 50.0%: 0.97346752
+  Variant-descended (no gap/stop) hit rate for top 60.0%: 0.97941446
+  Variant-descended (no gap/stop) hit rate for top 70.0%: 0.98353156
+  Variant-descended (no gap/stop) hit rate for top 80.0%: 0.99130833
+  Variant-descended (no gap/stop) hit rate for top 90.0%: 0.99862763
+Variant-descended (no gap/stop) hit rates written to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_variant_nogapstop_simple_d128_n2_lr0.0001_20260426_141639.csv
+Variant-descended (no gap/stop) hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_variant_nogapstop_simple_d128_n2_lr0.0001_20260426_141639.png
+  [evaluate_full] batch 0/26
+  [evaluate_full] batch 10/26
+  [evaluate_full] batch 20/26
+  [evaluate_full] done (26 batches, 2558 mutations)
+Unseen (no gap/stop) test loss: 8.19410922
+  Unseen (no gap/stop) hit rate for top 10.0%: 0.58283671
+  Unseen (no gap/stop) hit rate for top 20.0%: 0.74612634
+  Unseen (no gap/stop) hit rate for top 30.0%: 0.83551847
+  Unseen (no gap/stop) hit rate for top 40.0%: 0.88319428
+  Unseen (no gap/stop) hit rate for top 50.0%: 0.94040524
+  Unseen (no gap/stop) hit rate for top 60.0%: 0.95232420
+  Unseen (no gap/stop) hit rate for top 70.0%: 0.95947557
+  Unseen (no gap/stop) hit rate for top 80.0%: 0.97973778
+  Unseen (no gap/stop) hit rate for top 90.0%: 0.99642431
+Unseen (no gap/stop) hit rates written to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_unseen_nogapstop_simple_d128_n2_lr0.0001_20260426_141639.csv
+Unseen (no gap/stop) hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_unseen_nogapstop_simple_d128_n2_lr0.0001_20260426_141639.png
+Testing root amino acid sequence: MELPILKTNAITTILAAVTLCFASSQNITEEFYQSTCSAVSKGYLSALRTGWYTSVITIELSNIKENKCNGTDAKVKLIKQELDKYKNAVTELQLLMQSTPAANSRARRELPRFMNYTLNNTKNTNVTLSKKRKRRFLGFLLGVGSAIASGIAVSKVLHLEGEVNKIKSALLSTNKAVVSLSNGVSVLTSKVLDLKNYIDKQLLPIVNKQSCSISNIETVIEFQQKNNRLLEITREFSVNAGVTTPVSTYMLTNSELLSLINDMPITNDQKKLMSSNVQIVRQQSYSIMSIIKEEVLAYVVQLPLYGVIDTPCWKLHTSPLCTTNTKEGSNICLTRTDRGWYCDNAGSVSFFPQAETCKVQSNRVFCDTMNSLTLPSEVNLCNIDIFNPKYDCKIMTSKTDVSSSVITSLGAIVSCYGKTKCTASNKNRGIIKTFSNGCDYVSNKGVDTVSVGNTLYYVNKQEGKSLYVKGEPIINFYDPLVFPSDEFDASISQVNEKINQSLAFIRKSDELLHNVNAGKSTTNIMITTIIIVIIVILLALIAVGLLLYCKARSTPVTLSKDQLSGINNIAFSN
+Testing root scores shape: torch.Size([1, 574, 22])
+All (threshold=10) variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_all_simple_d128_n2_lr0.0001_20260426_141639.csv
+All (threshold=10) variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_all_simple_d128_n2_lr0.0001_20260426_141639.png
+Unseen (threshold=10) variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_unseen_simple_d128_n2_lr0.0001_20260426_141639.csv
+Unseen (threshold=10) variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_unseen_simple_d128_n2_lr0.0001_20260426_141639.png
+All (threshold=1) variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_all_thresh1_simple_d128_n2_lr0.0001_20260426_141639.csv
+All (threshold=1) variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_all_thresh1_simple_d128_n2_lr0.0001_20260426_141639.png
+Unseen (threshold=1) variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_unseen_thresh1_simple_d128_n2_lr0.0001_20260426_141639.csv
+Unseen (threshold=1) variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_unseen_thresh1_simple_d128_n2_lr0.0001_20260426_141639.png
+All no gap/stop (threshold=10) variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_all_nogapstop_simple_d128_n2_lr0.0001_20260426_141639.csv
+All no gap/stop (threshold=10) variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_all_nogapstop_simple_d128_n2_lr0.0001_20260426_141639.png
+All no gap/stop (threshold=1) variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_all_nogapstop_thresh1_simple_d128_n2_lr0.0001_20260426_141639.csv
+All no gap/stop (threshold=1) variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_all_nogapstop_thresh1_simple_d128_n2_lr0.0001_20260426_141639.png
+Unseen no gap/stop (threshold=10) variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_unseen_nogapstop_simple_d128_n2_lr0.0001_20260426_141639.csv
+Unseen no gap/stop (threshold=10) variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_unseen_nogapstop_simple_d128_n2_lr0.0001_20260426_141639.png
+Unseen no gap/stop (threshold=1) variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_unseen_nogapstop_thresh1_simple_d128_n2_lr0.0001_20260426_141639.csv
+Unseen no gap/stop (threshold=1) variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_unseen_nogapstop_thresh1_simple_d128_n2_lr0.0001_20260426_141639.png
+Variant root predictions (574 x 22) saved to /large_storage/hielab/ispecht/fitness-inference/variant_root_predictions_simple_d128_n2_lr0.0001_20260426_141639.csv
+Unseen variant root predictions saved to /large_storage/hielab/ispecht/fitness-inference/variant_root_predictions_unseen_simple_d128_n2_lr0.0001_20260426_141639.csv
+No gap/stop variant root predictions saved to /large_storage/hielab/ispecht/fitness-inference/variant_root_predictions_nogapstop_simple_d128_n2_lr0.0001_20260426_141639.csv
+Saving model to /large_storage/hielab/ispecht/fitness-inference/fitness_simple_d128_n2_lr0.0001_20260426_141639.pt...
+Done.
+Job finished at: Sun Apr 26 02:18:11 PM PDT 2026

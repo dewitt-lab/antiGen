@@ -1,0 +1,23 @@
+Job started at: Wed Apr 22 07:56:48 PM PDT 2026
+Running on node: GPU0F98
+Job ID: 2209898
+Alphabet size: 22
+Using device: cpu
+Loading examples from /home/ivan.specht/antiGen-data/output1/examples_cutoff_1.txt...
+Loaded 171248 examples from /home/ivan.specht/antiGen-data/output1/examples_cutoff_1.txt
+  1 variant testing root(s), 52835 variant-descended for 'BA.2'
+Sequence length: 1273
+Training examples: 3648, Testing examples: 167600
+Total mutations in training set: 12024
+Train batches per epoch: 57
+EVcouplings: date cutoff = 2020-12-22 (MRCA + 1.0 years)
+EVcouplings: Loading and filtering MSA...
+  Loading metadata and filtering to dates before 2020-12-22...
+    348990 strains pass date filter
+  Reading MSA from /home/ivan.specht/sc2-open-data/spike.fasta...
+    348990 sequences after filtering
+    Subsampled to 10000 sequences (max_seqs=10000)
+EVcouplings: Fitting model via plmc...
+  Model dimensions: L=1273, q=21, N=10000
+  Running plmc (pseudo-likelihood maximization)...
+  Command: /home/ivan.specht/bin/plmc -o /tmp/tmpd5ag2qj9/params.bin -c /tmp/tmpd5ag2qj9/couplings.txt -t 0.19999999999999996 -f reference/0-1272 -n max /tmp/tmpd5ag2qj9/alignment.fasta

@@ -48,8 +48,7 @@ def compute_probs(logits, target_batch, aa_batch):
 
     #probs = torch.sigmoid(logits)
     probs = torch.softmax(logits.flatten(1), dim=1).reshape(logits.shape)
-    probs = probs * wt_mask  # zero out wild-type, but DON'T renormalize
-    # Sum can now vary - higher sum = more mutational potential
+    probs = probs * wt_mask  # zero out wild-type
     probs = probs.clamp(1e-8, 1 - 1e-8)
     return probs
 
@@ -106,22 +105,30 @@ def compute_hit_rate(scores, target_batch, aa_batch, qtile=0.1, eval_range=None)
         
 
 @torch.no_grad()
-def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10, seen_mask=None, eval_range=None):
-    """Evaluate loss and hit rates over the entire dataloader.
+def evaluate_full(model, dataloader, device, variants, baselines=None, n_buckets=10, eval_range=None):
+    """Evaluate loss and hit rates over the entire dataloader, fanning out across variants.
 
+    Does a single forward pass per batch and computes hit rates for every variant
+    against the same logits — much cheaper than calling this function once per variant.
+
+    variants: list of (label, seen_mask) tuples. seen_mask is a (seq_len, E) bool tensor
+              (True = previously seen mutation to exclude) or None (no masking).
     baselines: list of (name, probs_2d) where probs_2d is a (seq_len, E) tensor
                used as a fixed baseline for all examples.
-    seen_mask: optional (seq_len, E) bool tensor; True = previously seen mutation to exclude.
+
+    Returns dict: label -> (avg_loss, hit_rate_by_qtile, baseline_hits_by_qtile).
+    avg_loss is the same across variants (masking only changes hit-rate accounting).
     """
     if baselines is None:
         baselines = []
 
     model.eval()
     total_loss = 0.0
-    total_hits_by_qtile = [0] * (n_buckets - 1)
-    baseline_hits_by_qtile = {name: [0] * (n_buckets - 1) for name, _ in baselines}
     total_n_mutations = 0
-    total_rbd_mutations = 0
+    var_total_hits = {label: [0] * (n_buckets - 1) for label, _ in variants}
+    var_baseline_hits = {label: {name: [0] * (n_buckets - 1) for name, _ in baselines} for label, _ in variants}
+    var_total_rbd_mutations = {label: 0 for label, _ in variants}
+
     n_total_batches = len(dataloader)
     for batch_idx, (aa_batch, target_batch) in enumerate(dataloader):
         if batch_idx % 10 == 0:
@@ -139,36 +146,43 @@ def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10, seen_
         # Use raw logits for ranking-based hit rate (softmax is monotonic, unnecessary)
         scores = logits
 
-        # Mask and normalize baseline probs per example (zero out wild-type, re-normalize)
-        wt_mask = torch.ones(batch_size, aa_batch.shape[1], baselines[0][1].shape[-1], dtype=torch.bool) if baselines else None
-        if wt_mask is not None:
-            wt_mask.scatter_(2, aa_batch.cpu().unsqueeze(-1), False)
+        # Build per-example wild-type mask once; baselines mask out wild-type to NaN.
         masked_baselines = {}
-        for name, baseline_probs_2d in baselines:
-            bp = baseline_probs_2d.unsqueeze(0).expand(batch_size, -1, -1).clone()
-            bp[~wt_mask] = float('nan')
-            masked_baselines[name] = bp
+        if baselines:
+            wt_mask = torch.ones(batch_size, aa_batch.shape[1], baselines[0][1].shape[-1], dtype=torch.bool)
+            wt_mask.scatter_(2, aa_batch.cpu().unsqueeze(-1), False)
+            for name, baseline_probs_2d in baselines:
+                bp = baseline_probs_2d.unsqueeze(0).expand(batch_size, -1, -1).clone()
+                bp[~wt_mask] = float('nan')
+                masked_baselines[name] = bp
 
-        # Mask previously seen mutations if requested
-        if seen_mask is not None:
-            sm = seen_mask.unsqueeze(0).expand(batch_size, -1, -1)
-            scores = scores.clone()
-            scores[sm.to(device)] = float('nan')
-            target_batch = target_batch.clone()
-            target_batch[sm.to(device)] = 0
-            for name in masked_baselines:
-                masked_baselines[name][sm] = float('nan')
+        for label, seen_mask in variants:
+            if seen_mask is None:
+                v_scores = scores
+                v_target = target_batch
+                v_masked_baselines = masked_baselines
+            else:
+                sm_dev = seen_mask.to(device)
+                v_scores = scores.clone()
+                v_scores[sm_dev.unsqueeze(0).expand_as(v_scores)] = float('nan')
+                v_target = target_batch.clone()
+                v_target[sm_dev.unsqueeze(0).expand_as(v_target)] = 0
+                v_masked_baselines = {}
+                for name, mb in masked_baselines.items():
+                    mb_copy = mb.clone()
+                    mb_copy[seen_mask.unsqueeze(0).expand_as(mb_copy)] = float('nan')
+                    v_masked_baselines[name] = mb_copy
 
-        for i in range(n_buckets - 1):
-            qtile = (i + 1) / n_buckets
-            hits, rbd_muts = compute_hit_rate(scores, target_batch, aa_batch, qtile, eval_range=eval_range)
-            total_hits_by_qtile[i] += hits
-            if i == 0:
-                total_rbd_mutations += rbd_muts
+            for i in range(n_buckets - 1):
+                qtile = (i + 1) / n_buckets
+                hits, rbd_muts = compute_hit_rate(v_scores, v_target, aa_batch, qtile, eval_range=eval_range)
+                var_total_hits[label][i] += hits
+                if i == 0:
+                    var_total_rbd_mutations[label] += rbd_muts
 
-            for name, _ in baselines:
-                b_hits, _ = compute_hit_rate(masked_baselines[name], target_batch, aa_batch, qtile, eval_range=eval_range)
-                baseline_hits_by_qtile[name][i] += b_hits
+                for name, _ in baselines:
+                    b_hits, _ = compute_hit_rate(v_masked_baselines[name], v_target, aa_batch, qtile, eval_range=eval_range)
+                    var_baseline_hits[label][name][i] += b_hits
 
         # Prevent gradual memory buildup over long eval loops
         if batch_idx % 10 == 0:
@@ -179,12 +193,15 @@ def evaluate_full(model, dataloader, device, baselines=None, n_buckets=10, seen_
     print(f"  [evaluate_full] done ({n_total_batches} batches, {total_n_mutations:.0f} mutations)", flush=True)
     model.train()
 
-    for i in range(n_buckets - 1):
-        total_hits_by_qtile[i] /= max(total_rbd_mutations, 1)
-        for name, _ in baselines:
-            baseline_hits_by_qtile[name][i] /= max(total_rbd_mutations, 1)
-
-    return total_loss / max(total_n_mutations, 1), total_hits_by_qtile, baseline_hits_by_qtile
+    avg_loss = total_loss / max(total_n_mutations, 1)
+    results = {}
+    for label, _ in variants:
+        n_rbd = max(var_total_rbd_mutations[label], 1)
+        hit_rate_by_qtile = [var_total_hits[label][i] / n_rbd for i in range(n_buckets - 1)]
+        baseline_hits = {name: [var_baseline_hits[label][name][i] / n_rbd for i in range(n_buckets - 1)]
+                         for name, _ in baselines}
+        results[label] = (avg_loss, hit_rate_by_qtile, baseline_hits)
+    return results
 
 
 # ── Args ──────────────────────────────────────────────────────────────────────
@@ -553,6 +570,10 @@ def main():
         from datetime import timedelta
         if args.flu:
             mrca_date = datetime(2007, 10, 1)
+        elif args.rsv_a:
+            mrca_date = datetime(1945, 7, 13)
+        elif args.denv2:
+            mrca_date = datetime(1826, 4, 9)
         else:
             mrca_date = datetime(2019, 12, 23)
         date_cutoff = (mrca_date + timedelta(days=args.cutoff * 365.25)).strftime("%Y-%m-%d")
@@ -577,6 +598,10 @@ def main():
         from datetime import timedelta
         if args.flu:
             mrca_date = datetime(2007, 10, 1)
+        elif args.rsv_a:
+            mrca_date = datetime(1945, 7, 13)
+        elif args.denv2:
+            mrca_date = datetime(1826, 4, 9)
         else:
             mrca_date = datetime(2019, 12, 23)
         date_cutoff = (mrca_date + timedelta(days=args.cutoff * 365.25)).strftime("%Y-%m-%d")
@@ -601,6 +626,10 @@ def main():
         from datetime import timedelta
         if args.flu:
             mrca_date = datetime(2007, 10, 1)
+        elif args.rsv_a:
+            mrca_date = datetime(1945, 7, 13)
+        elif args.denv2:
+            mrca_date = datetime(1826, 4, 9)
         else:
             mrca_date = datetime(2019, 12, 23)
         date_cutoff = (mrca_date + timedelta(days=args.cutoff * 365.25)).strftime("%Y-%m-%d")
@@ -800,9 +829,10 @@ def main():
         print(f"Loaded baseline: {baseline_name} ({baseline_tensor.shape})")
 
     # Fix sentinel values and break ties with small noise for reproducible quantile computation.
-    # Noise magnitude is scaled relative to each baseline's value range so it exceeds float32
-    # precision at that scale (e.g. 1e-9 noise added to a value ~10000 is below float32 epsilon
-    # and gets discarded, leaving ties unbroken).
+    # Noise scale must exceed float32 precision at abs_max (~abs_max * 1.2e-7) but stay below the
+    # smallest meaningful gap between distinct values (1.0 for integer-count baselines like
+    # pssm_root, where abs_max can be ~3e5). abs_max * 1e-6 sits inside that window for all
+    # current baselines.
     tiebreak_rng = np.random.RandomState(args.seed + 12345)
     for i in range(len(baselines)):
         name, tensor = baselines[i]
@@ -810,7 +840,7 @@ def main():
         tensor[tensor < 0] = float('nan')
         finite = tensor[~tensor.isnan()]
         abs_max = finite.abs().max().item() if finite.numel() > 0 else 0.0
-        noise_scale = max(abs_max * 1e-5, 1e-9)
+        noise_scale = max(abs_max * 1e-6, 1e-9)
         tensor += torch.tensor(tiebreak_rng.uniform(0, noise_scale, size=tensor.shape), dtype=tensor.dtype)
         baselines[i] = (name, tensor)
 
@@ -856,12 +886,8 @@ def main():
     special_mask[:, gap_idx] = True
     special_mask[:, stop_idx] = True
 
-    def run_hit_rate_eval(loader, label, file_suffix, seen_mask=None):
-        """Run hit-rate eval on a dataloader, write CSV and plot."""
-        avg_loss, hit_rate_by_qtile, baseline_hits = evaluate_full(
-            model, loader, device, baselines=baselines, n_buckets=n_buckets,
-            seen_mask=seen_mask, eval_range=eval_range
-        )
+    def write_hit_rate_outputs(label, file_suffix, avg_loss, hit_rate_by_qtile, baseline_hits):
+        """Print summary, write CSV, and save plot for one hit-rate variant."""
         print(f"{label} test loss: {avg_loss:.8f}")
         for i in range(len(hit_rate_by_qtile)):
             pct = (i + 1) * 100 / n_buckets
@@ -891,8 +917,23 @@ def main():
         plt.close(fig)
         print(f"{label} hit rate plot saved to {plot_path}")
 
-    # All testing examples
-    run_hit_rate_eval(test_loader, "All", "all")
+    # Hit-rate eval variants on the full test set: one forward pass per batch,
+    # fanned out across (no mask, unseen, no gap/stop, unseen + no gap/stop).
+    hit_rate_seen_mask = pssm_root > 0  # (seq_len, E), True = seen
+    test_variants = [
+        ("All", "all", None),
+        ("Unseen-mutations", "unseen", hit_rate_seen_mask),
+        ("All (no gap/stop)", "all_nogapstop", special_mask),
+        ("Unseen (no gap/stop)", "unseen_nogapstop", hit_rate_seen_mask | special_mask),
+    ]
+    test_results = evaluate_full(
+        model, test_loader, device,
+        variants=[(label, sm) for label, _, sm in test_variants],
+        baselines=baselines, n_buckets=n_buckets, eval_range=eval_range,
+    )
+    for label, file_suffix, _ in test_variants:
+        avg_loss, hit_rate_by_qtile, baseline_hits = test_results[label]
+        write_hit_rate_outputs(label, file_suffix, avg_loss, hit_rate_by_qtile, baseline_hits)
 
     # Variant-descended testing examples only
     variant_testing_examples = [e for e in testing_examples if e.is_descended_from_variant]
@@ -903,17 +944,18 @@ def main():
             batch_size=args.batch_size, shuffle=True,
             num_workers=4, pin_memory=True, drop_last=False,
         )
-        run_hit_rate_eval(variant_test_loader, "Variant-descended", "variant")
-
-    # Unseen-mutation hit-rate eval: mask previously seen mutations according to pssm_root
-    hit_rate_seen_mask = pssm_root > 0  # (seq_len, E), True = seen
-    run_hit_rate_eval(test_loader, "Unseen-mutations", "unseen", seen_mask=hit_rate_seen_mask)
-
-    # Repeat all hit-rate evals with gap/stop tokens masked out
-    run_hit_rate_eval(test_loader, "All (no gap/stop)", "all_nogapstop", seen_mask=special_mask)
-    if variant_testing_examples:
-        run_hit_rate_eval(variant_test_loader, "Variant-descended (no gap/stop)", "variant_nogapstop", seen_mask=special_mask)
-    run_hit_rate_eval(test_loader, "Unseen (no gap/stop)", "unseen_nogapstop", seen_mask=hit_rate_seen_mask | special_mask)
+        variant_variants = [
+            ("Variant-descended", "variant", None),
+            ("Variant-descended (no gap/stop)", "variant_nogapstop", special_mask),
+        ]
+        variant_results = evaluate_full(
+            model, variant_test_loader, device,
+            variants=[(label, sm) for label, _, sm in variant_variants],
+            baselines=baselines, n_buckets=n_buckets, eval_range=eval_range,
+        )
+        for label, file_suffix, _ in variant_variants:
+            avg_loss, hit_rate_by_qtile, baseline_hits = variant_results[label]
+            write_hit_rate_outputs(label, file_suffix, avg_loss, hit_rate_by_qtile, baseline_hits)
 
     # Save checkpoint here (before variant-root analysis) so downstream DMS eval
     # has a checkpoint to score even when no testing-root example exists at this

@@ -1,0 +1,439 @@
+Job started at: Sun Apr 26 02:13:21 PM PDT 2026
+Running on node: GPU7094
+Job ID: 2223215
+GPU: 0
+Alphabet size: 22
+Using device: cuda
+Loading examples from /home/ivan.specht/antiGen-data/output_denv2_full_cutoff191/examples_cutoff_191.txt...
+Loaded 9076 examples from /home/ivan.specht/antiGen-data/output_denv2_full_cutoff191/examples_cutoff_191.txt
+  1 variant testing root(s), 222 variant-descended for '2II_F.1.1.2_annotated'
+Sequence length: 495
+Training examples: 4775, Testing examples: 4301
+Total mutations in training set: 6632
+Train batches per epoch: 75
+Model: 465,558 trainable params
+Starting training...
+  Epoch 0, batch 0: train_loss=9.56985664, test_batch_loss=9.62522793
+  Epoch 0, batch 10: train_loss=9.03349972, test_batch_loss=8.99357414
+  Epoch 0, batch 20: train_loss=8.70497513, test_batch_loss=8.86343384
+  Epoch 0, batch 30: train_loss=8.60691547, test_batch_loss=8.90054417
+  Epoch 0, batch 40: train_loss=8.11956024, test_batch_loss=8.73007870
+  Epoch 0, batch 50: train_loss=8.48041916, test_batch_loss=8.89522934
+  Epoch 0, batch 60: train_loss=8.30946827, test_batch_loss=8.51716042
+  Epoch 0, batch 70: train_loss=8.09987831, test_batch_loss=8.91329384
+Epoch 0: avg_train_loss=8.56556518
+  Epoch 1, batch 0: train_loss=8.32398415, test_batch_loss=8.66260719
+  Epoch 1, batch 10: train_loss=7.91829252, test_batch_loss=8.41600037
+  Epoch 1, batch 20: train_loss=8.10773087, test_batch_loss=8.64933777
+  Epoch 1, batch 30: train_loss=8.09861946, test_batch_loss=8.53658581
+  Epoch 1, batch 40: train_loss=8.43307877, test_batch_loss=8.41333866
+  Epoch 1, batch 50: train_loss=8.16538334, test_batch_loss=8.43305588
+  Epoch 1, batch 60: train_loss=7.80710697, test_batch_loss=8.78889084
+  Epoch 1, batch 70: train_loss=7.93189144, test_batch_loss=8.66030884
+Epoch 1: avg_train_loss=8.09314181
+  Epoch 2, batch 0: train_loss=7.88266230, test_batch_loss=8.40704250
+  Epoch 2, batch 10: train_loss=8.07007313, test_batch_loss=8.14996910
+  Epoch 2, batch 20: train_loss=7.89529467, test_batch_loss=8.17998981
+  Epoch 2, batch 30: train_loss=8.37598515, test_batch_loss=8.41050911
+  Epoch 2, batch 40: train_loss=7.84520578, test_batch_loss=8.31699085
+  Epoch 2, batch 50: train_loss=7.78420019, test_batch_loss=8.34994793
+  Epoch 2, batch 60: train_loss=8.21553707, test_batch_loss=8.50143623
+  Epoch 2, batch 70: train_loss=8.28197193, test_batch_loss=8.46866322
+Epoch 2: avg_train_loss=7.97206067
+  Epoch 3, batch 0: train_loss=7.88595343, test_batch_loss=8.48959923
+  Epoch 3, batch 10: train_loss=8.11042786, test_batch_loss=8.27399063
+  Epoch 3, batch 20: train_loss=7.90402889, test_batch_loss=8.12963200
+  Epoch 3, batch 30: train_loss=7.73462868, test_batch_loss=8.14737797
+  Epoch 3, batch 40: train_loss=8.03603077, test_batch_loss=8.15358543
+  Epoch 3, batch 50: train_loss=7.59770679, test_batch_loss=8.33589554
+  Epoch 3, batch 60: train_loss=8.02304554, test_batch_loss=8.78950119
+  Epoch 3, batch 70: train_loss=7.80967283, test_batch_loss=8.59668350
+Epoch 3: avg_train_loss=7.90601346
+  Epoch 4, batch 0: train_loss=7.83592367, test_batch_loss=8.54927635
+  Epoch 4, batch 10: train_loss=7.83312893, test_batch_loss=8.24268341
+  Epoch 4, batch 20: train_loss=7.98921871, test_batch_loss=8.03834629
+  Epoch 4, batch 30: train_loss=7.61771154, test_batch_loss=8.38464832
+  Epoch 4, batch 40: train_loss=7.90738678, test_batch_loss=8.48754692
+  Epoch 4, batch 50: train_loss=7.56337690, test_batch_loss=8.65845394
+  Epoch 4, batch 60: train_loss=7.98198700, test_batch_loss=7.83119488
+  Epoch 4, batch 70: train_loss=7.91340256, test_batch_loss=8.40847111
+Epoch 4: avg_train_loss=7.87718702
+  Epoch 5, batch 0: train_loss=7.90420675, test_batch_loss=8.28811550
+  Epoch 5, batch 10: train_loss=7.96998978, test_batch_loss=8.42572784
+  Epoch 5, batch 20: train_loss=7.66587067, test_batch_loss=8.22585106
+  Epoch 5, batch 30: train_loss=7.78806734, test_batch_loss=8.51048756
+  Epoch 5, batch 40: train_loss=7.85997534, test_batch_loss=8.17998600
+  Epoch 5, batch 50: train_loss=7.79134560, test_batch_loss=8.32676315
+  Epoch 5, batch 60: train_loss=7.74178505, test_batch_loss=8.34286308
+  Epoch 5, batch 70: train_loss=7.89769745, test_batch_loss=8.20188999
+Epoch 5: avg_train_loss=7.85499337
+  Epoch 6, batch 0: train_loss=7.89250708, test_batch_loss=8.48866558
+  Epoch 6, batch 10: train_loss=7.90893555, test_batch_loss=8.31763744
+  Epoch 6, batch 20: train_loss=7.99912834, test_batch_loss=8.09420967
+  Epoch 6, batch 30: train_loss=7.84401655, test_batch_loss=8.30777264
+  Epoch 6, batch 40: train_loss=8.07780743, test_batch_loss=8.24884796
+  Epoch 6, batch 50: train_loss=7.78045654, test_batch_loss=8.14796448
+  Epoch 6, batch 60: train_loss=7.78492117, test_batch_loss=8.49393463
+  Epoch 6, batch 70: train_loss=7.67678308, test_batch_loss=8.18157101
+Epoch 6: avg_train_loss=7.83769120
+  Epoch 7, batch 0: train_loss=7.94540501, test_batch_loss=8.27636147
+  Epoch 7, batch 10: train_loss=7.88823652, test_batch_loss=8.51811123
+  Epoch 7, batch 20: train_loss=8.17052746, test_batch_loss=8.22537327
+  Epoch 7, batch 30: train_loss=7.77322578, test_batch_loss=8.10646820
+  Epoch 7, batch 40: train_loss=7.75783300, test_batch_loss=8.36699295
+  Epoch 7, batch 50: train_loss=7.90675592, test_batch_loss=8.32260418
+  Epoch 7, batch 60: train_loss=7.76049709, test_batch_loss=8.43121433
+  Epoch 7, batch 70: train_loss=7.62632656, test_batch_loss=8.18139839
+Epoch 7: avg_train_loss=7.82527321
+  Epoch 8, batch 0: train_loss=8.02351379, test_batch_loss=8.22325993
+  Epoch 8, batch 10: train_loss=7.69659424, test_batch_loss=7.96985912
+  Epoch 8, batch 20: train_loss=8.03707886, test_batch_loss=8.30824280
+  Epoch 8, batch 30: train_loss=7.74040937, test_batch_loss=8.26408195
+  Epoch 8, batch 40: train_loss=7.64475012, test_batch_loss=7.91074705
+  Epoch 8, batch 50: train_loss=7.81167173, test_batch_loss=8.04076767
+  Epoch 8, batch 60: train_loss=7.74013186, test_batch_loss=8.45164871
+  Epoch 8, batch 70: train_loss=7.85737801, test_batch_loss=8.39339828
+Epoch 8: avg_train_loss=7.80402143
+  Epoch 9, batch 0: train_loss=7.65524197, test_batch_loss=8.10074329
+  Epoch 9, batch 10: train_loss=7.92809916, test_batch_loss=8.25493717
+  Epoch 9, batch 20: train_loss=8.02550983, test_batch_loss=8.32204056
+  Epoch 9, batch 30: train_loss=7.81434059, test_batch_loss=8.20622730
+  Epoch 9, batch 40: train_loss=7.62337923, test_batch_loss=8.60142422
+  Epoch 9, batch 50: train_loss=7.69548750, test_batch_loss=8.16211605
+  Epoch 9, batch 60: train_loss=7.75046110, test_batch_loss=8.24002934
+  Epoch 9, batch 70: train_loss=7.68999052, test_batch_loss=8.33808613
+Epoch 9: avg_train_loss=7.79364812
+  Epoch 10, batch 0: train_loss=7.64407444, test_batch_loss=8.39479160
+  Epoch 10, batch 10: train_loss=7.80996990, test_batch_loss=8.09705830
+  Epoch 10, batch 20: train_loss=7.67827940, test_batch_loss=8.24613762
+  Epoch 10, batch 30: train_loss=7.55666733, test_batch_loss=8.11373043
+  Epoch 10, batch 40: train_loss=7.70647240, test_batch_loss=8.15998840
+  Epoch 10, batch 50: train_loss=7.54049015, test_batch_loss=8.28616428
+  Epoch 10, batch 60: train_loss=7.93355560, test_batch_loss=8.60240841
+  Epoch 10, batch 70: train_loss=7.76761103, test_batch_loss=8.21781063
+Epoch 10: avg_train_loss=7.77320713
+  Epoch 11, batch 0: train_loss=7.67675304, test_batch_loss=7.80360746
+  Epoch 11, batch 10: train_loss=7.67133760, test_batch_loss=7.91731358
+  Epoch 11, batch 20: train_loss=7.45740795, test_batch_loss=8.44394588
+  Epoch 11, batch 30: train_loss=7.61027241, test_batch_loss=8.39047813
+  Epoch 11, batch 40: train_loss=7.70731068, test_batch_loss=8.63110542
+  Epoch 11, batch 50: train_loss=7.96717882, test_batch_loss=8.29944420
+  Epoch 11, batch 60: train_loss=7.71645117, test_batch_loss=8.57545662
+  Epoch 11, batch 70: train_loss=7.71582079, test_batch_loss=8.50659370
+Epoch 11: avg_train_loss=7.76837447
+  Epoch 12, batch 0: train_loss=7.65879774, test_batch_loss=8.25739002
+  Epoch 12, batch 10: train_loss=7.79225588, test_batch_loss=8.45747185
+  Epoch 12, batch 20: train_loss=7.64573050, test_batch_loss=8.27710915
+  Epoch 12, batch 30: train_loss=7.65932131, test_batch_loss=8.08607578
+  Epoch 12, batch 40: train_loss=7.55679417, test_batch_loss=7.80072784
+  Epoch 12, batch 50: train_loss=7.51101255, test_batch_loss=7.89370632
+  Epoch 12, batch 60: train_loss=7.71791077, test_batch_loss=8.30068207
+  Epoch 12, batch 70: train_loss=7.85084391, test_batch_loss=8.27355766
+Epoch 12: avg_train_loss=7.75938370
+  Epoch 13, batch 0: train_loss=7.68012571, test_batch_loss=8.03776169
+  Epoch 13, batch 10: train_loss=8.28300667, test_batch_loss=8.15513706
+  Epoch 13, batch 20: train_loss=7.50412989, test_batch_loss=8.39239311
+  Epoch 13, batch 30: train_loss=7.38852358, test_batch_loss=8.09857941
+  Epoch 13, batch 40: train_loss=7.74443913, test_batch_loss=8.20000935
+  Epoch 13, batch 50: train_loss=7.49661255, test_batch_loss=8.38976669
+  Epoch 13, batch 60: train_loss=7.81379271, test_batch_loss=8.10752964
+  Epoch 13, batch 70: train_loss=7.87423801, test_batch_loss=8.16725254
+Epoch 13: avg_train_loss=7.73865863
+  Epoch 14, batch 0: train_loss=7.59836960, test_batch_loss=8.09314060
+  Epoch 14, batch 10: train_loss=7.53108311, test_batch_loss=8.33989811
+  Epoch 14, batch 20: train_loss=7.60107136, test_batch_loss=7.91331005
+  Epoch 14, batch 30: train_loss=7.86475849, test_batch_loss=8.46010494
+  Epoch 14, batch 40: train_loss=7.94050980, test_batch_loss=8.01539040
+  Epoch 14, batch 50: train_loss=7.56619310, test_batch_loss=8.36853600
+  Epoch 14, batch 60: train_loss=7.82094622, test_batch_loss=8.29815960
+  Epoch 14, batch 70: train_loss=7.77018642, test_batch_loss=8.37526989
+Epoch 14: avg_train_loss=7.71849399
+  Epoch 15, batch 0: train_loss=7.84053993, test_batch_loss=8.11488438
+  Epoch 15, batch 10: train_loss=7.53937244, test_batch_loss=8.28061771
+  Epoch 15, batch 20: train_loss=7.64928627, test_batch_loss=8.17205715
+  Epoch 15, batch 30: train_loss=7.80965996, test_batch_loss=8.53399086
+  Epoch 15, batch 40: train_loss=7.64250612, test_batch_loss=8.53835678
+  Epoch 15, batch 50: train_loss=7.76065969, test_batch_loss=8.06479931
+  Epoch 15, batch 60: train_loss=7.46344709, test_batch_loss=7.99687004
+  Epoch 15, batch 70: train_loss=7.60510254, test_batch_loss=7.94465733
+Epoch 15: avg_train_loss=7.70217743
+  Epoch 16, batch 0: train_loss=7.58713531, test_batch_loss=8.35839653
+  Epoch 16, batch 10: train_loss=7.71371460, test_batch_loss=7.99896955
+  Epoch 16, batch 20: train_loss=7.41584492, test_batch_loss=8.18105221
+  Epoch 16, batch 30: train_loss=7.65601635, test_batch_loss=8.31027794
+  Epoch 16, batch 40: train_loss=7.87788725, test_batch_loss=7.75924969
+  Epoch 16, batch 50: train_loss=7.74726820, test_batch_loss=8.35966396
+  Epoch 16, batch 60: train_loss=7.57025671, test_batch_loss=7.95950508
+  Epoch 16, batch 70: train_loss=7.74373865, test_batch_loss=7.84464407
+Epoch 16: avg_train_loss=7.68595500
+  Epoch 17, batch 0: train_loss=7.38592386, test_batch_loss=8.38305187
+  Epoch 17, batch 10: train_loss=7.68989038, test_batch_loss=8.09783745
+  Epoch 17, batch 20: train_loss=7.60948372, test_batch_loss=8.56672764
+  Epoch 17, batch 30: train_loss=7.71989059, test_batch_loss=8.48696613
+  Epoch 17, batch 40: train_loss=7.91672373, test_batch_loss=8.16541386
+  Epoch 17, batch 50: train_loss=7.71161652, test_batch_loss=8.03871536
+  Epoch 17, batch 60: train_loss=7.67753124, test_batch_loss=8.12083435
+  Epoch 17, batch 70: train_loss=7.73153496, test_batch_loss=8.40819645
+Epoch 17: avg_train_loss=7.65788961
+  Epoch 18, batch 0: train_loss=7.45809412, test_batch_loss=8.21548367
+  Epoch 18, batch 10: train_loss=7.67720413, test_batch_loss=7.78285742
+  Epoch 18, batch 20: train_loss=7.47078562, test_batch_loss=7.98826122
+  Epoch 18, batch 30: train_loss=7.69456053, test_batch_loss=8.26045609
+  Epoch 18, batch 40: train_loss=7.53112221, test_batch_loss=7.88368559
+  Epoch 18, batch 50: train_loss=7.70733404, test_batch_loss=8.14372444
+  Epoch 18, batch 60: train_loss=7.71044827, test_batch_loss=8.25446320
+  Epoch 18, batch 70: train_loss=7.48427629, test_batch_loss=7.99550343
+Epoch 18: avg_train_loss=7.63718341
+  Epoch 19, batch 0: train_loss=7.50784397, test_batch_loss=7.78322744
+  Epoch 19, batch 10: train_loss=7.29427576, test_batch_loss=8.18537998
+  Epoch 19, batch 20: train_loss=7.65831566, test_batch_loss=7.99223423
+  Epoch 19, batch 30: train_loss=7.62966776, test_batch_loss=8.52018452
+  Epoch 19, batch 40: train_loss=7.77756262, test_batch_loss=7.86064768
+  Epoch 19, batch 50: train_loss=7.57502270, test_batch_loss=8.21843338
+  Epoch 19, batch 60: train_loss=7.46979475, test_batch_loss=8.10629368
+  Epoch 19, batch 70: train_loss=7.47836399, test_batch_loss=7.85362577
+Epoch 19: avg_train_loss=7.60939534
+  Epoch 20, batch 0: train_loss=7.70827627, test_batch_loss=8.24276161
+  Epoch 20, batch 10: train_loss=7.53405809, test_batch_loss=8.06516171
+  Epoch 20, batch 20: train_loss=7.57852411, test_batch_loss=7.94212675
+  Epoch 20, batch 30: train_loss=7.23203516, test_batch_loss=8.13036537
+  Epoch 20, batch 40: train_loss=7.39095831, test_batch_loss=8.12954998
+  Epoch 20, batch 50: train_loss=7.63318682, test_batch_loss=7.90921974
+  Epoch 20, batch 60: train_loss=7.56172848, test_batch_loss=7.90023708
+  Epoch 20, batch 70: train_loss=7.31480503, test_batch_loss=8.48102379
+Epoch 20: avg_train_loss=7.57478128
+  Epoch 21, batch 0: train_loss=7.29104853, test_batch_loss=8.06557369
+  Epoch 21, batch 10: train_loss=7.55194092, test_batch_loss=8.24499512
+  Epoch 21, batch 20: train_loss=7.55751228, test_batch_loss=7.99062490
+  Epoch 21, batch 30: train_loss=7.49847221, test_batch_loss=8.12769032
+  Epoch 21, batch 40: train_loss=7.49810791, test_batch_loss=8.13491344
+  Epoch 21, batch 50: train_loss=7.64279270, test_batch_loss=8.36328983
+  Epoch 21, batch 60: train_loss=7.69619083, test_batch_loss=7.96248627
+  Epoch 21, batch 70: train_loss=7.42330933, test_batch_loss=8.24642754
+Epoch 21: avg_train_loss=7.53606874
+  Epoch 22, batch 0: train_loss=7.37937832, test_batch_loss=7.60247755
+  Epoch 22, batch 10: train_loss=7.42858362, test_batch_loss=8.46277428
+  Epoch 22, batch 20: train_loss=7.38665056, test_batch_loss=8.02327156
+  Epoch 22, batch 30: train_loss=7.39560747, test_batch_loss=8.56503677
+  Epoch 22, batch 40: train_loss=7.34501076, test_batch_loss=8.22924423
+  Epoch 22, batch 50: train_loss=7.60520220, test_batch_loss=8.06777954
+  Epoch 22, batch 60: train_loss=7.58398199, test_batch_loss=7.68068933
+  Epoch 22, batch 70: train_loss=7.39176893, test_batch_loss=7.97047901
+Epoch 22: avg_train_loss=7.50164226
+  Epoch 23, batch 0: train_loss=7.46071863, test_batch_loss=8.23305225
+  Epoch 23, batch 10: train_loss=7.94365788, test_batch_loss=8.30681705
+  Epoch 23, batch 20: train_loss=7.65669155, test_batch_loss=8.40837193
+  Epoch 23, batch 30: train_loss=7.59135246, test_batch_loss=8.01689148
+  Epoch 23, batch 40: train_loss=7.63972187, test_batch_loss=8.15547276
+  Epoch 23, batch 50: train_loss=7.47083616, test_batch_loss=7.97986746
+  Epoch 23, batch 60: train_loss=7.42909861, test_batch_loss=7.84442520
+  Epoch 23, batch 70: train_loss=7.56596041, test_batch_loss=7.68017960
+Epoch 23: avg_train_loss=7.46969000
+  Epoch 24, batch 0: train_loss=7.23864412, test_batch_loss=8.13663006
+  Epoch 24, batch 10: train_loss=7.38643599, test_batch_loss=8.15120029
+  Epoch 24, batch 20: train_loss=7.69979000, test_batch_loss=7.87817764
+  Epoch 24, batch 30: train_loss=7.37752151, test_batch_loss=7.88028145
+  Epoch 24, batch 40: train_loss=7.61077976, test_batch_loss=7.90641499
+  Epoch 24, batch 50: train_loss=7.17896986, test_batch_loss=8.21392632
+  Epoch 24, batch 60: train_loss=7.73567677, test_batch_loss=8.13918114
+  Epoch 24, batch 70: train_loss=7.47573233, test_batch_loss=8.43457031
+Epoch 24: avg_train_loss=7.43190622
+  Epoch 25, batch 0: train_loss=7.34542274, test_batch_loss=7.73514843
+  Epoch 25, batch 10: train_loss=7.55243015, test_batch_loss=8.00578976
+  Epoch 25, batch 20: train_loss=7.16727066, test_batch_loss=7.80619907
+  Epoch 25, batch 30: train_loss=7.61202478, test_batch_loss=7.80610085
+  Epoch 25, batch 40: train_loss=7.55437946, test_batch_loss=8.28329754
+  Epoch 25, batch 50: train_loss=7.43500900, test_batch_loss=7.79801369
+  Epoch 25, batch 60: train_loss=7.69893932, test_batch_loss=8.07490730
+  Epoch 25, batch 70: train_loss=7.30178261, test_batch_loss=7.85504150
+Epoch 25: avg_train_loss=7.40250840
+  Epoch 26, batch 0: train_loss=7.26639271, test_batch_loss=8.00127792
+  Epoch 26, batch 10: train_loss=7.27311087, test_batch_loss=8.23301220
+  Epoch 26, batch 20: train_loss=7.38687420, test_batch_loss=8.51745415
+  Epoch 26, batch 30: train_loss=7.51196623, test_batch_loss=8.07821655
+  Epoch 26, batch 40: train_loss=7.41800737, test_batch_loss=8.34273338
+  Epoch 26, batch 50: train_loss=7.10913944, test_batch_loss=8.12635708
+  Epoch 26, batch 60: train_loss=7.48491955, test_batch_loss=7.81678200
+  Epoch 26, batch 70: train_loss=7.54010248, test_batch_loss=7.84238911
+Epoch 26: avg_train_loss=7.37225042
+  Epoch 27, batch 0: train_loss=7.45537758, test_batch_loss=7.94903278
+  Epoch 27, batch 10: train_loss=7.35259485, test_batch_loss=8.38475704
+  Epoch 27, batch 20: train_loss=7.61137724, test_batch_loss=7.73146772
+  Epoch 27, batch 30: train_loss=7.42203951, test_batch_loss=7.74570036
+  Epoch 27, batch 40: train_loss=7.52239132, test_batch_loss=8.18026066
+  Epoch 27, batch 50: train_loss=7.98298788, test_batch_loss=8.11726856
+  Epoch 27, batch 60: train_loss=7.12900877, test_batch_loss=8.11509800
+  Epoch 27, batch 70: train_loss=7.41255760, test_batch_loss=7.98760366
+Epoch 27: avg_train_loss=7.34069920
+  Epoch 28, batch 0: train_loss=7.04096031, test_batch_loss=8.24200058
+  Epoch 28, batch 10: train_loss=6.80166817, test_batch_loss=8.01080894
+  Epoch 28, batch 20: train_loss=7.45441532, test_batch_loss=7.95290565
+  Epoch 28, batch 30: train_loss=7.05335140, test_batch_loss=8.40497971
+  Epoch 28, batch 40: train_loss=7.14519215, test_batch_loss=7.96015930
+  Epoch 28, batch 50: train_loss=7.45796824, test_batch_loss=7.79326582
+  Epoch 28, batch 60: train_loss=7.20622492, test_batch_loss=8.07816601
+  Epoch 28, batch 70: train_loss=7.27204418, test_batch_loss=8.00857353
+Epoch 28: avg_train_loss=7.33065797
+  Epoch 29, batch 0: train_loss=7.34605265, test_batch_loss=7.89539385
+  Epoch 29, batch 10: train_loss=6.87864923, test_batch_loss=7.95721865
+  Epoch 29, batch 20: train_loss=7.46558714, test_batch_loss=7.44179821
+  Epoch 29, batch 30: train_loss=7.19977713, test_batch_loss=7.86708355
+  Epoch 29, batch 40: train_loss=7.31374311, test_batch_loss=8.34741402
+  Epoch 29, batch 50: train_loss=7.47300386, test_batch_loss=7.94868040
+  Epoch 29, batch 60: train_loss=7.04278326, test_batch_loss=7.91195202
+  Epoch 29, batch 70: train_loss=7.24144363, test_batch_loss=7.45620632
+Epoch 29: avg_train_loss=7.30327450
+  Epoch 30, batch 0: train_loss=6.94725561, test_batch_loss=7.93433142
+  Epoch 30, batch 10: train_loss=7.34427309, test_batch_loss=8.25946617
+  Epoch 30, batch 20: train_loss=6.88848639, test_batch_loss=7.74753094
+  Epoch 30, batch 30: train_loss=7.13829565, test_batch_loss=8.11204529
+  Epoch 30, batch 40: train_loss=7.12029314, test_batch_loss=7.88876247
+  Epoch 30, batch 50: train_loss=6.93743896, test_batch_loss=8.41851997
+  Epoch 30, batch 60: train_loss=7.09313107, test_batch_loss=8.16899776
+  Epoch 30, batch 70: train_loss=7.48098421, test_batch_loss=7.67265129
+Epoch 30: avg_train_loss=7.27430803
+  Epoch 31, batch 0: train_loss=6.98149490, test_batch_loss=7.78980398
+  Epoch 31, batch 10: train_loss=7.25149012, test_batch_loss=8.01516438
+  Epoch 31, batch 20: train_loss=7.20222425, test_batch_loss=8.19281292
+  Epoch 31, batch 30: train_loss=7.39966965, test_batch_loss=7.97618723
+  Epoch 31, batch 40: train_loss=7.07058096, test_batch_loss=8.31475925
+  Epoch 31, batch 50: train_loss=7.33576107, test_batch_loss=7.77177906
+  Epoch 31, batch 60: train_loss=7.29154158, test_batch_loss=7.45079851
+  Epoch 31, batch 70: train_loss=7.20366526, test_batch_loss=7.89066935
+Epoch 31: avg_train_loss=7.25023454
+Freed training objects (optimizer, scheduler, train_loader, etc.) before eval
+Loaded pssm_root: torch.Size([495, 22])
+Loaded 88 variant PSSMs from /home/ivan.specht/antiGen-data/output_denv2_full_cutoff191/pssms/2II_F.1.1.2_annotated (t=191.0 to t=199.7)
+  [evaluate_full] batch 0/68
+  [evaluate_full] batch 10/68
+  [evaluate_full] batch 20/68
+  [evaluate_full] batch 30/68
+  [evaluate_full] batch 40/68
+  [evaluate_full] batch 50/68
+  [evaluate_full] batch 60/68
+  [evaluate_full] done (68 batches, 5399 mutations)
+All test loss: 7.94429043
+  All hit rate for top 10.0%: 0.63937766
+  All hit rate for top 20.0%: 0.78718281
+  All hit rate for top 30.0%: 0.86460456
+  All hit rate for top 40.0%: 0.90850157
+  All hit rate for top 50.0%: 0.93183923
+  All hit rate for top 60.0%: 0.95313947
+  All hit rate for top 70.0%: 0.96536396
+  All hit rate for top 80.0%: 0.98018152
+  All hit rate for top 90.0%: 0.99240600
+All hit rates written to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_all_simple_d128_n2_lr0.0001_20260426_141406.csv
+All hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_all_simple_d128_n2_lr0.0001_20260426_141406.png
+Variant-descended testing examples: 222
+  [evaluate_full] batch 0/4
+  [evaluate_full] done (4 batches, 673 mutations)
+Variant-descended test loss: 7.50163988
+  Variant-descended hit rate for top 10.0%: 0.75928678
+  Variant-descended hit rate for top 20.0%: 0.87815750
+  Variant-descended hit rate for top 30.0%: 0.93610698
+  Variant-descended hit rate for top 40.0%: 0.95839525
+  Variant-descended hit rate for top 50.0%: 0.97325409
+  Variant-descended hit rate for top 60.0%: 0.97771174
+  Variant-descended hit rate for top 70.0%: 0.98216939
+  Variant-descended hit rate for top 80.0%: 0.99257058
+  Variant-descended hit rate for top 90.0%: 0.99851412
+Variant-descended hit rates written to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_variant_simple_d128_n2_lr0.0001_20260426_141406.csv
+Variant-descended hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_variant_simple_d128_n2_lr0.0001_20260426_141406.png
+  [evaluate_full] batch 0/68
+  [evaluate_full] batch 10/68
+  [evaluate_full] batch 20/68
+  [evaluate_full] batch 30/68
+  [evaluate_full] batch 40/68
+  [evaluate_full] batch 50/68
+  [evaluate_full] batch 60/68
+  [evaluate_full] done (68 batches, 5399 mutations)
+Unseen-mutations test loss: 7.94429036
+  Unseen-mutations hit rate for top 10.0%: 0.37262013
+  Unseen-mutations hit rate for top 20.0%: 0.57932910
+  Unseen-mutations hit rate for top 30.0%: 0.70262919
+  Unseen-mutations hit rate for top 40.0%: 0.75883953
+  Unseen-mutations hit rate for top 50.0%: 0.81958296
+  Unseen-mutations hit rate for top 60.0%: 0.85766092
+  Unseen-mutations hit rate for top 70.0%: 0.89755213
+  Unseen-mutations hit rate for top 80.0%: 0.93109701
+  Unseen-mutations hit rate for top 90.0%: 0.97642792
+Unseen-mutations hit rates written to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_unseen_simple_d128_n2_lr0.0001_20260426_141406.csv
+Unseen-mutations hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_unseen_simple_d128_n2_lr0.0001_20260426_141406.png
+  [evaluate_full] batch 0/68
+  [evaluate_full] batch 10/68
+  [evaluate_full] batch 20/68
+  [evaluate_full] batch 30/68
+  [evaluate_full] batch 40/68
+  [evaluate_full] batch 50/68
+  [evaluate_full] batch 60/68
+  [evaluate_full] done (68 batches, 5399 mutations)
+All (no gap/stop) test loss: 7.94429040
+  All (no gap/stop) hit rate for top 10.0%: 0.59593148
+  All (no gap/stop) hit rate for top 20.0%: 0.76167024
+  All (no gap/stop) hit rate for top 30.0%: 0.84775161
+  All (no gap/stop) hit rate for top 40.0%: 0.89678801
+  All (no gap/stop) hit rate for top 50.0%: 0.92462527
+  All (no gap/stop) hit rate for top 60.0%: 0.94710921
+  All (no gap/stop) hit rate for top 70.0%: 0.96124197
+  All (no gap/stop) hit rate for top 80.0%: 0.97537473
+  All (no gap/stop) hit rate for top 90.0%: 0.98865096
+All (no gap/stop) hit rates written to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_all_nogapstop_simple_d128_n2_lr0.0001_20260426_141406.csv
+All (no gap/stop) hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_all_nogapstop_simple_d128_n2_lr0.0001_20260426_141406.png
+  [evaluate_full] batch 0/4
+  [evaluate_full] done (4 batches, 673 mutations)
+Variant-descended (no gap/stop) test loss: 7.50163970
+  Variant-descended (no gap/stop) hit rate for top 10.0%: 0.75037821
+  Variant-descended (no gap/stop) hit rate for top 20.0%: 0.87291982
+  Variant-descended (no gap/stop) hit rate for top 30.0%: 0.93797277
+  Variant-descended (no gap/stop) hit rate for top 40.0%: 0.96822995
+  Variant-descended (no gap/stop) hit rate for top 50.0%: 0.97579425
+  Variant-descended (no gap/stop) hit rate for top 60.0%: 0.98033283
+  Variant-descended (no gap/stop) hit rate for top 70.0%: 0.98487141
+  Variant-descended (no gap/stop) hit rate for top 80.0%: 0.99243570
+  Variant-descended (no gap/stop) hit rate for top 90.0%: 0.99848714
+Variant-descended (no gap/stop) hit rates written to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_variant_nogapstop_simple_d128_n2_lr0.0001_20260426_141406.csv
+Variant-descended (no gap/stop) hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_variant_nogapstop_simple_d128_n2_lr0.0001_20260426_141406.png
+  [evaluate_full] batch 0/68
+  [evaluate_full] batch 10/68
+  [evaluate_full] batch 20/68
+  [evaluate_full] batch 30/68
+  [evaluate_full] batch 40/68
+  [evaluate_full] batch 50/68
+  [evaluate_full] batch 60/68
+  [evaluate_full] done (68 batches, 5399 mutations)
+Unseen (no gap/stop) test loss: 7.94429038
+  Unseen (no gap/stop) hit rate for top 10.0%: 0.35191956
+  Unseen (no gap/stop) hit rate for top 20.0%: 0.56489945
+  Unseen (no gap/stop) hit rate for top 30.0%: 0.68921389
+  Unseen (no gap/stop) hit rate for top 40.0%: 0.75502742
+  Unseen (no gap/stop) hit rate for top 50.0%: 0.80895795
+  Unseen (no gap/stop) hit rate for top 60.0%: 0.85648995
+  Unseen (no gap/stop) hit rate for top 70.0%: 0.89122486
+  Unseen (no gap/stop) hit rate for top 80.0%: 0.92687386
+  Unseen (no gap/stop) hit rate for top 90.0%: 0.96709324
+Unseen (no gap/stop) hit rates written to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_unseen_nogapstop_simple_d128_n2_lr0.0001_20260426_141406.csv
+Unseen (no gap/stop) hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_unseen_nogapstop_simple_d128_n2_lr0.0001_20260426_141406.png
+Testing root amino acid sequence: MRCIGISNRDFVEGVSGGSWVDIVLEHGSCVTTMAKNKPTLDFELIKTEAKHPATLRKYCIEAKLTNTTTASRCPTQGEPSLNEEQDKRFVCKHSMVDRGWGNGCGLFGKGGIVTCAMFTCKKNMEGKIVQPENLEYTIVITPHSGEENAVGNDTGKHGKEIKITPQSSITEAELTGYGTVTMECSPRTGLDFNEMVLLQMENKAWLVHRQWFLDLPLPWLPGADIQGSNWIQKETLVTFKNPHAKKQDVVVLGSQEGAMHTALTGATEIQMSSGNLLFTGHLKCRLRMDKLQLKGMSYSMCTGKFKVVKEIAETQHGTIVIRVQYEGDGSPCKIPFEIMDLEKRHVLGRLITVNPIVTEKDSPVNIEAEPPFGDSYIIIGVEPGQLKLSWFKKGSSIGQMFETTMRGAKRMAILGDTAWDFGSLGGVFTSIGKALHQVFGAIYGAAFSGVSWTMKILIGVVITWIGMNSRSTSLSVSLVLVGVVTLYLGVMVQA
+Testing root scores shape: torch.Size([1, 495, 22])
+All (threshold=10) variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_all_simple_d128_n2_lr0.0001_20260426_141406.csv
+All (threshold=10) variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_all_simple_d128_n2_lr0.0001_20260426_141406.png
+Unseen (threshold=10) variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_unseen_simple_d128_n2_lr0.0001_20260426_141406.csv
+Unseen (threshold=10) variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_unseen_simple_d128_n2_lr0.0001_20260426_141406.png
+All (threshold=1) variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_all_thresh1_simple_d128_n2_lr0.0001_20260426_141406.csv
+All (threshold=1) variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_all_thresh1_simple_d128_n2_lr0.0001_20260426_141406.png
+Unseen (threshold=1) variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_unseen_thresh1_simple_d128_n2_lr0.0001_20260426_141406.csv
+Unseen (threshold=1) variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_unseen_thresh1_simple_d128_n2_lr0.0001_20260426_141406.png
+All no gap/stop (threshold=10) variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_all_nogapstop_simple_d128_n2_lr0.0001_20260426_141406.csv
+All no gap/stop (threshold=10) variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_all_nogapstop_simple_d128_n2_lr0.0001_20260426_141406.png
+All no gap/stop (threshold=1) variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_all_nogapstop_thresh1_simple_d128_n2_lr0.0001_20260426_141406.csv
+All no gap/stop (threshold=1) variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_all_nogapstop_thresh1_simple_d128_n2_lr0.0001_20260426_141406.png
+Unseen no gap/stop (threshold=10) variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_unseen_nogapstop_simple_d128_n2_lr0.0001_20260426_141406.csv
+Unseen no gap/stop (threshold=10) variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_unseen_nogapstop_simple_d128_n2_lr0.0001_20260426_141406.png
+Unseen no gap/stop (threshold=1) variant hit rates written to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_unseen_nogapstop_thresh1_simple_d128_n2_lr0.0001_20260426_141406.csv
+Unseen no gap/stop (threshold=1) variant hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/variant_emergence_unseen_nogapstop_thresh1_simple_d128_n2_lr0.0001_20260426_141406.png
+Variant root predictions (495 x 22) saved to /large_storage/hielab/ispecht/fitness-inference/variant_root_predictions_simple_d128_n2_lr0.0001_20260426_141406.csv
+Unseen variant root predictions saved to /large_storage/hielab/ispecht/fitness-inference/variant_root_predictions_unseen_simple_d128_n2_lr0.0001_20260426_141406.csv
+No gap/stop variant root predictions saved to /large_storage/hielab/ispecht/fitness-inference/variant_root_predictions_nogapstop_simple_d128_n2_lr0.0001_20260426_141406.csv
+Saving model to /large_storage/hielab/ispecht/fitness-inference/fitness_simple_d128_n2_lr0.0001_20260426_141406.pt...
+Done.
+Job finished at: Sun Apr 26 02:14:56 PM PDT 2026

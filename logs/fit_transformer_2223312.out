@@ -1,0 +1,1245 @@
+Job started at: Sun Apr 26 04:56:59 PM PDT 2026
+Running on node: GPU7094
+Job ID: 2223312
+GPU: 0
+Alphabet size: 22
+Using device: cuda
+Loading examples from /home/ivan.specht/antiGen-data/output1/examples_cutoff_1.txt...
+Loaded 171248 examples from /home/ivan.specht/antiGen-data/output1/examples_cutoff_1.txt
+  1 variant testing root(s), 52835 variant-descended for 'BA.2'
+Sequence length: 1273
+Training examples: 3648, Testing examples: 167600
+Total mutations in training set: 12024
+Train batches per epoch: 57
+Model: 565,142 trainable params
+Starting training...
+  Epoch 0, batch 0: train_loss=10.36998081, test_batch_loss=10.28705120
+  Epoch 0, batch 10: train_loss=9.81945801, test_batch_loss=9.94373226
+  Epoch 0, batch 20: train_loss=9.51551247, test_batch_loss=9.89338207
+  Epoch 0, batch 30: train_loss=9.43036938, test_batch_loss=9.76021481
+  Epoch 0, batch 40: train_loss=9.42512417, test_batch_loss=9.54557514
+  Epoch 0, batch 50: train_loss=9.31299973, test_batch_loss=9.47516155
+Epoch 0: avg_train_loss=9.58336522
+  Epoch 1, batch 0: train_loss=9.16168594, test_batch_loss=9.38255501
+  Epoch 1, batch 10: train_loss=9.17512035, test_batch_loss=9.49448109
+  Epoch 1, batch 20: train_loss=9.12870502, test_batch_loss=9.43675041
+  Epoch 1, batch 30: train_loss=9.10457325, test_batch_loss=9.26896191
+  Epoch 1, batch 40: train_loss=9.00654697, test_batch_loss=9.12964249
+  Epoch 1, batch 50: train_loss=8.65398121, test_batch_loss=9.37544632
+Epoch 1: avg_train_loss=8.91210334
+  Epoch 2, batch 0: train_loss=8.67536736, test_batch_loss=9.10656929
+  Epoch 2, batch 10: train_loss=8.81267929, test_batch_loss=9.17800045
+  Epoch 2, batch 20: train_loss=8.66641140, test_batch_loss=9.06614208
+  Epoch 2, batch 30: train_loss=8.88865566, test_batch_loss=9.22582245
+  Epoch 2, batch 40: train_loss=8.50260544, test_batch_loss=9.07645130
+  Epoch 2, batch 50: train_loss=8.70376110, test_batch_loss=8.96950150
+Epoch 2: avg_train_loss=8.71915506
+  Epoch 3, batch 0: train_loss=8.66457081, test_batch_loss=8.89483738
+  Epoch 3, batch 10: train_loss=8.43486977, test_batch_loss=9.12849236
+  Epoch 3, batch 20: train_loss=8.33386993, test_batch_loss=9.14068508
+  Epoch 3, batch 30: train_loss=8.59684563, test_batch_loss=8.85182953
+  Epoch 3, batch 40: train_loss=8.50329494, test_batch_loss=9.13604927
+  Epoch 3, batch 50: train_loss=8.82817364, test_batch_loss=9.19309902
+Epoch 3: avg_train_loss=8.61944680
+  Epoch 4, batch 0: train_loss=8.57911110, test_batch_loss=9.33686638
+  Epoch 4, batch 10: train_loss=8.27269459, test_batch_loss=9.11555862
+  Epoch 4, batch 20: train_loss=8.78659916, test_batch_loss=9.27124500
+  Epoch 4, batch 30: train_loss=8.78193283, test_batch_loss=9.06043053
+  Epoch 4, batch 40: train_loss=8.56634998, test_batch_loss=9.14441013
+  Epoch 4, batch 50: train_loss=8.33339787, test_batch_loss=9.30747032
+Epoch 4: avg_train_loss=8.57320044
+  Epoch 5, batch 0: train_loss=8.59921646, test_batch_loss=9.04687500
+  Epoch 5, batch 10: train_loss=8.52988434, test_batch_loss=9.27915859
+  Epoch 5, batch 20: train_loss=8.50837135, test_batch_loss=8.91489315
+  Epoch 5, batch 30: train_loss=8.38785267, test_batch_loss=9.35808468
+  Epoch 5, batch 40: train_loss=8.93996429, test_batch_loss=9.11145782
+  Epoch 5, batch 50: train_loss=8.73823261, test_batch_loss=9.26230335
+Epoch 5: avg_train_loss=8.55333004
+  Epoch 6, batch 0: train_loss=8.46570206, test_batch_loss=8.81272602
+  Epoch 6, batch 10: train_loss=8.22038364, test_batch_loss=9.19685459
+  Epoch 6, batch 20: train_loss=8.66086006, test_batch_loss=9.32184982
+  Epoch 6, batch 30: train_loss=8.69773293, test_batch_loss=9.22415066
+  Epoch 6, batch 40: train_loss=8.59765053, test_batch_loss=9.15184879
+  Epoch 6, batch 50: train_loss=8.40963650, test_batch_loss=9.37952232
+Epoch 6: avg_train_loss=8.53097805
+  Epoch 7, batch 0: train_loss=8.48904419, test_batch_loss=8.85174084
+  Epoch 7, batch 10: train_loss=8.52256966, test_batch_loss=9.17598343
+  Epoch 7, batch 20: train_loss=8.47193336, test_batch_loss=9.62765217
+  Epoch 7, batch 30: train_loss=8.46453571, test_batch_loss=9.32911968
+  Epoch 7, batch 40: train_loss=8.34429264, test_batch_loss=9.29408836
+  Epoch 7, batch 50: train_loss=8.14322758, test_batch_loss=9.45671082
+Epoch 7: avg_train_loss=8.50701125
+  Epoch 8, batch 0: train_loss=8.37261677, test_batch_loss=9.46342182
+  Epoch 8, batch 10: train_loss=8.52227592, test_batch_loss=9.24069977
+  Epoch 8, batch 20: train_loss=8.53747654, test_batch_loss=9.27392006
+  Epoch 8, batch 30: train_loss=8.44485378, test_batch_loss=9.24701214
+  Epoch 8, batch 40: train_loss=8.43045235, test_batch_loss=8.99024487
+  Epoch 8, batch 50: train_loss=8.38753033, test_batch_loss=9.08025837
+Epoch 8: avg_train_loss=8.47335329
+  Epoch 9, batch 0: train_loss=8.33451557, test_batch_loss=9.04117489
+  Epoch 9, batch 10: train_loss=9.16613007, test_batch_loss=9.05992699
+  Epoch 9, batch 20: train_loss=8.70109367, test_batch_loss=9.13562298
+  Epoch 9, batch 30: train_loss=8.61855316, test_batch_loss=9.30526543
+  Epoch 9, batch 40: train_loss=8.29114723, test_batch_loss=9.32478428
+  Epoch 9, batch 50: train_loss=8.34830666, test_batch_loss=9.32425690
+Epoch 9: avg_train_loss=8.46599390
+  Epoch 10, batch 0: train_loss=8.71486950, test_batch_loss=9.20708656
+  Epoch 10, batch 10: train_loss=8.52667809, test_batch_loss=9.01121235
+  Epoch 10, batch 20: train_loss=8.48175144, test_batch_loss=9.10919857
+  Epoch 10, batch 30: train_loss=8.51730537, test_batch_loss=8.80377769
+  Epoch 10, batch 40: train_loss=8.60292625, test_batch_loss=9.33785439
+  Epoch 10, batch 50: train_loss=8.26456451, test_batch_loss=9.36312199
+Epoch 10: avg_train_loss=8.43238048
+  Epoch 11, batch 0: train_loss=8.54815865, test_batch_loss=9.20393944
+  Epoch 11, batch 10: train_loss=8.38256073, test_batch_loss=9.34894753
+  Epoch 11, batch 20: train_loss=8.42481422, test_batch_loss=9.00246716
+  Epoch 11, batch 30: train_loss=8.37731171, test_batch_loss=9.08538055
+  Epoch 11, batch 40: train_loss=8.57314110, test_batch_loss=8.68455124
+  Epoch 11, batch 50: train_loss=8.40410519, test_batch_loss=9.28882027
+Epoch 11: avg_train_loss=8.41311667
+  Epoch 12, batch 0: train_loss=8.27679253, test_batch_loss=9.13648796
+  Epoch 12, batch 10: train_loss=8.68861675, test_batch_loss=9.53228569
+  Epoch 12, batch 20: train_loss=8.28325748, test_batch_loss=9.02930069
+  Epoch 12, batch 30: train_loss=8.08308697, test_batch_loss=9.52850246
+  Epoch 12, batch 40: train_loss=8.24554253, test_batch_loss=8.96632290
+  Epoch 12, batch 50: train_loss=8.35263062, test_batch_loss=8.75959873
+Epoch 12: avg_train_loss=8.34467681
+  Epoch 13, batch 0: train_loss=8.66152668, test_batch_loss=9.01178932
+  Epoch 13, batch 10: train_loss=8.39112377, test_batch_loss=8.75884438
+  Epoch 13, batch 20: train_loss=8.58423805, test_batch_loss=8.96815586
+  Epoch 13, batch 30: train_loss=8.33824730, test_batch_loss=8.90022659
+  Epoch 13, batch 40: train_loss=8.14084148, test_batch_loss=9.15162468
+  Epoch 13, batch 50: train_loss=8.38421440, test_batch_loss=9.17520237
+Epoch 13: avg_train_loss=8.30366881
+  Epoch 14, batch 0: train_loss=8.04770565, test_batch_loss=9.12974644
+  Epoch 14, batch 10: train_loss=8.08642960, test_batch_loss=9.12528038
+  Epoch 14, batch 20: train_loss=8.32892227, test_batch_loss=9.39409256
+  Epoch 14, batch 30: train_loss=8.07085609, test_batch_loss=8.81346321
+  Epoch 14, batch 40: train_loss=8.17707825, test_batch_loss=8.90079784
+  Epoch 14, batch 50: train_loss=8.49381828, test_batch_loss=8.96812916
+Epoch 14: avg_train_loss=8.25395866
+  Epoch 15, batch 0: train_loss=8.14248848, test_batch_loss=9.26637268
+  Epoch 15, batch 10: train_loss=8.33900356, test_batch_loss=8.94004631
+  Epoch 15, batch 20: train_loss=8.03298378, test_batch_loss=8.94176483
+  Epoch 15, batch 30: train_loss=8.07424355, test_batch_loss=9.17466545
+  Epoch 15, batch 40: train_loss=7.95651865, test_batch_loss=9.14924622
+  Epoch 15, batch 50: train_loss=8.03499222, test_batch_loss=9.14287758
+Epoch 15: avg_train_loss=8.18125474
+  Epoch 16, batch 0: train_loss=7.89180851, test_batch_loss=9.03225708
+  Epoch 16, batch 10: train_loss=8.06326389, test_batch_loss=9.10578632
+  Epoch 16, batch 20: train_loss=7.93828726, test_batch_loss=8.90226460
+  Epoch 16, batch 30: train_loss=8.03720951, test_batch_loss=9.01315594
+  Epoch 16, batch 40: train_loss=8.26957417, test_batch_loss=8.71305084
+  Epoch 16, batch 50: train_loss=7.95373297, test_batch_loss=9.14534855
+Epoch 16: avg_train_loss=8.11834175
+  Epoch 17, batch 0: train_loss=8.06341553, test_batch_loss=8.89422894
+  Epoch 17, batch 10: train_loss=7.91975451, test_batch_loss=8.79270649
+  Epoch 17, batch 20: train_loss=7.68396950, test_batch_loss=8.91430378
+  Epoch 17, batch 30: train_loss=7.85892153, test_batch_loss=9.04841900
+  Epoch 17, batch 40: train_loss=8.28922176, test_batch_loss=9.06192780
+  Epoch 17, batch 50: train_loss=7.95526600, test_batch_loss=8.96428108
+Epoch 17: avg_train_loss=8.07116720
+  Epoch 18, batch 0: train_loss=8.07111359, test_batch_loss=8.69360256
+  Epoch 18, batch 10: train_loss=8.01485538, test_batch_loss=8.97499084
+  Epoch 18, batch 20: train_loss=8.01217842, test_batch_loss=8.92389011
+  Epoch 18, batch 30: train_loss=8.65169811, test_batch_loss=9.03165436
+  Epoch 18, batch 40: train_loss=7.92491198, test_batch_loss=8.77206326
+  Epoch 18, batch 50: train_loss=7.83701992, test_batch_loss=9.14897060
+Epoch 18: avg_train_loss=8.00067340
+  Epoch 19, batch 0: train_loss=7.93765211, test_batch_loss=8.57019901
+  Epoch 19, batch 10: train_loss=8.23005772, test_batch_loss=8.88823318
+  Epoch 19, batch 20: train_loss=7.87154627, test_batch_loss=8.80726910
+  Epoch 19, batch 30: train_loss=7.79109526, test_batch_loss=9.22738361
+  Epoch 19, batch 40: train_loss=8.14842701, test_batch_loss=8.89147472
+  Epoch 19, batch 50: train_loss=7.86330509, test_batch_loss=9.27855873
+Epoch 19: avg_train_loss=7.94497062
+  Epoch 20, batch 0: train_loss=7.68724918, test_batch_loss=9.83178806
+  Epoch 20, batch 10: train_loss=7.84178782, test_batch_loss=8.84950447
+  Epoch 20, batch 20: train_loss=7.72631836, test_batch_loss=8.88193798
+  Epoch 20, batch 30: train_loss=7.86929750, test_batch_loss=9.02985668
+  Epoch 20, batch 40: train_loss=7.89719391, test_batch_loss=8.83593464
+  Epoch 20, batch 50: train_loss=7.72665310, test_batch_loss=8.94603825
+Epoch 20: avg_train_loss=7.91966664
+  Epoch 21, batch 0: train_loss=9.12240696, test_batch_loss=9.01614761
+  Epoch 21, batch 10: train_loss=7.87065268, test_batch_loss=8.95592690
+  Epoch 21, batch 20: train_loss=7.82003593, test_batch_loss=9.15149403
+  Epoch 21, batch 30: train_loss=7.70299578, test_batch_loss=8.91070080
+  Epoch 21, batch 40: train_loss=7.86165810, test_batch_loss=8.61026001
+  Epoch 21, batch 50: train_loss=8.33332443, test_batch_loss=8.72083855
+Epoch 21: avg_train_loss=7.91931107
+  Epoch 22, batch 0: train_loss=7.78611612, test_batch_loss=8.92162132
+  Epoch 22, batch 10: train_loss=7.77674723, test_batch_loss=8.82819271
+  Epoch 22, batch 20: train_loss=7.83467674, test_batch_loss=9.24431896
+  Epoch 22, batch 30: train_loss=7.88308716, test_batch_loss=8.54384518
+  Epoch 22, batch 40: train_loss=7.65278530, test_batch_loss=9.05193806
+  Epoch 22, batch 50: train_loss=7.69193888, test_batch_loss=8.63929653
+Epoch 22: avg_train_loss=7.87819135
+  Epoch 23, batch 0: train_loss=7.78679562, test_batch_loss=9.01466751
+  Epoch 23, batch 10: train_loss=8.03053856, test_batch_loss=9.07256794
+  Epoch 23, batch 20: train_loss=7.61545181, test_batch_loss=8.57877731
+  Epoch 23, batch 30: train_loss=7.82831001, test_batch_loss=9.12340546
+  Epoch 23, batch 40: train_loss=7.92479897, test_batch_loss=8.50179958
+  Epoch 23, batch 50: train_loss=7.89255047, test_batch_loss=8.81175518
+Epoch 23: avg_train_loss=7.85604410
+  Epoch 24, batch 0: train_loss=7.93845606, test_batch_loss=8.87749100
+  Epoch 24, batch 10: train_loss=7.77658367, test_batch_loss=8.32911873
+  Epoch 24, batch 20: train_loss=7.63856602, test_batch_loss=8.62812996
+  Epoch 24, batch 30: train_loss=7.64307737, test_batch_loss=8.88809872
+  Epoch 24, batch 40: train_loss=7.86170626, test_batch_loss=9.20030308
+  Epoch 24, batch 50: train_loss=8.00461483, test_batch_loss=8.78269672
+Epoch 24: avg_train_loss=7.84304748
+  Epoch 25, batch 0: train_loss=7.60054779, test_batch_loss=8.67214584
+  Epoch 25, batch 10: train_loss=7.62524414, test_batch_loss=8.77066135
+  Epoch 25, batch 20: train_loss=7.80132532, test_batch_loss=8.82250786
+  Epoch 25, batch 30: train_loss=7.58208227, test_batch_loss=9.00389194
+  Epoch 25, batch 40: train_loss=7.83600998, test_batch_loss=8.67794800
+  Epoch 25, batch 50: train_loss=7.64843559, test_batch_loss=8.86922741
+Epoch 25: avg_train_loss=7.83059869
+  Epoch 26, batch 0: train_loss=7.58790255, test_batch_loss=8.75341225
+  Epoch 26, batch 10: train_loss=7.87977171, test_batch_loss=8.77326679
+  Epoch 26, batch 20: train_loss=7.72469997, test_batch_loss=9.05683517
+  Epoch 26, batch 30: train_loss=7.71183205, test_batch_loss=8.71332264
+  Epoch 26, batch 40: train_loss=7.64299679, test_batch_loss=8.83643532
+  Epoch 26, batch 50: train_loss=7.89955711, test_batch_loss=8.57126331
+Epoch 26: avg_train_loss=7.82439323
+  Epoch 27, batch 0: train_loss=7.86276770, test_batch_loss=8.84232616
+  Epoch 27, batch 10: train_loss=7.76216793, test_batch_loss=8.75501537
+  Epoch 27, batch 20: train_loss=7.88248968, test_batch_loss=8.81600380
+  Epoch 27, batch 30: train_loss=8.26651859, test_batch_loss=8.35614300
+  Epoch 27, batch 40: train_loss=7.74186611, test_batch_loss=9.03333664
+  Epoch 27, batch 50: train_loss=8.01460266, test_batch_loss=9.01291180
+Epoch 27: avg_train_loss=7.81292548
+  Epoch 28, batch 0: train_loss=7.87503719, test_batch_loss=8.67431736
+  Epoch 28, batch 10: train_loss=7.92892456, test_batch_loss=8.71388531
+  Epoch 28, batch 20: train_loss=7.55960989, test_batch_loss=8.51140785
+  Epoch 28, batch 30: train_loss=7.46825027, test_batch_loss=8.30593395
+  Epoch 28, batch 40: train_loss=7.71253109, test_batch_loss=8.65166664
+  Epoch 28, batch 50: train_loss=7.80117369, test_batch_loss=9.13917542
+Epoch 28: avg_train_loss=7.80948771
+  Epoch 29, batch 0: train_loss=7.68043661, test_batch_loss=8.81486416
+  Epoch 29, batch 10: train_loss=7.55085135, test_batch_loss=9.34281635
+  Epoch 29, batch 20: train_loss=7.73265648, test_batch_loss=8.68685913
+  Epoch 29, batch 30: train_loss=7.33161449, test_batch_loss=9.09910870
+  Epoch 29, batch 40: train_loss=9.13331318, test_batch_loss=8.47256088
+  Epoch 29, batch 50: train_loss=7.80785465, test_batch_loss=8.99481964
+Epoch 29: avg_train_loss=7.76138092
+  Epoch 30, batch 0: train_loss=7.76710510, test_batch_loss=8.80184650
+  Epoch 30, batch 10: train_loss=7.83394003, test_batch_loss=8.91655540
+  Epoch 30, batch 20: train_loss=7.76284361, test_batch_loss=8.95540142
+  Epoch 30, batch 30: train_loss=7.80914116, test_batch_loss=8.69292736
+  Epoch 30, batch 40: train_loss=7.49879360, test_batch_loss=8.37045860
+  Epoch 30, batch 50: train_loss=7.79467010, test_batch_loss=8.68959141
+Epoch 30: avg_train_loss=7.78494833
+  Epoch 31, batch 0: train_loss=7.87646675, test_batch_loss=8.75567150
+  Epoch 31, batch 10: train_loss=7.74310303, test_batch_loss=8.76354313
+  Epoch 31, batch 20: train_loss=7.61875772, test_batch_loss=8.75778294
+  Epoch 31, batch 30: train_loss=7.65456820, test_batch_loss=9.05509186
+  Epoch 31, batch 40: train_loss=8.05593491, test_batch_loss=8.53839493
+  Epoch 31, batch 50: train_loss=7.42520475, test_batch_loss=8.81194019
+Epoch 31: avg_train_loss=7.75916078
+Freed training objects (optimizer, scheduler, train_loader, etc.) before eval
+Loaded pssm_root: torch.Size([1273, 22])
+Loaded 60 variant PSSMs from /home/ivan.specht/antiGen-data/output1/pssms/BA.2 (t=0.0 to t=5.9)
+Loaded baseline: CoVFit (torch.Size([1273, 22]))
+Loaded baseline: EVEscape (torch.Size([1273, 22]))
+Loaded baseline: MSA_Transformer (torch.Size([1273, 22]))
+Loaded baseline: MSA_Transformer_BA2 (torch.Size([1273, 22]))
+Loaded baseline: MSA_Transformer_XFG (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA1_bind (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA1_expr (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA2_bind (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA2_expr (torch.Size([1273, 22]))
+Loaded baseline: pyr0 (torch.Size([1273, 22]))
+  [evaluate_full] batch 0/2619
+  [evaluate_full] batch 10/2619
+  [evaluate_full] batch 20/2619
+  [evaluate_full] batch 30/2619
+  [evaluate_full] batch 40/2619
+  [evaluate_full] batch 50/2619
+  [evaluate_full] batch 60/2619
+  [evaluate_full] batch 70/2619
+  [evaluate_full] batch 80/2619
+  [evaluate_full] batch 90/2619
+  [evaluate_full] batch 100/2619
+  [evaluate_full] batch 110/2619
+  [evaluate_full] batch 120/2619
+  [evaluate_full] batch 130/2619
+  [evaluate_full] batch 140/2619
+  [evaluate_full] batch 150/2619
+  [evaluate_full] batch 160/2619
+  [evaluate_full] batch 170/2619
+  [evaluate_full] batch 180/2619
+  [evaluate_full] batch 190/2619
+  [evaluate_full] batch 200/2619
+  [evaluate_full] batch 210/2619
+  [evaluate_full] batch 220/2619
+  [evaluate_full] batch 230/2619
+  [evaluate_full] batch 240/2619
+  [evaluate_full] batch 250/2619
+  [evaluate_full] batch 260/2619
+  [evaluate_full] batch 270/2619
+  [evaluate_full] batch 280/2619
+  [evaluate_full] batch 290/2619
+  [evaluate_full] batch 300/2619
+  [evaluate_full] batch 310/2619
+  [evaluate_full] batch 320/2619
+  [evaluate_full] batch 330/2619
+  [evaluate_full] batch 340/2619
+  [evaluate_full] batch 350/2619
+  [evaluate_full] batch 360/2619
+  [evaluate_full] batch 370/2619
+  [evaluate_full] batch 380/2619
+  [evaluate_full] batch 390/2619
+  [evaluate_full] batch 400/2619
+  [evaluate_full] batch 410/2619
+  [evaluate_full] batch 420/2619
+  [evaluate_full] batch 430/2619
+  [evaluate_full] batch 440/2619
+  [evaluate_full] batch 450/2619
+  [evaluate_full] batch 460/2619
+  [evaluate_full] batch 470/2619
+  [evaluate_full] batch 480/2619
+  [evaluate_full] batch 490/2619
+  [evaluate_full] batch 500/2619
+  [evaluate_full] batch 510/2619
+  [evaluate_full] batch 520/2619
+  [evaluate_full] batch 530/2619
+  [evaluate_full] batch 540/2619
+  [evaluate_full] batch 550/2619
+  [evaluate_full] batch 560/2619
+  [evaluate_full] batch 570/2619
+  [evaluate_full] batch 580/2619
+  [evaluate_full] batch 590/2619
+  [evaluate_full] batch 600/2619
+  [evaluate_full] batch 610/2619
+  [evaluate_full] batch 620/2619
+  [evaluate_full] batch 630/2619
+  [evaluate_full] batch 640/2619
+  [evaluate_full] batch 650/2619
+  [evaluate_full] batch 660/2619
+  [evaluate_full] batch 670/2619
+  [evaluate_full] batch 680/2619
+  [evaluate_full] batch 690/2619
+  [evaluate_full] batch 700/2619
+  [evaluate_full] batch 710/2619
+  [evaluate_full] batch 720/2619
+  [evaluate_full] batch 730/2619
+  [evaluate_full] batch 740/2619
+  [evaluate_full] batch 750/2619
+  [evaluate_full] batch 760/2619
+  [evaluate_full] batch 770/2619
+  [evaluate_full] batch 780/2619
+  [evaluate_full] batch 790/2619
+  [evaluate_full] batch 800/2619
+  [evaluate_full] batch 810/2619
+  [evaluate_full] batch 820/2619
+  [evaluate_full] batch 830/2619
+  [evaluate_full] batch 840/2619
+  [evaluate_full] batch 850/2619
+  [evaluate_full] batch 860/2619
+  [evaluate_full] batch 870/2619
+  [evaluate_full] batch 880/2619
+  [evaluate_full] batch 890/2619
+  [evaluate_full] batch 900/2619
+  [evaluate_full] batch 910/2619
+  [evaluate_full] batch 920/2619
+  [evaluate_full] batch 930/2619
+  [evaluate_full] batch 940/2619
+  [evaluate_full] batch 950/2619
+  [evaluate_full] batch 960/2619
+  [evaluate_full] batch 970/2619
+  [evaluate_full] batch 980/2619
+  [evaluate_full] batch 990/2619
+  [evaluate_full] batch 1000/2619
+  [evaluate_full] batch 1010/2619
+  [evaluate_full] batch 1020/2619
+  [evaluate_full] batch 1030/2619
+  [evaluate_full] batch 1040/2619
+  [evaluate_full] batch 1050/2619
+  [evaluate_full] batch 1060/2619
+  [evaluate_full] batch 1070/2619
+  [evaluate_full] batch 1080/2619
+  [evaluate_full] batch 1090/2619
+  [evaluate_full] batch 1100/2619
+  [evaluate_full] batch 1110/2619
+  [evaluate_full] batch 1120/2619
+  [evaluate_full] batch 1130/2619
+  [evaluate_full] batch 1140/2619
+  [evaluate_full] batch 1150/2619
+  [evaluate_full] batch 1160/2619
+  [evaluate_full] batch 1170/2619
+  [evaluate_full] batch 1180/2619
+  [evaluate_full] batch 1190/2619
+  [evaluate_full] batch 1200/2619
+  [evaluate_full] batch 1210/2619
+  [evaluate_full] batch 1220/2619
+  [evaluate_full] batch 1230/2619
+  [evaluate_full] batch 1240/2619
+  [evaluate_full] batch 1250/2619
+  [evaluate_full] batch 1260/2619
+  [evaluate_full] batch 1270/2619
+  [evaluate_full] batch 1280/2619
+  [evaluate_full] batch 1290/2619
+  [evaluate_full] batch 1300/2619
+  [evaluate_full] batch 1310/2619
+  [evaluate_full] batch 1320/2619
+  [evaluate_full] batch 1330/2619
+  [evaluate_full] batch 1340/2619
+  [evaluate_full] batch 1350/2619
+  [evaluate_full] batch 1360/2619
+  [evaluate_full] batch 1370/2619
+  [evaluate_full] batch 1380/2619
+  [evaluate_full] batch 1390/2619
+  [evaluate_full] batch 1400/2619
+  [evaluate_full] batch 1410/2619
+  [evaluate_full] batch 1420/2619
+  [evaluate_full] batch 1430/2619
+  [evaluate_full] batch 1440/2619
+  [evaluate_full] batch 1450/2619
+  [evaluate_full] batch 1460/2619
+  [evaluate_full] batch 1470/2619
+  [evaluate_full] batch 1480/2619
+  [evaluate_full] batch 1490/2619
+  [evaluate_full] batch 1500/2619
+  [evaluate_full] batch 1510/2619
+  [evaluate_full] batch 1520/2619
+  [evaluate_full] batch 1530/2619
+  [evaluate_full] batch 1540/2619
+  [evaluate_full] batch 1550/2619
+  [evaluate_full] batch 1560/2619
+  [evaluate_full] batch 1570/2619
+  [evaluate_full] batch 1580/2619
+  [evaluate_full] batch 1590/2619
+  [evaluate_full] batch 1600/2619
+  [evaluate_full] batch 1610/2619
+  [evaluate_full] batch 1620/2619
+  [evaluate_full] batch 1630/2619
+  [evaluate_full] batch 1640/2619
+  [evaluate_full] batch 1650/2619
+  [evaluate_full] batch 1660/2619
+  [evaluate_full] batch 1670/2619
+  [evaluate_full] batch 1680/2619
+  [evaluate_full] batch 1690/2619
+  [evaluate_full] batch 1700/2619
+  [evaluate_full] batch 1710/2619
+  [evaluate_full] batch 1720/2619
+  [evaluate_full] batch 1730/2619
+  [evaluate_full] batch 1740/2619
+  [evaluate_full] batch 1750/2619
+  [evaluate_full] batch 1760/2619
+  [evaluate_full] batch 1770/2619
+  [evaluate_full] batch 1780/2619
+  [evaluate_full] batch 1790/2619
+  [evaluate_full] batch 1800/2619
+  [evaluate_full] batch 1810/2619
+  [evaluate_full] batch 1820/2619
+  [evaluate_full] batch 1830/2619
+  [evaluate_full] batch 1840/2619
+  [evaluate_full] batch 1850/2619
+  [evaluate_full] batch 1860/2619
+  [evaluate_full] batch 1870/2619
+  [evaluate_full] batch 1880/2619
+  [evaluate_full] batch 1890/2619
+  [evaluate_full] batch 1900/2619
+  [evaluate_full] batch 1910/2619
+  [evaluate_full] batch 1920/2619
+  [evaluate_full] batch 1930/2619
+  [evaluate_full] batch 1940/2619
+  [evaluate_full] batch 1950/2619
+  [evaluate_full] batch 1960/2619
+  [evaluate_full] batch 1970/2619
+  [evaluate_full] batch 1980/2619
+  [evaluate_full] batch 1990/2619
+  [evaluate_full] batch 2000/2619
+  [evaluate_full] batch 2010/2619
+  [evaluate_full] batch 2020/2619
+  [evaluate_full] batch 2030/2619
+  [evaluate_full] batch 2040/2619
+  [evaluate_full] batch 2050/2619
+  [evaluate_full] batch 2060/2619
+  [evaluate_full] batch 2070/2619
+  [evaluate_full] batch 2080/2619
+  [evaluate_full] batch 2090/2619
+  [evaluate_full] batch 2100/2619
+  [evaluate_full] batch 2110/2619
+  [evaluate_full] batch 2120/2619
+  [evaluate_full] batch 2130/2619
+  [evaluate_full] batch 2140/2619
+  [evaluate_full] batch 2150/2619
+  [evaluate_full] batch 2160/2619
+  [evaluate_full] batch 2170/2619
+  [evaluate_full] batch 2180/2619
+  [evaluate_full] batch 2190/2619
+  [evaluate_full] batch 2200/2619
+  [evaluate_full] batch 2210/2619
+  [evaluate_full] batch 2220/2619
+  [evaluate_full] batch 2230/2619
+  [evaluate_full] batch 2240/2619
+  [evaluate_full] batch 2250/2619
+  [evaluate_full] batch 2260/2619
+  [evaluate_full] batch 2270/2619
+  [evaluate_full] batch 2280/2619
+  [evaluate_full] batch 2290/2619
+  [evaluate_full] batch 2300/2619
+  [evaluate_full] batch 2310/2619
+  [evaluate_full] batch 2320/2619
+  [evaluate_full] batch 2330/2619
+  [evaluate_full] batch 2340/2619
+  [evaluate_full] batch 2350/2619
+  [evaluate_full] batch 2360/2619
+  [evaluate_full] batch 2370/2619
+  [evaluate_full] batch 2380/2619
+  [evaluate_full] batch 2390/2619
+  [evaluate_full] batch 2400/2619
+  [evaluate_full] batch 2410/2619
+  [evaluate_full] batch 2420/2619
+  [evaluate_full] batch 2430/2619
+  [evaluate_full] batch 2440/2619
+  [evaluate_full] batch 2450/2619
+  [evaluate_full] batch 2460/2619
+  [evaluate_full] batch 2470/2619
+  [evaluate_full] batch 2480/2619
+  [evaluate_full] batch 2490/2619
+  [evaluate_full] batch 2500/2619
+  [evaluate_full] batch 2510/2619
+  [evaluate_full] batch 2520/2619
+  [evaluate_full] batch 2530/2619
+  [evaluate_full] batch 2540/2619
+  [evaluate_full] batch 2550/2619
+  [evaluate_full] batch 2560/2619
+  [evaluate_full] batch 2570/2619
+  [evaluate_full] batch 2580/2619
+  [evaluate_full] batch 2590/2619
+  [evaluate_full] batch 2600/2619
+  [evaluate_full] batch 2610/2619
+  [evaluate_full] done (2619 batches, 418362 mutations)
+All test loss: 8.83887617
+  All hit rate for top 10.0%: 0.63810530
+  All hit rate for top 20.0%: 0.83191609
+  All hit rate for top 30.0%: 0.92554356
+  All hit rate for top 40.0%: 0.96121238
+  All hit rate for top 50.0%: 0.97502419
+  All hit rate for top 60.0%: 0.98711747
+  All hit rate for top 70.0%: 0.99294771
+  All hit rate for top 80.0%: 0.99572280
+  All hit rate for top 90.0%: 0.99817964
+All hit rates written to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_all_simple_d128_n2_lr0.0001_20260426_170000.csv
+All hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_all_simple_d128_n2_lr0.0001_20260426_170000.png
+Variant-descended testing examples: 52835
+  [evaluate_full] batch 0/826
+  [evaluate_full] batch 10/826
+  [evaluate_full] batch 20/826
+  [evaluate_full] batch 30/826
+  [evaluate_full] batch 40/826
+  [evaluate_full] batch 50/826
+  [evaluate_full] batch 60/826
+  [evaluate_full] batch 70/826
+  [evaluate_full] batch 80/826
+  [evaluate_full] batch 90/826
+  [evaluate_full] batch 100/826
+  [evaluate_full] batch 110/826
+  [evaluate_full] batch 120/826
+  [evaluate_full] batch 130/826
+  [evaluate_full] batch 140/826
+  [evaluate_full] batch 150/826
+  [evaluate_full] batch 160/826
+  [evaluate_full] batch 170/826
+  [evaluate_full] batch 180/826
+  [evaluate_full] batch 190/826
+  [evaluate_full] batch 200/826
+  [evaluate_full] batch 210/826
+  [evaluate_full] batch 220/826
+  [evaluate_full] batch 230/826
+  [evaluate_full] batch 240/826
+  [evaluate_full] batch 250/826
+  [evaluate_full] batch 260/826
+  [evaluate_full] batch 270/826
+  [evaluate_full] batch 280/826
+  [evaluate_full] batch 290/826
+  [evaluate_full] batch 300/826
+  [evaluate_full] batch 310/826
+  [evaluate_full] batch 320/826
+  [evaluate_full] batch 330/826
+  [evaluate_full] batch 340/826
+  [evaluate_full] batch 350/826
+  [evaluate_full] batch 360/826
+  [evaluate_full] batch 370/826
+  [evaluate_full] batch 380/826
+  [evaluate_full] batch 390/826
+  [evaluate_full] batch 400/826
+  [evaluate_full] batch 410/826
+  [evaluate_full] batch 420/826
+  [evaluate_full] batch 430/826
+  [evaluate_full] batch 440/826
+  [evaluate_full] batch 450/826
+  [evaluate_full] batch 460/826
+  [evaluate_full] batch 470/826
+  [evaluate_full] batch 480/826
+  [evaluate_full] batch 490/826
+  [evaluate_full] batch 500/826
+  [evaluate_full] batch 510/826
+  [evaluate_full] batch 520/826
+  [evaluate_full] batch 530/826
+  [evaluate_full] batch 540/826
+  [evaluate_full] batch 550/826
+  [evaluate_full] batch 560/826
+  [evaluate_full] batch 570/826
+  [evaluate_full] batch 580/826
+  [evaluate_full] batch 590/826
+  [evaluate_full] batch 600/826
+  [evaluate_full] batch 610/826
+  [evaluate_full] batch 620/826
+  [evaluate_full] batch 630/826
+  [evaluate_full] batch 640/826
+  [evaluate_full] batch 650/826
+  [evaluate_full] batch 660/826
+  [evaluate_full] batch 670/826
+  [evaluate_full] batch 680/826
+  [evaluate_full] batch 690/826
+  [evaluate_full] batch 700/826
+  [evaluate_full] batch 710/826
+  [evaluate_full] batch 720/826
+  [evaluate_full] batch 730/826
+  [evaluate_full] batch 740/826
+  [evaluate_full] batch 750/826
+  [evaluate_full] batch 760/826
+  [evaluate_full] batch 770/826
+  [evaluate_full] batch 780/826
+  [evaluate_full] batch 790/826
+  [evaluate_full] batch 800/826
+  [evaluate_full] batch 810/826
+  [evaluate_full] batch 820/826
+  [evaluate_full] done (826 batches, 174437 mutations)
+Variant-descended test loss: 9.03881080
+  Variant-descended hit rate for top 10.0%: 0.58433295
+  Variant-descended hit rate for top 20.0%: 0.82093634
+  Variant-descended hit rate for top 30.0%: 0.92767594
+  Variant-descended hit rate for top 40.0%: 0.95857139
+  Variant-descended hit rate for top 50.0%: 0.97219138
+  Variant-descended hit rate for top 60.0%: 0.98670494
+  Variant-descended hit rate for top 70.0%: 0.99306815
+  Variant-descended hit rate for top 80.0%: 0.99547805
+  Variant-descended hit rate for top 90.0%: 0.99818581
+Variant-descended hit rates written to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_variant_simple_d128_n2_lr0.0001_20260426_170000.csv
+Variant-descended hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_variant_simple_d128_n2_lr0.0001_20260426_170000.png
+  [evaluate_full] batch 0/2619
+  [evaluate_full] batch 10/2619
+  [evaluate_full] batch 20/2619
+  [evaluate_full] batch 30/2619
+  [evaluate_full] batch 40/2619
+  [evaluate_full] batch 50/2619
+  [evaluate_full] batch 60/2619
+  [evaluate_full] batch 70/2619
+  [evaluate_full] batch 80/2619
+  [evaluate_full] batch 90/2619
+  [evaluate_full] batch 100/2619
+  [evaluate_full] batch 110/2619
+  [evaluate_full] batch 120/2619
+  [evaluate_full] batch 130/2619
+  [evaluate_full] batch 140/2619
+  [evaluate_full] batch 150/2619
+  [evaluate_full] batch 160/2619
+  [evaluate_full] batch 170/2619
+  [evaluate_full] batch 180/2619
+  [evaluate_full] batch 190/2619
+  [evaluate_full] batch 200/2619
+  [evaluate_full] batch 210/2619
+  [evaluate_full] batch 220/2619
+  [evaluate_full] batch 230/2619
+  [evaluate_full] batch 240/2619
+  [evaluate_full] batch 250/2619
+  [evaluate_full] batch 260/2619
+  [evaluate_full] batch 270/2619
+  [evaluate_full] batch 280/2619
+  [evaluate_full] batch 290/2619
+  [evaluate_full] batch 300/2619
+  [evaluate_full] batch 310/2619
+  [evaluate_full] batch 320/2619
+  [evaluate_full] batch 330/2619
+  [evaluate_full] batch 340/2619
+  [evaluate_full] batch 350/2619
+  [evaluate_full] batch 360/2619
+  [evaluate_full] batch 370/2619
+  [evaluate_full] batch 380/2619
+  [evaluate_full] batch 390/2619
+  [evaluate_full] batch 400/2619
+  [evaluate_full] batch 410/2619
+  [evaluate_full] batch 420/2619
+  [evaluate_full] batch 430/2619
+  [evaluate_full] batch 440/2619
+  [evaluate_full] batch 450/2619
+  [evaluate_full] batch 460/2619
+  [evaluate_full] batch 470/2619
+  [evaluate_full] batch 480/2619
+  [evaluate_full] batch 490/2619
+  [evaluate_full] batch 500/2619
+  [evaluate_full] batch 510/2619
+  [evaluate_full] batch 520/2619
+  [evaluate_full] batch 530/2619
+  [evaluate_full] batch 540/2619
+  [evaluate_full] batch 550/2619
+  [evaluate_full] batch 560/2619
+  [evaluate_full] batch 570/2619
+  [evaluate_full] batch 580/2619
+  [evaluate_full] batch 590/2619
+  [evaluate_full] batch 600/2619
+  [evaluate_full] batch 610/2619
+  [evaluate_full] batch 620/2619
+  [evaluate_full] batch 630/2619
+  [evaluate_full] batch 640/2619
+  [evaluate_full] batch 650/2619
+  [evaluate_full] batch 660/2619
+  [evaluate_full] batch 670/2619
+  [evaluate_full] batch 680/2619
+  [evaluate_full] batch 690/2619
+  [evaluate_full] batch 700/2619
+  [evaluate_full] batch 710/2619
+  [evaluate_full] batch 720/2619
+  [evaluate_full] batch 730/2619
+  [evaluate_full] batch 740/2619
+  [evaluate_full] batch 750/2619
+  [evaluate_full] batch 760/2619
+  [evaluate_full] batch 770/2619
+  [evaluate_full] batch 780/2619
+  [evaluate_full] batch 790/2619
+  [evaluate_full] batch 800/2619
+  [evaluate_full] batch 810/2619
+  [evaluate_full] batch 820/2619
+  [evaluate_full] batch 830/2619
+  [evaluate_full] batch 840/2619
+  [evaluate_full] batch 850/2619
+  [evaluate_full] batch 860/2619
+  [evaluate_full] batch 870/2619
+  [evaluate_full] batch 880/2619
+  [evaluate_full] batch 890/2619
+  [evaluate_full] batch 900/2619
+  [evaluate_full] batch 910/2619
+  [evaluate_full] batch 920/2619
+  [evaluate_full] batch 930/2619
+  [evaluate_full] batch 940/2619
+  [evaluate_full] batch 950/2619
+  [evaluate_full] batch 960/2619
+  [evaluate_full] batch 970/2619
+  [evaluate_full] batch 980/2619
+  [evaluate_full] batch 990/2619
+  [evaluate_full] batch 1000/2619
+  [evaluate_full] batch 1010/2619
+  [evaluate_full] batch 1020/2619
+  [evaluate_full] batch 1030/2619
+  [evaluate_full] batch 1040/2619
+  [evaluate_full] batch 1050/2619
+  [evaluate_full] batch 1060/2619
+  [evaluate_full] batch 1070/2619
+  [evaluate_full] batch 1080/2619
+  [evaluate_full] batch 1090/2619
+  [evaluate_full] batch 1100/2619
+  [evaluate_full] batch 1110/2619
+  [evaluate_full] batch 1120/2619
+  [evaluate_full] batch 1130/2619
+  [evaluate_full] batch 1140/2619
+  [evaluate_full] batch 1150/2619
+  [evaluate_full] batch 1160/2619
+  [evaluate_full] batch 1170/2619
+  [evaluate_full] batch 1180/2619
+  [evaluate_full] batch 1190/2619
+  [evaluate_full] batch 1200/2619
+  [evaluate_full] batch 1210/2619
+  [evaluate_full] batch 1220/2619
+  [evaluate_full] batch 1230/2619
+  [evaluate_full] batch 1240/2619
+  [evaluate_full] batch 1250/2619
+  [evaluate_full] batch 1260/2619
+  [evaluate_full] batch 1270/2619
+  [evaluate_full] batch 1280/2619
+  [evaluate_full] batch 1290/2619
+  [evaluate_full] batch 1300/2619
+  [evaluate_full] batch 1310/2619
+  [evaluate_full] batch 1320/2619
+  [evaluate_full] batch 1330/2619
+  [evaluate_full] batch 1340/2619
+  [evaluate_full] batch 1350/2619
+  [evaluate_full] batch 1360/2619
+  [evaluate_full] batch 1370/2619
+  [evaluate_full] batch 1380/2619
+  [evaluate_full] batch 1390/2619
+  [evaluate_full] batch 1400/2619
+  [evaluate_full] batch 1410/2619
+  [evaluate_full] batch 1420/2619
+  [evaluate_full] batch 1430/2619
+  [evaluate_full] batch 1440/2619
+  [evaluate_full] batch 1450/2619
+  [evaluate_full] batch 1460/2619
+  [evaluate_full] batch 1470/2619
+  [evaluate_full] batch 1480/2619
+  [evaluate_full] batch 1490/2619
+  [evaluate_full] batch 1500/2619
+  [evaluate_full] batch 1510/2619
+  [evaluate_full] batch 1520/2619
+  [evaluate_full] batch 1530/2619
+  [evaluate_full] batch 1540/2619
+  [evaluate_full] batch 1550/2619
+  [evaluate_full] batch 1560/2619
+  [evaluate_full] batch 1570/2619
+  [evaluate_full] batch 1580/2619
+  [evaluate_full] batch 1590/2619
+  [evaluate_full] batch 1600/2619
+  [evaluate_full] batch 1610/2619
+  [evaluate_full] batch 1620/2619
+  [evaluate_full] batch 1630/2619
+  [evaluate_full] batch 1640/2619
+  [evaluate_full] batch 1650/2619
+  [evaluate_full] batch 1660/2619
+  [evaluate_full] batch 1670/2619
+  [evaluate_full] batch 1680/2619
+  [evaluate_full] batch 1690/2619
+  [evaluate_full] batch 1700/2619
+  [evaluate_full] batch 1710/2619
+  [evaluate_full] batch 1720/2619
+  [evaluate_full] batch 1730/2619
+  [evaluate_full] batch 1740/2619
+  [evaluate_full] batch 1750/2619
+  [evaluate_full] batch 1760/2619
+  [evaluate_full] batch 1770/2619
+  [evaluate_full] batch 1780/2619
+  [evaluate_full] batch 1790/2619
+  [evaluate_full] batch 1800/2619
+  [evaluate_full] batch 1810/2619
+  [evaluate_full] batch 1820/2619
+  [evaluate_full] batch 1830/2619
+  [evaluate_full] batch 1840/2619
+  [evaluate_full] batch 1850/2619
+  [evaluate_full] batch 1860/2619
+  [evaluate_full] batch 1870/2619
+  [evaluate_full] batch 1880/2619
+  [evaluate_full] batch 1890/2619
+  [evaluate_full] batch 1900/2619
+  [evaluate_full] batch 1910/2619
+  [evaluate_full] batch 1920/2619
+  [evaluate_full] batch 1930/2619
+  [evaluate_full] batch 1940/2619
+  [evaluate_full] batch 1950/2619
+  [evaluate_full] batch 1960/2619
+  [evaluate_full] batch 1970/2619
+  [evaluate_full] batch 1980/2619
+  [evaluate_full] batch 1990/2619
+  [evaluate_full] batch 2000/2619
+  [evaluate_full] batch 2010/2619
+  [evaluate_full] batch 2020/2619
+  [evaluate_full] batch 2030/2619
+  [evaluate_full] batch 2040/2619
+  [evaluate_full] batch 2050/2619
+  [evaluate_full] batch 2060/2619
+  [evaluate_full] batch 2070/2619
+  [evaluate_full] batch 2080/2619
+  [evaluate_full] batch 2090/2619
+  [evaluate_full] batch 2100/2619
+  [evaluate_full] batch 2110/2619
+  [evaluate_full] batch 2120/2619
+  [evaluate_full] batch 2130/2619
+  [evaluate_full] batch 2140/2619
+  [evaluate_full] batch 2150/2619
+  [evaluate_full] batch 2160/2619
+  [evaluate_full] batch 2170/2619
+  [evaluate_full] batch 2180/2619
+  [evaluate_full] batch 2190/2619
+  [evaluate_full] batch 2200/2619
+  [evaluate_full] batch 2210/2619
+  [evaluate_full] batch 2220/2619
+  [evaluate_full] batch 2230/2619
+  [evaluate_full] batch 2240/2619
+  [evaluate_full] batch 2250/2619
+  [evaluate_full] batch 2260/2619
+  [evaluate_full] batch 2270/2619
+  [evaluate_full] batch 2280/2619
+  [evaluate_full] batch 2290/2619
+  [evaluate_full] batch 2300/2619
+  [evaluate_full] batch 2310/2619
+  [evaluate_full] batch 2320/2619
+  [evaluate_full] batch 2330/2619
+  [evaluate_full] batch 2340/2619
+  [evaluate_full] batch 2350/2619
+  [evaluate_full] batch 2360/2619
+  [evaluate_full] batch 2370/2619
+  [evaluate_full] batch 2380/2619
+  [evaluate_full] batch 2390/2619
+  [evaluate_full] batch 2400/2619
+  [evaluate_full] batch 2410/2619
+  [evaluate_full] batch 2420/2619
+  [evaluate_full] batch 2430/2619
+  [evaluate_full] batch 2440/2619
+  [evaluate_full] batch 2450/2619
+  [evaluate_full] batch 2460/2619
+  [evaluate_full] batch 2470/2619
+  [evaluate_full] batch 2480/2619
+  [evaluate_full] batch 2490/2619
+  [evaluate_full] batch 2500/2619
+  [evaluate_full] batch 2510/2619
+  [evaluate_full] batch 2520/2619
+  [evaluate_full] batch 2530/2619
+  [evaluate_full] batch 2540/2619
+  [evaluate_full] batch 2550/2619
+  [evaluate_full] batch 2560/2619
+  [evaluate_full] batch 2570/2619
+  [evaluate_full] batch 2580/2619
+  [evaluate_full] batch 2590/2619
+  [evaluate_full] batch 2600/2619
+  [evaluate_full] batch 2610/2619
+  [evaluate_full] done (2619 batches, 418362 mutations)
+Unseen-mutations test loss: 8.83887617
+  Unseen-mutations hit rate for top 10.0%: 0.52558108
+  Unseen-mutations hit rate for top 20.0%: 0.77000745
+  Unseen-mutations hit rate for top 30.0%: 0.86040523
+  Unseen-mutations hit rate for top 40.0%: 0.90512977
+  Unseen-mutations hit rate for top 50.0%: 0.93596259
+  Unseen-mutations hit rate for top 60.0%: 0.95724063
+  Unseen-mutations hit rate for top 70.0%: 0.97120011
+  Unseen-mutations hit rate for top 80.0%: 0.98068713
+  Unseen-mutations hit rate for top 90.0%: 0.99180050
+Unseen-mutations hit rates written to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_unseen_simple_d128_n2_lr0.0001_20260426_170000.csv
+Unseen-mutations hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_unseen_simple_d128_n2_lr0.0001_20260426_170000.png
+  [evaluate_full] batch 0/2619
+  [evaluate_full] batch 10/2619
+  [evaluate_full] batch 20/2619
+  [evaluate_full] batch 30/2619
+  [evaluate_full] batch 40/2619
+  [evaluate_full] batch 50/2619
+  [evaluate_full] batch 60/2619
+  [evaluate_full] batch 70/2619
+  [evaluate_full] batch 80/2619
+  [evaluate_full] batch 90/2619
+  [evaluate_full] batch 100/2619
+  [evaluate_full] batch 110/2619
+  [evaluate_full] batch 120/2619
+  [evaluate_full] batch 130/2619
+  [evaluate_full] batch 140/2619
+  [evaluate_full] batch 150/2619
+  [evaluate_full] batch 160/2619
+  [evaluate_full] batch 170/2619
+  [evaluate_full] batch 180/2619
+  [evaluate_full] batch 190/2619
+  [evaluate_full] batch 200/2619
+  [evaluate_full] batch 210/2619
+  [evaluate_full] batch 220/2619
+  [evaluate_full] batch 230/2619
+  [evaluate_full] batch 240/2619
+  [evaluate_full] batch 250/2619
+  [evaluate_full] batch 260/2619
+  [evaluate_full] batch 270/2619
+  [evaluate_full] batch 280/2619
+  [evaluate_full] batch 290/2619
+  [evaluate_full] batch 300/2619
+  [evaluate_full] batch 310/2619
+  [evaluate_full] batch 320/2619
+  [evaluate_full] batch 330/2619
+  [evaluate_full] batch 340/2619
+  [evaluate_full] batch 350/2619
+  [evaluate_full] batch 360/2619
+  [evaluate_full] batch 370/2619
+  [evaluate_full] batch 380/2619
+  [evaluate_full] batch 390/2619
+  [evaluate_full] batch 400/2619
+  [evaluate_full] batch 410/2619
+  [evaluate_full] batch 420/2619
+  [evaluate_full] batch 430/2619
+  [evaluate_full] batch 440/2619
+  [evaluate_full] batch 450/2619
+  [evaluate_full] batch 460/2619
+  [evaluate_full] batch 470/2619
+  [evaluate_full] batch 480/2619
+  [evaluate_full] batch 490/2619
+  [evaluate_full] batch 500/2619
+  [evaluate_full] batch 510/2619
+  [evaluate_full] batch 520/2619
+  [evaluate_full] batch 530/2619
+  [evaluate_full] batch 540/2619
+  [evaluate_full] batch 550/2619
+  [evaluate_full] batch 560/2619
+  [evaluate_full] batch 570/2619
+  [evaluate_full] batch 580/2619
+  [evaluate_full] batch 590/2619
+  [evaluate_full] batch 600/2619
+  [evaluate_full] batch 610/2619
+  [evaluate_full] batch 620/2619
+  [evaluate_full] batch 630/2619
+  [evaluate_full] batch 640/2619
+  [evaluate_full] batch 650/2619
+  [evaluate_full] batch 660/2619
+  [evaluate_full] batch 670/2619
+  [evaluate_full] batch 680/2619
+  [evaluate_full] batch 690/2619
+  [evaluate_full] batch 700/2619
+  [evaluate_full] batch 710/2619
+  [evaluate_full] batch 720/2619
+  [evaluate_full] batch 730/2619
+  [evaluate_full] batch 740/2619
+  [evaluate_full] batch 750/2619
+  [evaluate_full] batch 760/2619
+  [evaluate_full] batch 770/2619
+  [evaluate_full] batch 780/2619
+  [evaluate_full] batch 790/2619
+  [evaluate_full] batch 800/2619
+  [evaluate_full] batch 810/2619
+  [evaluate_full] batch 820/2619
+  [evaluate_full] batch 830/2619
+  [evaluate_full] batch 840/2619
+  [evaluate_full] batch 850/2619
+  [evaluate_full] batch 860/2619
+  [evaluate_full] batch 870/2619
+  [evaluate_full] batch 880/2619
+  [evaluate_full] batch 890/2619
+  [evaluate_full] batch 900/2619
+  [evaluate_full] batch 910/2619
+  [evaluate_full] batch 920/2619
+  [evaluate_full] batch 930/2619
+  [evaluate_full] batch 940/2619
+  [evaluate_full] batch 950/2619
+  [evaluate_full] batch 960/2619
+  [evaluate_full] batch 970/2619
+  [evaluate_full] batch 980/2619
+  [evaluate_full] batch 990/2619
+  [evaluate_full] batch 1000/2619
+  [evaluate_full] batch 1010/2619
+  [evaluate_full] batch 1020/2619
+  [evaluate_full] batch 1030/2619
+  [evaluate_full] batch 1040/2619
+  [evaluate_full] batch 1050/2619
+  [evaluate_full] batch 1060/2619
+  [evaluate_full] batch 1070/2619
+  [evaluate_full] batch 1080/2619
+  [evaluate_full] batch 1090/2619
+  [evaluate_full] batch 1100/2619
+  [evaluate_full] batch 1110/2619
+  [evaluate_full] batch 1120/2619
+  [evaluate_full] batch 1130/2619
+  [evaluate_full] batch 1140/2619
+  [evaluate_full] batch 1150/2619
+  [evaluate_full] batch 1160/2619
+  [evaluate_full] batch 1170/2619
+  [evaluate_full] batch 1180/2619
+  [evaluate_full] batch 1190/2619
+  [evaluate_full] batch 1200/2619
+  [evaluate_full] batch 1210/2619
+  [evaluate_full] batch 1220/2619
+  [evaluate_full] batch 1230/2619
+  [evaluate_full] batch 1240/2619
+  [evaluate_full] batch 1250/2619
+  [evaluate_full] batch 1260/2619
+  [evaluate_full] batch 1270/2619
+  [evaluate_full] batch 1280/2619
+  [evaluate_full] batch 1290/2619
+  [evaluate_full] batch 1300/2619
+  [evaluate_full] batch 1310/2619
+  [evaluate_full] batch 1320/2619
+  [evaluate_full] batch 1330/2619
+  [evaluate_full] batch 1340/2619
+  [evaluate_full] batch 1350/2619
+  [evaluate_full] batch 1360/2619
+  [evaluate_full] batch 1370/2619
+  [evaluate_full] batch 1380/2619
+  [evaluate_full] batch 1390/2619
+  [evaluate_full] batch 1400/2619
+  [evaluate_full] batch 1410/2619
+  [evaluate_full] batch 1420/2619
+  [evaluate_full] batch 1430/2619
+  [evaluate_full] batch 1440/2619
+  [evaluate_full] batch 1450/2619
+  [evaluate_full] batch 1460/2619
+  [evaluate_full] batch 1470/2619
+  [evaluate_full] batch 1480/2619
+  [evaluate_full] batch 1490/2619
+  [evaluate_full] batch 1500/2619
+  [evaluate_full] batch 1510/2619
+  [evaluate_full] batch 1520/2619
+  [evaluate_full] batch 1530/2619
+  [evaluate_full] batch 1540/2619
+  [evaluate_full] batch 1550/2619
+  [evaluate_full] batch 1560/2619
+  [evaluate_full] batch 1570/2619
+  [evaluate_full] batch 1580/2619
+  [evaluate_full] batch 1590/2619
+  [evaluate_full] batch 1600/2619
+  [evaluate_full] batch 1610/2619
+  [evaluate_full] batch 1620/2619
+  [evaluate_full] batch 1630/2619
+  [evaluate_full] batch 1640/2619
+  [evaluate_full] batch 1650/2619
+  [evaluate_full] batch 1660/2619
+  [evaluate_full] batch 1670/2619
+  [evaluate_full] batch 1680/2619
+  [evaluate_full] batch 1690/2619
+  [evaluate_full] batch 1700/2619
+  [evaluate_full] batch 1710/2619
+  [evaluate_full] batch 1720/2619
+  [evaluate_full] batch 1730/2619
+  [evaluate_full] batch 1740/2619
+  [evaluate_full] batch 1750/2619
+  [evaluate_full] batch 1760/2619
+  [evaluate_full] batch 1770/2619
+  [evaluate_full] batch 1780/2619
+  [evaluate_full] batch 1790/2619
+  [evaluate_full] batch 1800/2619
+  [evaluate_full] batch 1810/2619
+  [evaluate_full] batch 1820/2619
+  [evaluate_full] batch 1830/2619
+  [evaluate_full] batch 1840/2619
+  [evaluate_full] batch 1850/2619
+  [evaluate_full] batch 1860/2619
+  [evaluate_full] batch 1870/2619
+  [evaluate_full] batch 1880/2619
+  [evaluate_full] batch 1890/2619
+  [evaluate_full] batch 1900/2619
+  [evaluate_full] batch 1910/2619
+  [evaluate_full] batch 1920/2619
+  [evaluate_full] batch 1930/2619
+  [evaluate_full] batch 1940/2619
+  [evaluate_full] batch 1950/2619
+  [evaluate_full] batch 1960/2619
+  [evaluate_full] batch 1970/2619
+  [evaluate_full] batch 1980/2619
+  [evaluate_full] batch 1990/2619
+  [evaluate_full] batch 2000/2619
+  [evaluate_full] batch 2010/2619
+  [evaluate_full] batch 2020/2619
+  [evaluate_full] batch 2030/2619
+  [evaluate_full] batch 2040/2619
+  [evaluate_full] batch 2050/2619
+  [evaluate_full] batch 2060/2619
+  [evaluate_full] batch 2070/2619
+  [evaluate_full] batch 2080/2619
+  [evaluate_full] batch 2090/2619
+  [evaluate_full] batch 2100/2619
+  [evaluate_full] batch 2110/2619
+  [evaluate_full] batch 2120/2619
+  [evaluate_full] batch 2130/2619
+  [evaluate_full] batch 2140/2619
+  [evaluate_full] batch 2150/2619
+  [evaluate_full] batch 2160/2619
+  [evaluate_full] batch 2170/2619
+  [evaluate_full] batch 2180/2619
+  [evaluate_full] batch 2190/2619
+  [evaluate_full] batch 2200/2619
+  [evaluate_full] batch 2210/2619
+  [evaluate_full] batch 2220/2619
+  [evaluate_full] batch 2230/2619
+  [evaluate_full] batch 2240/2619
+  [evaluate_full] batch 2250/2619
+  [evaluate_full] batch 2260/2619
+  [evaluate_full] batch 2270/2619
+  [evaluate_full] batch 2280/2619
+  [evaluate_full] batch 2290/2619
+  [evaluate_full] batch 2300/2619
+  [evaluate_full] batch 2310/2619
+  [evaluate_full] batch 2320/2619
+  [evaluate_full] batch 2330/2619
+  [evaluate_full] batch 2340/2619
+  [evaluate_full] batch 2350/2619
+  [evaluate_full] batch 2360/2619
+  [evaluate_full] batch 2370/2619
+  [evaluate_full] batch 2380/2619
+  [evaluate_full] batch 2390/2619
+  [evaluate_full] batch 2400/2619
+  [evaluate_full] batch 2410/2619
+  [evaluate_full] batch 2420/2619
+  [evaluate_full] batch 2430/2619
+  [evaluate_full] batch 2440/2619
+  [evaluate_full] batch 2450/2619
+  [evaluate_full] batch 2460/2619
+  [evaluate_full] batch 2470/2619
+  [evaluate_full] batch 2480/2619
+  [evaluate_full] batch 2490/2619
+  [evaluate_full] batch 2500/2619
+  [evaluate_full] batch 2510/2619
+  [evaluate_full] batch 2520/2619
+  [evaluate_full] batch 2530/2619
+  [evaluate_full] batch 2540/2619
+  [evaluate_full] batch 2550/2619
+  [evaluate_full] batch 2560/2619
+  [evaluate_full] batch 2570/2619
+  [evaluate_full] batch 2580/2619
+  [evaluate_full] batch 2590/2619
+  [evaluate_full] batch 2600/2619
+  [evaluate_full] batch 2610/2619
+  [evaluate_full] done (2619 batches, 418362 mutations)
+All (no gap/stop) test loss: 8.83887617
+  All (no gap/stop) hit rate for top 10.0%: 0.67911619
+  All (no gap/stop) hit rate for top 20.0%: 0.85694326
+  All (no gap/stop) hit rate for top 30.0%: 0.93195731
+  All (no gap/stop) hit rate for top 40.0%: 0.96148472
+  All (no gap/stop) hit rate for top 50.0%: 0.97600357
+  All (no gap/stop) hit rate for top 60.0%: 0.98719518
+  All (no gap/stop) hit rate for top 70.0%: 0.99242370
+  All (no gap/stop) hit rate for top 80.0%: 0.99546286
+  All (no gap/stop) hit rate for top 90.0%: 0.99808432
+All (no gap/stop) hit rates written to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_all_nogapstop_simple_d128_n2_lr0.0001_20260426_170000.csv
+All (no gap/stop) hit rate plot saved to /large_storage/hielab/ispecht/fitness-inference/quantile_hit_rates_all_nogapstop_simple_d128_n2_lr0.0001_20260426_170000.png
+  [evaluate_full] batch 0/826
+  [evaluate_full] batch 10/826
+  [evaluate_full] batch 20/826
+  [evaluate_full] batch 30/826
+  [evaluate_full] batch 40/826
+  [evaluate_full] batch 50/826
+  [evaluate_full] batch 60/826
+  [evaluate_full] batch 70/826
+  [evaluate_full] batch 80/826
+  [evaluate_full] batch 90/826
+  [evaluate_full] batch 100/826
+  [evaluate_full] batch 110/826
+  [evaluate_full] batch 120/826
+  [evaluate_full] batch 130/826
+  [evaluate_full] batch 140/826
+  [evaluate_full] batch 150/826
+  [evaluate_full] batch 160/826
+  [evaluate_full] batch 170/826
+  [evaluate_full] batch 180/826
+  [evaluate_full] batch 190/826
+  [evaluate_full] batch 200/826
+  [evaluate_full] batch 210/826
+  [evaluate_full] batch 220/826
+  [evaluate_full] batch 230/826
+  [evaluate_full] batch 240/826
+  [evaluate_full] batch 250/826
+  [evaluate_full] batch 260/826
+  [evaluate_full] batch 270/826
+  [evaluate_full] batch 280/826
+  [evaluate_full] batch 290/826
+  [evaluate_full] batch 300/826
+  [evaluate_full] batch 310/826
+  [evaluate_full] batch 320/826
+  [evaluate_full] batch 330/826
+  [evaluate_full] batch 340/826
+  [evaluate_full] batch 350/826
+  [evaluate_full] batch 360/826
+  [evaluate_full] batch 370/826
+  [evaluate_full] batch 380/826
+  [evaluate_full] batch 390/826
+  [evaluate_full] batch 400/826
+  [evaluate_full] batch 410/826
+  [evaluate_full] batch 420/826
+  [evaluate_full] batch 430/826
+  [evaluate_full] batch 440/826
+  [evaluate_full] batch 450/826
+  [evaluate_full] batch 460/826
+  [evaluate_full] batch 470/826
+  [evaluate_full] batch 480/826
+  [evaluate_full] batch 490/826
+  [evaluate_full] batch 500/826
+  [evaluate_full] batch 510/826
+  [evaluate_full] batch 520/826
+  [evaluate_full] batch 530/826
+  [evaluate_full] batch 540/826
+  [evaluate_full] batch 550/826
+  [evaluate_full] batch 560/826
+  [evaluate_full] batch 570/826
+  [evaluate_full] batch 580/826
+  [evaluate_full] batch 590/826
+  [evaluate_full] batch 600/826
+  [evaluate_full] batch 610/826
+  [evaluate_full] batch 620/826
+  [evaluate_full] batch 630/826
+  [evaluate_full] batch 640/826
+  [evaluate_full] batch 650/826
+  [evaluate_full] batch 660/826
+  [evaluate_full] batch 670/826
+  [evaluate_full] batch 680/826
+  [evaluate_full] batch 690/826
+  [evaluate_full] batch 700/826

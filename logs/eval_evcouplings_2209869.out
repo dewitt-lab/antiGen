@@ -1,0 +1,54 @@
+Job started at: Wed Apr 22 07:38:09 PM PDT 2026
+Running on node: GPU0F98
+Job ID: 2209869
+Alphabet size: 22
+Using device: cpu
+Loading examples from /home/ivan.specht/antiGen-data/output1/examples_cutoff_1.txt...
+Loaded 171248 examples from /home/ivan.specht/antiGen-data/output1/examples_cutoff_1.txt
+  1 variant testing root(s), 52835 variant-descended for 'BA.2'
+Sequence length: 1273
+Training examples: 3648, Testing examples: 167600
+Total mutations in training set: 12024
+Train batches per epoch: 57
+EVcouplings: date cutoff = 2020-12-22 (MRCA + 1.0 years)
+EVcouplings: Loading and filtering MSA...
+  Loading metadata and filtering to dates before 2020-12-22...
+    348990 strains pass date filter
+  Reading MSA from /home/ivan.specht/sc2-open-data/spike.fasta...
+    348990 sequences after filtering
+    Subsampled to 10000 sequences (max_seqs=10000)
+EVcouplings: Preparing alignment...
+  Alignment: 10000 sequences x 1273 positions
+EVcouplings: Fitting model...
+  Model dimensions: L=1273, q=21, covariance=25460x25460
+  J matrix will use ~2.7 GB (float32)
+  Creating MeanFieldDCA (focus column selection)...
+    Focus alignment: 10000 sequences x 1273 positions
+  Computing sequence weights (theta=0.8)...
+    Done in 20.2s (N_eff=40.5)
+  Computing frequencies, covariance matrix, and inverting...
+    Done in 361.9s
+  Fit stats: h_i abs mean=0.1565 max=2.5094
+             J_ij abs mean=0.017747 max=46.6667
+EVcouplings: Ready. L=1273, q=21, mapped 1273/1273 positions. Total init: 406.4s
+Model: EVcouplings mean-field DCA (no training, eval only)
+Model: 0 trainable params
+evcouplings mode: skipping training, running evaluation only.
+Loaded pssm_root: torch.Size([1273, 22])
+Loaded 60 variant PSSMs from /home/ivan.specht/antiGen-data/output1/pssms/BA.2
+Loaded baseline: CoVFit (torch.Size([1273, 22]))
+Loaded baseline: EVEscape (torch.Size([1273, 22]))
+Loaded baseline: MSA_Transformer (torch.Size([1273, 22]))
+Loaded baseline: MSA_Transformer_BA2 (torch.Size([1273, 22]))
+Loaded baseline: MSA_Transformer_XFG (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA1_bind (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA1_expr (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA2_bind (torch.Size([1273, 22]))
+Loaded baseline: Omicron_BA2_expr (torch.Size([1273, 22]))
+  [evaluate_full] batch 0/2619
+  [evaluate_full] batch 10/2619
+  [evaluate_full] batch 20/2619
+  [evaluate_full] batch 30/2619
+  [evaluate_full] batch 40/2619
+  [evaluate_full] batch 50/2619
+  [evaluate_full] batch 60/2619

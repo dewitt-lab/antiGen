@@ -1,0 +1,307 @@
+Job started at: Sun Apr 26 02:11:11 PM PDT 2026
+Running on node: GPU7130
+Job ID: 2223214
+GPU: 0
+Alphabet size: 22
+Using device: cuda
+Loading examples from /home/ivan.specht/antiGen-data/output_denv2_full_cutoff191/examples_cutoff_191.txt...
+Loaded 9076 examples from /home/ivan.specht/antiGen-data/output_denv2_full_cutoff191/examples_cutoff_191.txt
+  1 variant testing root(s), 222 variant-descended for '2II_F.1.1.2_annotated'
+Sequence length: 495
+Training examples: 4775, Testing examples: 4301
+Total mutations in training set: 6632
+Train batches per epoch: 75
+Model: 465,558 trainable params
+Starting training...
+  Epoch 0, batch 0: train_loss=9.56985664, test_batch_loss=9.62522793
+  Epoch 0, batch 10: train_loss=9.03349972, test_batch_loss=8.99357414
+  Epoch 0, batch 20: train_loss=8.70497513, test_batch_loss=8.86343479
+  Epoch 0, batch 30: train_loss=8.60691547, test_batch_loss=8.90054417
+  Epoch 0, batch 40: train_loss=8.11956024, test_batch_loss=8.73007870
+  Epoch 0, batch 50: train_loss=8.48041916, test_batch_loss=8.89522934
+  Epoch 0, batch 60: train_loss=8.30946827, test_batch_loss=8.51716042
+  Epoch 0, batch 70: train_loss=8.09987831, test_batch_loss=8.91329384
+Epoch 0: avg_train_loss=8.56556513
+  Epoch 1, batch 0: train_loss=8.32398319, test_batch_loss=8.66260815
+  Epoch 1, batch 10: train_loss=7.91829252, test_batch_loss=8.41600037
+  Epoch 1, batch 20: train_loss=8.10772991, test_batch_loss=8.64933777
+  Epoch 1, batch 30: train_loss=8.09861946, test_batch_loss=8.53658581
+  Epoch 1, batch 40: train_loss=8.43307877, test_batch_loss=8.41333866
+  Epoch 1, batch 50: train_loss=8.16538334, test_batch_loss=8.43305683
+  Epoch 1, batch 60: train_loss=7.80710697, test_batch_loss=8.78889179
+  Epoch 1, batch 70: train_loss=7.93189096, test_batch_loss=8.66031551
+Epoch 1: avg_train_loss=8.09314178
+  Epoch 2, batch 0: train_loss=7.88265991, test_batch_loss=8.40705299
+  Epoch 2, batch 10: train_loss=8.07007408, test_batch_loss=8.14998245
+  Epoch 2, batch 20: train_loss=7.89528322, test_batch_loss=8.17997646
+  Epoch 2, batch 30: train_loss=8.37597847, test_batch_loss=8.41049671
+  Epoch 2, batch 40: train_loss=7.84520817, test_batch_loss=8.31702995
+  Epoch 2, batch 50: train_loss=7.78422403, test_batch_loss=8.34996223
+  Epoch 2, batch 60: train_loss=8.21554661, test_batch_loss=8.50145721
+  Epoch 2, batch 70: train_loss=8.28198338, test_batch_loss=8.46865559
+Epoch 2: avg_train_loss=7.97205840
+  Epoch 3, batch 0: train_loss=7.88595963, test_batch_loss=8.48960972
+  Epoch 3, batch 10: train_loss=8.11044788, test_batch_loss=8.27399063
+  Epoch 3, batch 20: train_loss=7.90405321, test_batch_loss=8.12965298
+  Epoch 3, batch 30: train_loss=7.73460531, test_batch_loss=8.14740944
+  Epoch 3, batch 40: train_loss=8.03606606, test_batch_loss=8.15367126
+  Epoch 3, batch 50: train_loss=7.59771824, test_batch_loss=8.33592224
+  Epoch 3, batch 60: train_loss=8.02312660, test_batch_loss=8.78945446
+  Epoch 3, batch 70: train_loss=7.80961180, test_batch_loss=8.59667778
+Epoch 3: avg_train_loss=7.90602298
+  Epoch 4, batch 0: train_loss=7.83591795, test_batch_loss=8.54920387
+  Epoch 4, batch 10: train_loss=7.83307552, test_batch_loss=8.24259663
+  Epoch 4, batch 20: train_loss=7.98920536, test_batch_loss=8.03839016
+  Epoch 4, batch 30: train_loss=7.61774921, test_batch_loss=8.38466835
+  Epoch 4, batch 40: train_loss=7.90735292, test_batch_loss=8.48759174
+  Epoch 4, batch 50: train_loss=7.56337070, test_batch_loss=8.65843582
+  Epoch 4, batch 60: train_loss=7.98222208, test_batch_loss=7.83115387
+  Epoch 4, batch 70: train_loss=7.91345787, test_batch_loss=8.40824986
+Epoch 4: avg_train_loss=7.87717359
+  Epoch 5, batch 0: train_loss=7.90419865, test_batch_loss=8.28820515
+  Epoch 5, batch 10: train_loss=7.96997213, test_batch_loss=8.42577744
+  Epoch 5, batch 20: train_loss=7.66584301, test_batch_loss=8.22586155
+  Epoch 5, batch 30: train_loss=7.78792477, test_batch_loss=8.51078987
+  Epoch 5, batch 40: train_loss=7.85988665, test_batch_loss=8.17990398
+  Epoch 5, batch 50: train_loss=7.79141665, test_batch_loss=8.32662678
+  Epoch 5, batch 60: train_loss=7.74181271, test_batch_loss=8.34302235
+  Epoch 5, batch 70: train_loss=7.89773655, test_batch_loss=8.20205975
+Epoch 5: avg_train_loss=7.85496637
+  Epoch 6, batch 0: train_loss=7.89264488, test_batch_loss=8.48861599
+  Epoch 6, batch 10: train_loss=7.90913439, test_batch_loss=8.31771183
+  Epoch 6, batch 20: train_loss=7.99911833, test_batch_loss=8.09422112
+  Epoch 6, batch 30: train_loss=7.84431410, test_batch_loss=8.30782604
+  Epoch 6, batch 40: train_loss=8.07802105, test_batch_loss=8.24875641
+  Epoch 6, batch 50: train_loss=7.78074789, test_batch_loss=8.14789104
+  Epoch 6, batch 60: train_loss=7.78492022, test_batch_loss=8.49371052
+  Epoch 6, batch 70: train_loss=7.67628098, test_batch_loss=8.18184757
+Epoch 6: avg_train_loss=7.83767460
+  Epoch 7, batch 0: train_loss=7.94582653, test_batch_loss=8.27639484
+  Epoch 7, batch 10: train_loss=7.88830423, test_batch_loss=8.51811695
+  Epoch 7, batch 20: train_loss=8.17065144, test_batch_loss=8.22543049
+  Epoch 7, batch 30: train_loss=7.77329159, test_batch_loss=8.10665417
+  Epoch 7, batch 40: train_loss=7.75789642, test_batch_loss=8.36697292
+  Epoch 7, batch 50: train_loss=7.90641117, test_batch_loss=8.32225037
+  Epoch 7, batch 60: train_loss=7.76057005, test_batch_loss=8.43116379
+  Epoch 7, batch 70: train_loss=7.62610292, test_batch_loss=8.18129158
+Epoch 7: avg_train_loss=7.82529098
+  Epoch 8, batch 0: train_loss=8.02348900, test_batch_loss=8.22299480
+  Epoch 8, batch 10: train_loss=7.69672966, test_batch_loss=7.96973753
+  Epoch 8, batch 20: train_loss=8.03779030, test_batch_loss=8.30827808
+  Epoch 8, batch 30: train_loss=7.74018240, test_batch_loss=8.26393986
+  Epoch 8, batch 40: train_loss=7.64474106, test_batch_loss=7.91027308
+  Epoch 8, batch 50: train_loss=7.81208420, test_batch_loss=8.04076290
+  Epoch 8, batch 60: train_loss=7.73994255, test_batch_loss=8.45169449
+  Epoch 8, batch 70: train_loss=7.85738897, test_batch_loss=8.39344788
+Epoch 8: avg_train_loss=7.80405920
+  Epoch 9, batch 0: train_loss=7.65520811, test_batch_loss=8.10046005
+  Epoch 9, batch 10: train_loss=7.92771626, test_batch_loss=8.25490761
+  Epoch 9, batch 20: train_loss=8.02563190, test_batch_loss=8.32217312
+  Epoch 9, batch 30: train_loss=7.81430149, test_batch_loss=8.20599651
+  Epoch 9, batch 40: train_loss=7.62339973, test_batch_loss=8.60079479
+  Epoch 9, batch 50: train_loss=7.69564390, test_batch_loss=8.16198826
+  Epoch 9, batch 60: train_loss=7.75061035, test_batch_loss=8.23945999
+  Epoch 9, batch 70: train_loss=7.69009066, test_batch_loss=8.33774185
+Epoch 9: avg_train_loss=7.79364019
+  Epoch 10, batch 0: train_loss=7.64408016, test_batch_loss=8.39472294
+  Epoch 10, batch 10: train_loss=7.81056404, test_batch_loss=8.09668732
+  Epoch 10, batch 20: train_loss=7.67821884, test_batch_loss=8.24623108
+  Epoch 10, batch 30: train_loss=7.55673599, test_batch_loss=8.11428356
+  Epoch 10, batch 40: train_loss=7.70619011, test_batch_loss=8.15959263
+  Epoch 10, batch 50: train_loss=7.54075241, test_batch_loss=8.28562355
+  Epoch 10, batch 60: train_loss=7.93364143, test_batch_loss=8.60197163
+  Epoch 10, batch 70: train_loss=7.76793528, test_batch_loss=8.21794224
+Epoch 10: avg_train_loss=7.77324153
+  Epoch 11, batch 0: train_loss=7.67659044, test_batch_loss=7.80387306
+  Epoch 11, batch 10: train_loss=7.67123079, test_batch_loss=7.91768122
+  Epoch 11, batch 20: train_loss=7.45758343, test_batch_loss=8.44420242
+  Epoch 11, batch 30: train_loss=7.61003113, test_batch_loss=8.39075851
+  Epoch 11, batch 40: train_loss=7.70700121, test_batch_loss=8.63132668
+  Epoch 11, batch 50: train_loss=7.96711874, test_batch_loss=8.30009365
+  Epoch 11, batch 60: train_loss=7.71642828, test_batch_loss=8.57520962
+  Epoch 11, batch 70: train_loss=7.71550989, test_batch_loss=8.50662327
+Epoch 11: avg_train_loss=7.76843001
+  Epoch 12, batch 0: train_loss=7.65834951, test_batch_loss=8.25751019
+  Epoch 12, batch 10: train_loss=7.79278326, test_batch_loss=8.45723248
+  Epoch 12, batch 20: train_loss=7.64533710, test_batch_loss=8.27666759
+  Epoch 12, batch 30: train_loss=7.65990686, test_batch_loss=8.08590221
+  Epoch 12, batch 40: train_loss=7.55682993, test_batch_loss=7.80070734
+  Epoch 12, batch 50: train_loss=7.51066160, test_batch_loss=7.89375639
+  Epoch 12, batch 60: train_loss=7.71781492, test_batch_loss=8.30060482
+  Epoch 12, batch 70: train_loss=7.85138607, test_batch_loss=8.27390385
+Epoch 12: avg_train_loss=7.75940161
+  Epoch 13, batch 0: train_loss=7.67985630, test_batch_loss=8.03771782
+  Epoch 13, batch 10: train_loss=8.28300571, test_batch_loss=8.15445232
+  Epoch 13, batch 20: train_loss=7.50437641, test_batch_loss=8.39249516
+  Epoch 13, batch 30: train_loss=7.38829041, test_batch_loss=8.09876823
+  Epoch 13, batch 40: train_loss=7.74432707, test_batch_loss=8.19997025
+  Epoch 13, batch 50: train_loss=7.49681091, test_batch_loss=8.39018822
+  Epoch 13, batch 60: train_loss=7.81406450, test_batch_loss=8.10835552
+  Epoch 13, batch 70: train_loss=7.87501812, test_batch_loss=8.16763592
+Epoch 13: avg_train_loss=7.73872176
+  Epoch 14, batch 0: train_loss=7.59854460, test_batch_loss=8.09299183
+  Epoch 14, batch 10: train_loss=7.53098774, test_batch_loss=8.33985519
+  Epoch 14, batch 20: train_loss=7.60089684, test_batch_loss=7.91341925
+  Epoch 14, batch 30: train_loss=7.86516380, test_batch_loss=8.46039867
+  Epoch 14, batch 40: train_loss=7.94113493, test_batch_loss=8.01575375
+  Epoch 14, batch 50: train_loss=7.56680489, test_batch_loss=8.36857605
+  Epoch 14, batch 60: train_loss=7.82095957, test_batch_loss=8.29833126
+  Epoch 14, batch 70: train_loss=7.76972389, test_batch_loss=8.37477684
+Epoch 14: avg_train_loss=7.71855363
+  Epoch 15, batch 0: train_loss=7.84049749, test_batch_loss=8.11315632
+  Epoch 15, batch 10: train_loss=7.53875923, test_batch_loss=8.27987576
+  Epoch 15, batch 20: train_loss=7.64903736, test_batch_loss=8.17162418
+  Epoch 15, batch 30: train_loss=7.81016111, test_batch_loss=8.53454399
+  Epoch 15, batch 40: train_loss=7.64238739, test_batch_loss=8.53830528
+  Epoch 15, batch 50: train_loss=7.76093912, test_batch_loss=8.06483936
+  Epoch 15, batch 60: train_loss=7.46376705, test_batch_loss=7.99667358
+  Epoch 15, batch 70: train_loss=7.60487413, test_batch_loss=7.94507790
+Epoch 15: avg_train_loss=7.70235989
+  Epoch 16, batch 0: train_loss=7.58707333, test_batch_loss=8.35832691
+  Epoch 16, batch 10: train_loss=7.71377659, test_batch_loss=7.99854755
+  Epoch 16, batch 20: train_loss=7.41637135, test_batch_loss=8.18068600
+  Epoch 16, batch 30: train_loss=7.65649939, test_batch_loss=8.31008339
+  Epoch 16, batch 40: train_loss=7.87720156, test_batch_loss=7.75929308
+  Epoch 16, batch 50: train_loss=7.74745798, test_batch_loss=8.36027241
+  Epoch 16, batch 60: train_loss=7.57010984, test_batch_loss=7.95900202
+  Epoch 16, batch 70: train_loss=7.74296236, test_batch_loss=7.84500456
+Epoch 16: avg_train_loss=7.68590631
+  Epoch 17, batch 0: train_loss=7.38596630, test_batch_loss=8.38278675
+  Epoch 17, batch 10: train_loss=7.68962097, test_batch_loss=8.09735298
+  Epoch 17, batch 20: train_loss=7.60878515, test_batch_loss=8.56621170
+  Epoch 17, batch 30: train_loss=7.71959209, test_batch_loss=8.48697948
+  Epoch 17, batch 40: train_loss=7.91727829, test_batch_loss=8.16444206
+  Epoch 17, batch 50: train_loss=7.71104240, test_batch_loss=8.03952885
+  Epoch 17, batch 60: train_loss=7.67655134, test_batch_loss=8.12029362
+  Epoch 17, batch 70: train_loss=7.73179293, test_batch_loss=8.40800285
+Epoch 17: avg_train_loss=7.65783018
+  Epoch 18, batch 0: train_loss=7.45839119, test_batch_loss=8.21547413
+  Epoch 18, batch 10: train_loss=7.67691851, test_batch_loss=7.78288603
+  Epoch 18, batch 20: train_loss=7.46987534, test_batch_loss=7.98797941
+  Epoch 18, batch 30: train_loss=7.69420385, test_batch_loss=8.25912285
+  Epoch 18, batch 40: train_loss=7.53060818, test_batch_loss=7.88408566
+  Epoch 18, batch 50: train_loss=7.70709991, test_batch_loss=8.14457226
+  Epoch 18, batch 60: train_loss=7.71070814, test_batch_loss=8.25255871
+  Epoch 18, batch 70: train_loss=7.48400116, test_batch_loss=7.99578762
+Epoch 18: avg_train_loss=7.63712513
+  Epoch 19, batch 0: train_loss=7.50827122, test_batch_loss=7.78294802
+  Epoch 19, batch 10: train_loss=7.29276466, test_batch_loss=8.18555260
+  Epoch 19, batch 20: train_loss=7.65626669, test_batch_loss=7.99259138
+  Epoch 19, batch 30: train_loss=7.63033915, test_batch_loss=8.51967621
+  Epoch 19, batch 40: train_loss=7.77769136, test_batch_loss=7.86005735
+  Epoch 19, batch 50: train_loss=7.57447958, test_batch_loss=8.21791744
+  Epoch 19, batch 60: train_loss=7.46957350, test_batch_loss=8.10622215
+  Epoch 19, batch 70: train_loss=7.47751904, test_batch_loss=7.85331774
+Epoch 19: avg_train_loss=7.60918357
+  Epoch 20, batch 0: train_loss=7.70913935, test_batch_loss=8.24232292
+  Epoch 20, batch 10: train_loss=7.53462744, test_batch_loss=8.06608582
+  Epoch 20, batch 20: train_loss=7.57856417, test_batch_loss=7.94169044
+  Epoch 20, batch 30: train_loss=7.23147440, test_batch_loss=8.12959671
+  Epoch 20, batch 40: train_loss=7.39178848, test_batch_loss=8.13074875
+  Epoch 20, batch 50: train_loss=7.63311195, test_batch_loss=7.90957022
+  Epoch 20, batch 60: train_loss=7.56155729, test_batch_loss=7.89993000
+  Epoch 20, batch 70: train_loss=7.31471920, test_batch_loss=8.48192215
+Epoch 20: avg_train_loss=7.57467045
+  Epoch 21, batch 0: train_loss=7.29184723, test_batch_loss=8.06380558
+  Epoch 21, batch 10: train_loss=7.55227518, test_batch_loss=8.24473953
+  Epoch 21, batch 20: train_loss=7.55786133, test_batch_loss=7.99012375
+  Epoch 21, batch 30: train_loss=7.49869823, test_batch_loss=8.12692833
+  Epoch 21, batch 40: train_loss=7.49969769, test_batch_loss=8.13708305
+  Epoch 21, batch 50: train_loss=7.64140368, test_batch_loss=8.36200142
+  Epoch 21, batch 60: train_loss=7.69511604, test_batch_loss=7.96264505
+  Epoch 21, batch 70: train_loss=7.42109585, test_batch_loss=8.24583817
+Epoch 21: avg_train_loss=7.53604800
+  Epoch 22, batch 0: train_loss=7.38000727, test_batch_loss=7.60157108
+  Epoch 22, batch 10: train_loss=7.42838430, test_batch_loss=8.46185207
+  Epoch 22, batch 20: train_loss=7.38753605, test_batch_loss=8.02373791
+  Epoch 22, batch 30: train_loss=7.39537430, test_batch_loss=8.56448078
+  Epoch 22, batch 40: train_loss=7.34670639, test_batch_loss=8.22832870
+  Epoch 22, batch 50: train_loss=7.60585022, test_batch_loss=8.06759453
+  Epoch 22, batch 60: train_loss=7.58235025, test_batch_loss=7.68012190
+  Epoch 22, batch 70: train_loss=7.39216042, test_batch_loss=7.97086334
+Epoch 22: avg_train_loss=7.50152885
+  Epoch 23, batch 0: train_loss=7.45835114, test_batch_loss=8.23432064
+  Epoch 23, batch 10: train_loss=7.94346046, test_batch_loss=8.30836678
+  Epoch 23, batch 20: train_loss=7.65642834, test_batch_loss=8.40832806
+  Epoch 23, batch 30: train_loss=7.59157705, test_batch_loss=8.01698112
+  Epoch 23, batch 40: train_loss=7.63956690, test_batch_loss=8.15663719
+  Epoch 23, batch 50: train_loss=7.47046041, test_batch_loss=7.98010445
+  Epoch 23, batch 60: train_loss=7.43130493, test_batch_loss=7.84393787
+  Epoch 23, batch 70: train_loss=7.56594276, test_batch_loss=7.68126202
+Epoch 23: avg_train_loss=7.46953511
+  Epoch 24, batch 0: train_loss=7.23792267, test_batch_loss=8.13745117
+  Epoch 24, batch 10: train_loss=7.38507318, test_batch_loss=8.15201855
+  Epoch 24, batch 20: train_loss=7.69851208, test_batch_loss=7.87986469
+  Epoch 24, batch 30: train_loss=7.37841082, test_batch_loss=7.88076401
+  Epoch 24, batch 40: train_loss=7.61177778, test_batch_loss=7.90884447
+  Epoch 24, batch 50: train_loss=7.17859316, test_batch_loss=8.21360588
+  Epoch 24, batch 60: train_loss=7.73570871, test_batch_loss=8.13923073
+  Epoch 24, batch 70: train_loss=7.47473288, test_batch_loss=8.43499851
+Epoch 24: avg_train_loss=7.43184817
+  Epoch 25, batch 0: train_loss=7.34410477, test_batch_loss=7.73429108
+  Epoch 25, batch 10: train_loss=7.55035639, test_batch_loss=8.00746632
+  Epoch 25, batch 20: train_loss=7.16668272, test_batch_loss=7.80794954
+  Epoch 25, batch 30: train_loss=7.61276340, test_batch_loss=7.80554008
+  Epoch 25, batch 40: train_loss=7.55335188, test_batch_loss=8.28338814
+  Epoch 25, batch 50: train_loss=7.43529272, test_batch_loss=7.79669571
+  Epoch 25, batch 60: train_loss=7.70069981, test_batch_loss=8.07419109
+  Epoch 25, batch 70: train_loss=7.30221224, test_batch_loss=7.85369968
+Epoch 25: avg_train_loss=7.40245248
+  Epoch 26, batch 0: train_loss=7.26612902, test_batch_loss=8.00231743
+  Epoch 26, batch 10: train_loss=7.27175188, test_batch_loss=8.23142147
+  Epoch 26, batch 20: train_loss=7.38576794, test_batch_loss=8.51785946
+  Epoch 26, batch 30: train_loss=7.51023340, test_batch_loss=8.07809925
+  Epoch 26, batch 40: train_loss=7.41633177, test_batch_loss=8.34087372
+  Epoch 26, batch 50: train_loss=7.10879755, test_batch_loss=8.12514973
+  Epoch 26, batch 60: train_loss=7.48459005, test_batch_loss=7.81822062
+  Epoch 26, batch 70: train_loss=7.54007626, test_batch_loss=7.84175062
+Epoch 26: avg_train_loss=7.37217353
+  Epoch 27, batch 0: train_loss=7.45488787, test_batch_loss=7.94840956
+  Epoch 27, batch 10: train_loss=7.35355520, test_batch_loss=8.38356590
+  Epoch 27, batch 20: train_loss=7.61177158, test_batch_loss=7.73095846
+  Epoch 27, batch 30: train_loss=7.42099714, test_batch_loss=7.74576616
+  Epoch 27, batch 40: train_loss=7.52453613, test_batch_loss=8.18300247
+  Epoch 27, batch 50: train_loss=7.98477411, test_batch_loss=8.11619759
+  Epoch 27, batch 60: train_loss=7.12961769, test_batch_loss=8.11638451
+  Epoch 27, batch 70: train_loss=7.41211271, test_batch_loss=7.98839235
+Epoch 27: avg_train_loss=7.34068343
+  Epoch 28, batch 0: train_loss=7.03624916, test_batch_loss=8.24109554
+  Epoch 28, batch 10: train_loss=6.80166531, test_batch_loss=8.01037216
+  Epoch 28, batch 20: train_loss=7.45328379, test_batch_loss=7.95161963
+  Epoch 28, batch 30: train_loss=7.05414724, test_batch_loss=8.40678406
+  Epoch 28, batch 40: train_loss=7.14523172, test_batch_loss=7.96031523
+  Epoch 28, batch 50: train_loss=7.45820379, test_batch_loss=7.79328918
+  Epoch 28, batch 60: train_loss=7.20422649, test_batch_loss=8.08073425
+  Epoch 28, batch 70: train_loss=7.27070236, test_batch_loss=8.00668335
+Epoch 28: avg_train_loss=7.33034501
+  Epoch 29, batch 0: train_loss=7.34626436, test_batch_loss=7.89679432
+  Epoch 29, batch 10: train_loss=6.88007593, test_batch_loss=7.95777750
+  Epoch 29, batch 20: train_loss=7.46674061, test_batch_loss=7.44266462
+  Epoch 29, batch 30: train_loss=7.20400429, test_batch_loss=7.86692762
+  Epoch 29, batch 40: train_loss=7.31441879, test_batch_loss=8.34730053
+  Epoch 29, batch 50: train_loss=7.47133017, test_batch_loss=7.94676781
+  Epoch 29, batch 60: train_loss=7.04211950, test_batch_loss=7.91171026
+  Epoch 29, batch 70: train_loss=7.24085760, test_batch_loss=7.45688868
+Epoch 29: avg_train_loss=7.30317164
+  Epoch 30, batch 0: train_loss=6.94974279, test_batch_loss=7.93283129
+  Epoch 30, batch 10: train_loss=7.34583187, test_batch_loss=8.25903034
+  Epoch 30, batch 20: train_loss=6.88976955, test_batch_loss=7.74763870
+  Epoch 30, batch 30: train_loss=7.13887978, test_batch_loss=8.11401367
+  Epoch 30, batch 40: train_loss=7.12197781, test_batch_loss=7.88692665
+  Epoch 30, batch 50: train_loss=6.93831873, test_batch_loss=8.41950893
+  Epoch 30, batch 60: train_loss=7.09503937, test_batch_loss=8.16982651
+  Epoch 30, batch 70: train_loss=7.47987509, test_batch_loss=7.67370605
+Epoch 30: avg_train_loss=7.27394585
+  Epoch 31, batch 0: train_loss=6.98122072, test_batch_loss=7.79006290
+  Epoch 31, batch 10: train_loss=7.25271082, test_batch_loss=8.01271343
+  Epoch 31, batch 20: train_loss=7.20148182, test_batch_loss=8.19206238
+  Epoch 31, batch 30: train_loss=7.39742994, test_batch_loss=7.98163128
+  Epoch 31, batch 40: train_loss=7.06993008, test_batch_loss=8.31239891
+  Epoch 31, batch 50: train_loss=7.33898258, test_batch_loss=7.77294779
+  Epoch 31, batch 60: train_loss=7.29156733, test_batch_loss=7.44837284
+  Epoch 31, batch 70: train_loss=7.19937992, test_batch_loss=7.89230204
+Epoch 31: avg_train_loss=7.24987418
+Freed training objects (optimizer, scheduler, train_loader, etc.) before eval
+Loaded pssm_root: torch.Size([495, 22])
+Loaded 88 variant PSSMs from /home/ivan.specht/antiGen-data/output_denv2_full_cutoff191/pssms/2II_F.1.1.2_annotated (t=191.0 to t=199.7)
+Job finished at: Sun Apr 26 02:11:58 PM PDT 2026

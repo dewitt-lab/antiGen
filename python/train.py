@@ -21,7 +21,7 @@ from collections import defaultdict
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from config import ModelConfig, ModelType, TransformerConfig, AlphabetConfig, ESM2Config, ESMCConfig, VespaGConfig, EVcouplingsConfig, EVEConfig, TranceptionConfig
+from config import ModelConfig, ModelType, TransformerConfig, AlphabetConfig, ESM2Config, ESMCConfig, VespaGConfig, EVcouplingsConfig, EVEConfig, TranceptionConfig, PSSMConfig, GatedFitnessConfig
 from models.factory import create_model
 from load import Example, load_examples, load_pssms
 
@@ -194,8 +194,8 @@ def parse_args():
     parser.add_argument('--cutoff', type=float, default=1.0, help='Train/test cutoff (years since MRCA)')
     parser.add_argument('--ignore-dead-ends', action='store_true', default=False, help='Do not make examples for sequences with no downstream mutants')
 
-    parser.add_argument('--model-type', type=str, default='transformer', choices=['transformer', 'esm2', 'esmc', 'vespag', 'blosum62', 'evcouplings', 'eve', 'tranception'],
-                        help='Model architecture: from-scratch transformer, ESM-2 finetune, ESM C finetune, VespaG, BLOSUM62 (eval only), EVcouplings (eval only), EVE VAE, or Tranception LM')
+    parser.add_argument('--model-type', type=str, default='transformer', choices=['transformer', 'esm2', 'esmc', 'vespag', 'blosum62', 'pssm', 'evcouplings', 'eve', 'tranception', 'gated'],
+                        help='Model architecture: from-scratch transformer, ESM-2 finetune, ESM C finetune, VespaG, BLOSUM62 (eval only), EVcouplings (eval only), EVE VAE, Tranception LM, or gated BLOSUM62+ESM C blend')
     parser.add_argument('--d-model', type=int, default=512, help='Model dimension (transformer only)')
     parser.add_argument('--num-layers', type=int, default=4, help='Number of transformer layers (transformer only)')
     parser.add_argument('--esm2-model-name', type=str, default='facebook/esm2_t12_35M_UR50D',
@@ -238,7 +238,119 @@ def parse_args():
     parser.add_argument('--scoring-direction', type=str, default='both',
                         choices=['forward', 'backward', 'both'],
                         help='Autoregressive scoring direction for Tranception (default: both)')
+    parser.add_argument('--data-dir', type=str, default=None,
+                        help='Override data directory (skips the cutoff-based path lookup; expects '
+                             'examples_cutoff_<cutoff>.txt and pssms/ inside). When set, --cutoff '
+                             'is used only to derive MRCA-based date cutoffs for MSA-based models, '
+                             'and the {1,4,5}/12/74/191 allow-list is bypassed.')
+    parser.add_argument('--gate-partner-a', type=str, default='esmc_fitness_predictor',
+                        choices=['fitness_predictor', 'esm2_fitness_predictor',
+                                 'esmc_fitness_predictor', 'vespag_fitness', 'blosum62',
+                                 'pssm',
+                                 'evcouplings', 'eve', 'tranception'],
+                        help='ModelType.value for the first partner in --model-type gated. '
+                             'Reuses the per-model CLI flags (--esmc-model-name, --d-model, etc.).')
+    parser.add_argument('--gate-partner-b', type=str, default='blosum62',
+                        choices=['fitness_predictor', 'esm2_fitness_predictor',
+                                 'esmc_fitness_predictor', 'vespag_fitness', 'blosum62',
+                                 'pssm',
+                                 'evcouplings', 'eve', 'tranception'],
+                        help='ModelType.value for the second partner in --model-type gated.')
+    parser.add_argument('--gate-variant', type=str, default='static',
+                        choices=['static', 'uncertainty'],
+                        help='Gate module variant. "static" = per-position learnable '
+                             'logit (data-blind). "uncertainty" = per-position MLP on '
+                             'partner softmax entropies (data-conditioned).')
     return parser.parse_args()
+
+
+# ── Run-identity helpers ──────────────────────────────────────────────────────
+
+_PARTNER_SHORT = {
+    'esmc_fitness_predictor': 'esmc',
+    'esm2_fitness_predictor': 'esm2',
+    'fitness_predictor': 'xfmr',
+    'vespag_fitness': 'vespag',
+    'blosum62': 'blosum62',
+    'pssm': 'pssm',
+    'evcouplings': 'evc',
+    'eve': 'eve',
+    'tranception': 'tran',
+}
+
+
+def compute_run_family(args) -> str:
+    """Stable run-family identifier (no timestamps) for grouping outputs.
+
+    Non-gated: returns the model_type. Gated: returns
+        gated_<gate_variant>_<partner_a_short>_<partner_b_short>
+    so future gate variants (time, uncertainty, ...) live in sibling dirs
+    with unambiguous names.
+    """
+    if args.model_type == 'gated':
+        a = _PARTNER_SHORT.get(args.gate_partner_a, args.gate_partner_a)
+        b = _PARTNER_SHORT.get(args.gate_partner_b, args.gate_partner_b)
+        return f"gated_{args.gate_variant}_{a}_{b}"
+    return args.model_type
+
+
+def write_manifest(args, model_config, output_dir, run_prefix) -> None:
+    """Drop manifest.json next to the run's outputs capturing the full recipe.
+
+    Aggregators consume this rather than guessing from filenames; lets us add
+    new gate variants / model combos without breaking discovery.
+    """
+    import json
+    import subprocess
+    git_commit = "unknown"
+    try:
+        git_commit = subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=os.path.dirname(os.path.abspath(__file__)),
+            stderr=subprocess.DEVNULL,
+        ).decode().strip()
+    except Exception:
+        pass
+
+    manifest = {
+        "schema_version": 1,
+        "run_family": compute_run_family(args),
+        "run_prefix": run_prefix,
+        "model_type": args.model_type,
+        "model_config": model_config.to_dict(),
+        "training": {
+            "epochs": args.epochs,
+            "batch_size": args.batch_size,
+            "lr": args.lr,
+            "max_batches": args.max_batches,
+            "warmup_steps": args.warmup_steps,
+            "freeze_backbone": args.freeze_backbone,
+            "finetune_layers": args.finetune_layers,
+        },
+        "data": {
+            "cutoff_years": args.cutoff,
+            "data_dir": args.data_dir,
+            "ignore_dead_ends": args.ignore_dead_ends,
+            "variant": args.variant,
+            "dataset_mode": (
+                "flu" if args.flu else
+                "rsv_a" if args.rsv_a else
+                "denv2" if args.denv2 else
+                "sc2"
+            ),
+        },
+        "git_commit": git_commit,
+    }
+    if args.model_type == 'gated':
+        manifest["gating"] = {
+            "gate_variant": "static",
+            "partner_a": args.gate_partner_a,
+            "partner_b": args.gate_partner_b,
+        }
+    path = os.path.join(output_dir, "manifest.json")
+    with open(path, "w") as f:
+        json.dump(manifest, f, indent=2)
+    print(f"Wrote manifest: {path}")
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -299,11 +411,27 @@ def main():
         # SARS-CoV-2 mode
         if args.variant is None:
             args.variant = 'BA.2'
-        cutoff_int = int(args.cutoff)
-        if cutoff_int not in (1, 4, 5):
-            raise ValueError(f"Unsupported cutoff {args.cutoff}. Supported values: 1, 4, 5")
-        data_dir = f"/home/ivan.specht/antiGen-data/output{cutoff_int}"
-        examples_path = os.path.join(data_dir, f"examples_cutoff_{cutoff_int}.txt")
+        if args.data_dir is not None:
+            data_dir = args.data_dir
+            # Locate examples file: prefer cutoff-named, fall back to whichever
+            # examples_cutoff_*.txt is present in the directory.
+            cutoff_str = f"{args.cutoff:g}"
+            candidate = os.path.join(data_dir, f"examples_cutoff_{cutoff_str}.txt")
+            if not os.path.exists(candidate):
+                import glob as glob_mod
+                hits = sorted(glob_mod.glob(os.path.join(data_dir, "examples_cutoff_*.txt")))
+                if not hits:
+                    raise FileNotFoundError(
+                        f"No examples_cutoff_*.txt under --data-dir={data_dir}"
+                    )
+                candidate = hits[0]
+            examples_path = candidate
+        else:
+            cutoff_int = int(args.cutoff)
+            if cutoff_int not in (1, 4, 5):
+                raise ValueError(f"Unsupported cutoff {args.cutoff}. Supported values: 1, 4, 5")
+            data_dir = f"/home/ivan.specht/antiGen-data/output{cutoff_int}"
+            examples_path = os.path.join(data_dir, f"examples_cutoff_{cutoff_int}.txt")
     print(f"Loading examples from {examples_path}...")
     all_examples = load_examples(examples_path, allowed_aas, args.variant)
 
@@ -410,6 +538,15 @@ def main():
         )
         model = create_model(model_config, device)
         print("Model: BLOSUM62 (no training, eval only)")
+    elif args.model_type == 'pssm':
+        model_config = ModelConfig(
+            model_type=ModelType.PSSM,
+            seq_len=seq_len_aa,
+            alphabet=alphabet_config,
+            pssm=PSSMConfig(data_dir=data_dir),
+        )
+        model = create_model(model_config, device)
+        print(f"Model: PSSM log(count+1) (no training, eval only) — source: {data_dir}/pssms/root.csv")
     elif args.model_type == 'evcouplings':
         if args.msa is None or args.metadata is None:
             raise ValueError("--msa and --metadata are required for evcouplings model type")
@@ -483,6 +620,40 @@ def main():
         )
         model = create_model(model_config, device)
         print(f"Model: Tranception LM, scoring={args.scoring_direction}, freeze_backbone={args.freeze_backbone}")
+    elif args.model_type == 'gated':
+        # Populate every per-partner sub-config so any partner_type works.
+        # Defaults are fine for partners not selected; the selected ones pick
+        # up their CLI flags through their existing sub-config dataclass.
+        model_config = ModelConfig(
+            model_type=ModelType.GATED_FITNESS_PREDICTOR,
+            seq_len=seq_len_aa,
+            alphabet=alphabet_config,
+            transformer=TransformerConfig(
+                d_model=args.d_model,
+                nhead=4,
+                dim_feedforward=4 * args.d_model,
+                num_layers=args.num_layers,
+            ),
+            esm2=ESM2Config(
+                model_name=args.esm2_model_name,
+                freeze_backbone=args.freeze_backbone,
+                finetune_layers=args.finetune_layers,
+            ),
+            esmc=ESMCConfig(
+                model_name=args.esmc_model_name,
+                freeze_backbone=args.freeze_backbone,
+                finetune_layers=args.finetune_layers,
+            ),
+            pssm=PSSMConfig(data_dir=data_dir),
+            gated=GatedFitnessConfig(
+                partner_a_type=args.gate_partner_a,
+                partner_b_type=args.gate_partner_b,
+                gate_variant=args.gate_variant,
+            ),
+        )
+        model = create_model(model_config, device)
+        print(f"Model: Gated[{args.gate_partner_a} + {args.gate_partner_b}, gate={args.gate_variant}], "
+              f"freeze_backbone={args.freeze_backbone}, finetune_layers={args.finetune_layers}")
     else:
         model_config = ModelConfig(
             model_type=ModelType.FITNESS_PREDICTOR,
@@ -505,7 +676,7 @@ def main():
     avg_train_loss = float('nan')
     optimizer_state = None
 
-    skip_training = args.model_type in ('blosum62', 'evcouplings') or \
+    skip_training = args.model_type in ('blosum62', 'pssm', 'evcouplings') or \
         (args.model_type == 'eve' and args.freeze_backbone) or \
         (args.model_type == 'tranception' and args.freeze_backbone)
     if skip_training:
@@ -666,8 +837,14 @@ def main():
             run_prefix = f"tranception_frozen_{args.scoring_direction}_{timestamp}"
         else:
             run_prefix = f"tranception_ft_{args.scoring_direction}_lr{args.lr}_{timestamp}"
+    elif args.model_type == 'gated':
+        a = _PARTNER_SHORT.get(args.gate_partner_a, args.gate_partner_a)
+        b = _PARTNER_SHORT.get(args.gate_partner_b, args.gate_partner_b)
+        run_prefix = f"gated_{args.gate_variant}_{a}_{b}_lr{args.lr}_{timestamp}"
     else:
         run_prefix = f"simple_d{args.d_model}_n{args.num_layers}_lr{args.lr}_{timestamp}"
+
+    write_manifest(args, model_config, args.output_dir, run_prefix)
 
     qtile_labels = [f"top_{(i+1)*100/n_buckets:.1f}%" for i in range(n_buckets - 1)]
     qtile_pcts = [(i + 1) * 100 / n_buckets for i in range(n_buckets - 1)]
@@ -738,11 +915,33 @@ def main():
         run_hit_rate_eval(variant_test_loader, "Variant-descended (no gap/stop)", "variant_nogapstop", seen_mask=special_mask)
     run_hit_rate_eval(test_loader, "Unseen (no gap/stop)", "unseen_nogapstop", seen_mask=hit_rate_seen_mask | special_mask)
 
+    # Save checkpoint here (before variant-root analysis) so downstream DMS eval
+    # has a checkpoint to score even when no testing-root example exists at this
+    # cutoff. With the attached-tree-cache binary's `--grid-interior` mode,
+    # variant-root examples are only emitted while the variant subtree still has
+    # test-side descendants; once the variant is fully saturated in training
+    # (cutoff > variant_emergence_date + ~1y), the binary emits zero variant
+    # roots and the downstream variant-root analysis is skipped (see below).
+    output_path = os.path.join(args.output_dir, f"fitness_{run_prefix}.pt")
+    print(f"Saving model to {output_path}...")
+    checkpoint = {
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer_state,
+        'epoch': epoch,
+        'global_step': global_step,
+        'loss': avg_train_loss,
+    }
+    checkpoint['config'] = model_config.to_dict()
+    torch.save(checkpoint, output_path)
+
     # ── Testing-root eval ────────────────────────────────────────────────────
     testing_root_examples = [e for e in all_examples if e.is_testing_root]
-    assert len(testing_root_examples) >= 1, (
-        f"Expected at least 1 example with is_testing_root=True, found {len(testing_root_examples)}"
-    )
+    if not testing_root_examples:
+        print("WARNING: no testing-root examples at this cutoff (variant fully "
+              "in training). Skipping variant-root analysis. Headline CSVs and "
+              "checkpoint already saved.")
+        print("Done.")
+        return
     testing_root_example = testing_root_examples[0]
     testing_root_aa_seq = "".join(allowed_aas[i] for i in testing_root_example.aa_idx.tolist())
     print(f"Testing root amino acid sequence: {testing_root_aa_seq}")
@@ -945,19 +1144,6 @@ def main():
         for row in testing_root_scores_nogapstop.numpy():
             writer.writerow(["NA" if math.isnan(v) else f"{v:.8f}" for v in row])
     print(f"No gap/stop variant root predictions saved to {nogapstop_preds_path}")
-
-    output_path = os.path.join(args.output_dir, f"fitness_{run_prefix}.pt")
-
-    print(f"Saving model to {output_path}...")
-    checkpoint = {
-        'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer_state,
-        'epoch': epoch,
-        'global_step': global_step,
-        'loss': avg_train_loss,
-    }
-    checkpoint['config'] = model_config.to_dict()
-    torch.save(checkpoint, output_path)
 
     print("Done.")
 

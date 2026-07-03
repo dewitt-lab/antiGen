@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use antiGen, please cite it as below."
+title: "antiGen: sequence models of viral fitness for scoring amino-acid substitutions"
+authors:
+  - family-names: Specht
+    given-names: Ivan
+version: 0.1.0
+license: MIT
+repository-code: "https://github.com/"  # TODO: set repository URL before release
+# TODO: add the accompanying paper's DOI/preprint reference before release, e.g.:
+# preferred-citation:
+#   type: article
+#   title: "<paper title>"
+#   authors:
+#     - family-names: Specht
+#       given-names: Ivan
+#   year: 2026
+#   doi: "<DOI>"

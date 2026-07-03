@@ -19,12 +19,19 @@ env/
 *.swo
 
 # Output/artifacts
-*.csv
+logs/
 plots/
 scratch/
+checkpoints/
+evals_*/
+# NOTE: do not blanket-ignore *.csv — data/baselines*/ and data/toy/ ship tracked CSVs.
+# Eval/training outputs are written outside the repo (or to the ignored dirs above).
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Test cache
+.pytest_cache/
 
 # Misc
 .DS_Store
@@ -39,3 +46,6 @@ vespag/
 
 # Scratch/temp files
 plan_optimizations.md
+
+# Agent / planning artifacts
+.claude/

@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "antiGen"
+version = "0.1.0"
+description = "Train sequence models of viral fitness and score amino-acid substitutions for any query sequence."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Ivan Specht" }]
+keywords = ["protein", "fitness", "viral evolution", "deep mutational scanning", "transformer"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+
+# Core dependencies — enough for the hero path (from-scratch transformer + BLOSUM62):
+# train on an examples file and run inference on a query FASTA. No model downloads.
+dependencies = [
+    "torch~=2.7.0",
+    "numpy",
+    "pandas",
+    "biopython",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+# Pretrained protein language models (ESM-2 via transformers, ESM-C via esm).
+esm = ["transformers", "esm"]
+# EVcouplings mean-field DCA. Also requires the external `plmc` binary on PATH
+# (or $PLMC_BINARY); see docs. The EVE and Tranception models are implemented
+# in-repo and need no extra pip packages (only an MSA at run time).
+dca = ["evcouplings"]
+# VespaG (ESM2-3B embeddings + pretrained FNN).
+vespag = ["vespag @ git+https://github.com/JSchlensok/VespaG.git"]
+# Deep-mutational-scanning evaluation (antiGen.eval.evaluate_dms).
+dms = ["scipy"]
+# Plotting helpers (not required by the core CLIs).
+plot = ["matplotlib"]
+dev = ["pytest"]
+
+[project.scripts]
+antiGen-train = "antiGen.train:main"
+antiGen-infer = "antiGen.infer:main"
+antiGen-eval = "antiGen.eval:main"
+antiGen-validate-examples = "antiGen.validate_examples:main"
+
+[tool.setuptools.packages.find]
+include = ["antiGen*"]
+exclude = ["antiGen.tests*"]
+
+[tool.setuptools.package-data]
+"antiGen" = ["configs/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["antiGen/tests"]

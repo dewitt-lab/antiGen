@@ -1,188 +1,89 @@
-# Fitness Inference
+# antiGen
 
-Predict viral fitness from phylogenetic trees using protein language models. Given a mutation-annotated tree, the model learns which amino acid substitutions were observed from each ancestral sequence, training a predictor that scores how fit a given mutation is at each position.
+Train sequence models of viral fitness and score amino-acid substitutions for any query
+sequence. Given a mutation-annotated, time-scaled phylogeny, antiGen learns which
+substitutions were observed away from each ancestral sequence, yielding a model that assigns
+every position × amino-acid a probability of being observed (a proxy for fitness). Point a
+trained model at any query sequence to get its full distribution over substitutions.
 
-## Requirements
+> **Note on names:** this Python package is `antiGen`. The separate C++ tool that *generates*
+> training data is `antiGen-data` — see [docs/data_generation.md](docs/data_generation.md).
 
-```
-pip install -r requirements.txt
-```
-
-Dependencies: `numpy`, `pandas`, `biopython`, `torch`, `transformers`, `esm`, `matplotlib`, `pyyaml`
-
-The `esm` package (from EvolutionaryScale) is required for ESM C and VespaG model types. `transformers` is required for ESM-2 models.
-
-## Training
-
-All training is driven by `python/train.py`. The script supports multiple model architectures (`--model-type`), several finetuning strategies for pretrained backbones, and four dataset modes (SARS-CoV-2 default, plus `--flu`, `--rsv-a`, `--denv2`).
-
-### Model architectures
-
-| Model | `--model-type` | Description |
-|-------|----------------|-------------|
-| Transformer | `transformer` | Small transformer trained from scratch |
-| ESM-2 | `esm2` | ESM-2 protein language model (default: `esm2_t12_35M_UR50D`) |
-| ESM C | `esmc` | ESM Cambrian model (default: `esmc_300m`) |
-| VespaG | `vespag` | ESM2-3B embeddings + lightweight FNN |
-| BLOSUM62 | `blosum62` | Static BLOSUM62 substitution matrix (no training, eval only) |
-| EVcouplings | `evcouplings` | Mean-field DCA Potts model fitted from a pandemic MSA |
-| EVE | `eve` | EVE VAE (frozen or finetuned) trained on a pandemic MSA |
-| Tranception | `tranception` | Tranception autoregressive scorer (frozen or finetuned) |
-
-### Dataset modes
-
-| Flag | Dataset | Variant | Required `--cutoff` |
-|------|---------|---------|---------------------|
-| *(default)* | SARS-CoV-2 spike | BA.2 (or via `--variant`) | 1, 4, or 5 |
-| `--flu` | Influenza HA | J or K | 12 |
-| `--rsv-a` | RSV-A F | A.D.1.6 | 74 |
-| `--denv2` | Dengue 2 envelope | 2II_F.1.1.2_annotated | 191 |
-
-Non-SARS-CoV-2 modes evaluate over the full sequence; SARS-CoV-2 evaluates over the RBD (positions 330–530).
-
-### Finetuning strategies
-
-For pretrained backbones (ESM-2, ESM C, VespaG), three training strategies are available:
-
-| Strategy | Flags | What trains |
-|----------|-------|-------------|
-| **Frozen** | `--freeze-backbone` | Only the output head; backbone weights are fixed |
-| **Partial** | `--freeze-backbone --finetune-layers N` | Output head + last N encoder layers |
-| **Full** | *(no freeze flags)* | Entire model end-to-end |
-
-### SLURM scripts
-
-Ready-to-use SLURM scripts are in `slurm/`. Each requests 1 GPU, 128 GB RAM, and 4 CPUs.
-
-#### Transformer (from scratch)
+## Install
 
 ```bash
-sbatch slurm/train_transformer.sh         # SARS-CoV-2 spike
-sbatch slurm/train_transformer_flu.sh     # Influenza HA
-sbatch slurm/train_transformer_rsv_a.sh   # RSV-A F
-sbatch slurm/train_transformer_denv2.sh   # Dengue 2 envelope
-# d_model=128, num_layers=2, lr=1e-4, batch_size=64, 32 epochs
+pip install -e .                 # core: from-scratch transformer + BLOSUM62 (no model downloads)
+pip install -e ".[esm]"          # + ESM-2 / ESM-C pretrained language models
+pip install -e ".[dca,vespag]"   # + EVcouplings (needs external `plmc`), VespaG
 ```
 
-#### ESM-2
+Python ≥ 3.10. Installs the CLIs `antiGen-train`, `antiGen-infer`, `antiGen-eval`,
+`antiGen-validate-examples`, importable as `import antiGen` from anywhere.
+
+## Quickstart (train → infer, ~1 minute on CPU)
+
+Uses the tiny bundled toy dataset — no external data or downloads.
 
 ```bash
-sbatch slurm/train_esm2_frozen.sh   # Frozen backbone, lr=1e-3, batch_size=32
-sbatch slurm/train_esm2_partial.sh  # Last 4 layers unfrozen, lr=1e-4, batch_size=32
-sbatch slurm/train_esm2_full.sh     # Full finetune, lr=1e-5, batch_size=16
+# 1. (optional) sanity-check the training data format
+antiGen-validate-examples data/toy/examples_cutoff_toy.txt --variant toy
+
+# 2. train a small from-scratch transformer
+antiGen-train --model-type transformer --examples data/toy/examples_cutoff_toy.txt \
+    --d-model 32 --num-layers 1 --epochs 3 --batch-size 4 --output-dir ./checkpoints
+
+# 3. score substitutions for the query sequences in a FASTA
+antiGen-infer ./checkpoints/fitness_*.pt data/toy/query.fasta -o scores.csv
 ```
 
-#### ESM C
+`scores.csv` (long format) has one row per candidate substitution:
+
+```
+query_id,position,ref_aa,alt_aa,prob
+toy_root,0,M,A,0.00148030
+toy_root,0,M,C,0.00164760
+...
+```
+
+`prob` is the model's probability that a given substitution is observed, from a single
+whole-sequence softmax over all (position, amino-acid) cells with the wild-type removed —
+exactly the quantity the model is trained on. Per query, the probabilities over all candidate
+substitutions sum to 1. Use `--format wide` for a position × amino-acid matrix, and
+`--drop-gap-stop` to exclude the `-`/`*` columns.
+
+### Inference on your own sequences
 
 ```bash
-sbatch slurm/train_esmc_frozen.sh   # Frozen backbone, lr=1e-3, batch_size=32
-sbatch slurm/train_esmc_partial.sh  # Last 4 layers unfrozen, lr=1e-4, batch_size=32
-sbatch slurm/train_esmc_full.sh     # Full finetune, lr=1e-5, batch_size=8
+antiGen-infer model.pt my_queries.fasta -o scores.csv
 ```
 
-#### VespaG
+The from-scratch transformer (and EVE/Tranception/EVcouplings) predict on a **fixed, aligned
+coordinate frame**: query sequences must have the same length as the training reference and be
+aligned to it. ESM-2/ESM-C/VespaG/BLOSUM62 accept any length. `antiGen-infer` errors clearly
+if a query's length is incompatible.
 
-```bash
-sbatch slurm/train_vespag.sh        # Frozen ESM2-3B backbone, pretrained FNN, lr=1e-3, batch_size=16
-```
+## Train on your own data
 
-#### Static / MSA-based baselines (eval only)
+antiGen trains on a simple text `examples_cutoff_*.txt` file (one record per ancestral
+sequence, with the substitutions seen in its children). The format is documented in
+[docs/examples_format.md](docs/examples_format.md); validate a file with
+`antiGen-validate-examples`. To use the paper's datasets or the `antiGen-data` generator, see
+[docs/data_generation.md](docs/data_generation.md) (set `$FITNESS_DATA_ROOT` or pass
+`--data-dir`/`--examples`).
 
-```bash
-sbatch slurm/eval_blosum62.sh       # BLOSUM62 substitution matrix
-sbatch slurm/eval_evcouplings.sh    # Mean-field DCA Potts model
-sbatch slurm/eval_eve.sh            # EVE VAE
-sbatch slurm/eval_tranception.sh    # Tranception autoregressive scorer
-```
+## More
 
-`evcouplings`, `eve`, and `tranception` require `--msa` (pandemic MSA FASTA) and `--metadata` (TSV with strain/date columns); the date cutoff is derived from `--cutoff` plus the dataset's MRCA date.
+- **Models, datasets, finetuning, evaluation** — [docs/models.md](docs/models.md)
+  (8 model types incl. ESM-2/ESM-C/VespaG/EVE/Tranception/EVcouplings; `antiGen-eval` produces
+  unified per-variant hit-rate and variant-emergence comparisons against fixed baselines).
+- **Data format** — [docs/examples_format.md](docs/examples_format.md)
+- **Data generation** — [docs/data_generation.md](docs/data_generation.md)
+- **SLURM templates** (lab-specific) — [examples/slurm/](examples/slurm/)
 
-## Evaluation baselines
+## Citing
 
-In addition to the trained model, `train.py` evaluates a set of fixed baselines drawn from `data/baselines/` (or `data/baselines_flu`, `data/baselines_rsv_a`, etc.). Two baselines are constructed in-script from `pssm_root`:
+See [CITATION.cff](CITATION.cff).
 
-- **`pssm_root`**: per-cell counts at the root sequence (the standard PSSM baseline).
-- **`pssm_root_position`**: each row filled with the count of non-WT observations at that position (`sum(pssm_root[i, :]) - pssm_root[i, wt_aa[i]]`), with the global wild-type taken from the first training example. Captures positional mutability while ignoring the alt-AA distribution.
+## License
 
-Sentinel values (`-1`) in baseline CSVs are converted to NaN before quantile-based hit-rate evaluation. Sparse-coverage baselines (e.g. **`pyr0`**, where ~99% of cells are unmeasured sentinels) will therefore appear well below random in the "all" hit-rate eval and exactly 0 in the "unseen" eval — this is by design, since cells with no prediction cannot be ranked into the top-X% threshold. Read those numbers as "performance over the cells the baseline actually covers, divided by all test mutations."
-
-### Running manually
-
-```bash
-# Transformer from scratch
-python python/train.py \
-    --model-type transformer \
-    --d-model 128 --num-layers 2 \
-    --epochs 64 --batch-size 64 --lr 0.0001
-
-# ESM-2 frozen backbone
-python python/train.py \
-    --model-type esm2 \
-    --esm2-model-name facebook/esm2_t12_35M_UR50D \
-    --freeze-backbone \
-    --epochs 10 --batch-size 32 --lr 0.001
-
-# ESM-2 partial finetune (last 4 layers)
-python python/train.py \
-    --model-type esm2 \
-    --esm2-model-name facebook/esm2_t12_35M_UR50D \
-    --freeze-backbone --finetune-layers 4 \
-    --epochs 10 --batch-size 32 --lr 0.0001
-
-# ESM-2 full finetune
-python python/train.py \
-    --model-type esm2 \
-    --esm2-model-name facebook/esm2_t12_35M_UR50D \
-    --epochs 10 --batch-size 16 --lr 0.00001
-
-# ESM C frozen backbone
-python python/train.py \
-    --model-type esmc \
-    --esmc-model-name esmc_300m \
-    --freeze-backbone \
-    --epochs 10 --batch-size 32 --lr 0.001
-
-# VespaG (frozen ESM2-3B + pretrained FNN)
-python python/train.py \
-    --model-type vespag \
-    --freeze-backbone --load-pretrained \
-    --epochs 10 --batch-size 16 --lr 0.001
-```
-
-### Command-line options
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--model-type` | `transformer` | Model: `transformer`, `esm2`, `esmc`, `vespag`, `blosum62`, `evcouplings`, `eve`, `tranception` |
-| `--cutoff` | `1.0` | Train/test split cutoff (years since MRCA) |
-| `--flu` / `--rsv-a` / `--denv2` | `False` | Use the corresponding non-SARS-CoV-2 dataset (mutually exclusive) |
-| `--variant` | dataset default | Variant name to evaluate against |
-| `--msa` / `--metadata` | `None` | Pandemic MSA FASTA + metadata TSV (required for evcouplings/eve/tranception) |
-| `--ignore-dead-ends` | `False` | Skip sequences with no downstream mutants |
-| `--d-model` | `512` | Embedding dimension (transformer only) |
-| `--num-layers` | `4` | Number of encoder layers (transformer only) |
-| `--esm2-model-name` | `facebook/esm2_t12_35M_UR50D` | HuggingFace ESM-2 model |
-| `--esmc-model-name` | `esmc_300m` | ESM C model: `esmc_300m`, `esmc_600m`, `esmc_6b` |
-| `--freeze-backbone` | `False` | Freeze pretrained backbone |
-| `--finetune-layers` | `0` | Unfreeze last N encoder layers (with `--freeze-backbone`) |
-| `--load-pretrained` | `False` | Load pretrained VespaG FNN weights (vespag only) |
-| `--lr` | `0.0001` | Learning rate |
-| `--epochs` | `10` | Number of training epochs |
-| `--batch-size` | `32` | Batch size |
-| `--max-batches` | `None` | Stop after N batches total |
-| `--warmup-steps` | `0` | Learning rate warmup steps |
-| `--output-dir` | `.` | Output directory for checkpoints and loss CSV |
-| `--seed` | `42` | Random seed |
-| `--dms-eval-dir` | `None` | Directory with DMS TSV files for evaluation |
-
-## DMS Evaluation
-
-Evaluate trained models against deep mutational scanning data:
-
-```bash
-# 1. Parse ProteinGym data (one-time)
-python -m python.eval.parse_dms --source_dir /path/to/ProteinGym/substitutions --target_dir ./python/eval/data/dms_spike
-
-# 2. Evaluate a checkpoint
-python -m python.eval.evaluate_dms --checkpoint checkpoints/model.pt --dms_dir ./python/eval/data/dms_spike
-```
+MIT — see [LICENSE](LICENSE).

@@ -1,0 +1,22 @@
+model:
+  type: esm2
+  esm2:
+    model_name: facebook/esm2_t12_35M_UR50D
+    freeze_backbone: true  # Set to false to fine-tune
+
+training:
+  batch_size: 32  # Smaller for ESM2 (more memory)
+  epochs: 1
+  learning_rate: 0.00001
+  warmup_steps: 200
+  save_every: 0
+  seed: 42
+  mutation_fitness_loss: true
+  mutation_fitness_weight: 1.0
+
+data:
+  start_pos: 21562
+  end_pos: 25381
+  dt: 0.01
+
+output_dir: ./checkpoints

@@ -27,9 +27,7 @@ time-scaled phylogeny from aligned sequences + metadata and emits `examples_cuto
 (where `N` is the number of years past the tree's MRCA at which train/test are split).
 
 That generator is **not vendored here** (it has its own build and dependencies). It lives in
-its own repository; see the project README / paper for the link. The upstream tree
-time-scaling step (UShER → Taxonium → chronumental) is captured in `process.sh` at the repo
-root for reference.
+its own repository; see the project README / paper for the link.
 
 ### Pointing antiGen at generated data
 

@@ -49,3 +49,6 @@ plan_optimizations.md
 
 # Agent / planning artifacts
 .claude/
+
+# Per-session context notes (not tracked)
+context/

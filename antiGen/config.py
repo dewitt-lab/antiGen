@@ -21,9 +21,11 @@ class ModelType(str, Enum):
     ESMC_FITNESS_PREDICTOR = "esmc_fitness_predictor"  # ESM C finetune
     VESPAG_FITNESS = "vespag_fitness"  # VespaG: ESM2-3B embeddings + FNN
     BLOSUM62 = "blosum62"  # BLOSUM62 substitution matrix (no training)
+    PSSM = "pssm"  # Per-position log(count+1) from variant-root PSSM (no training)
     EVCOUPLINGS = "evcouplings"  # EVcouplings mean-field DCA (no training)
     EVE = "eve"  # EVE VAE (pre-train on MSA, optional finetune)
     TRANCEPTION = "tranception"  # Tranception autoregressive LM (pre-train on MSA, optional finetune)
+    GATED_FITNESS_PREDICTOR = "gated_fitness_predictor"  # two predictors blended via per-position gate
 
 
 class TrainingMode(str, Enum):
@@ -235,6 +237,42 @@ class TranceptionConfig:
 
 
 @dataclass(frozen=True)
+class PSSMConfig:
+    """Configuration for the PSSM (per-position log-count) predictor.
+
+    The predictor reads ``<data_dir>/pssms/root.csv`` at construction time (the same
+    per-cutoff PSSM auto-loaded as the ``pssm_root`` baseline). No learnable parameters.
+
+    Attributes:
+        path: Explicit path to the PSSM CSV (used by tests; overrides data_dir).
+        data_dir: Directory containing ``pssms/root.csv`` (auto-resolved in train.py).
+    """
+    path: Optional[str] = None
+    data_dir: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class GatedFitnessConfig:
+    """Configuration for a gated mixture of two fitness predictors.
+
+    The gate produces a per-(batch, position) sigmoid weight blending z-normalized
+    partner_a logits with z-normalized partner_b logits. Each partner inherits the outer
+    ModelConfig, so its sub-config (e.g. ESMCConfig, TransformerConfig) routes through the
+    existing CLI flags for that model type.
+
+    Attributes:
+        partner_a_type: ModelType.value for the first partner (any registered type except
+            ``gated_fitness_predictor``).
+        partner_b_type: ModelType.value for the second partner.
+        gate_variant: "static" = per-position learnable logit (data-blind);
+            "uncertainty" = per-position MLP on partner softmax entropies (data-conditioned).
+    """
+    partner_a_type: str = "esmc_fitness_predictor"
+    partner_b_type: str = "blosum62"
+    gate_variant: str = "static"
+
+
+@dataclass(frozen=True)
 class ModelConfig:
     """Unified model configuration.
 
@@ -255,6 +293,8 @@ class ModelConfig:
     evcouplings: EVcouplingsConfig = field(default_factory=EVcouplingsConfig)
     eve: EVEConfig = field(default_factory=EVEConfig)
     tranception: TranceptionConfig = field(default_factory=TranceptionConfig)
+    pssm: PSSMConfig = field(default_factory=PSSMConfig)
+    gated: GatedFitnessConfig = field(default_factory=GatedFitnessConfig)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize config to dictionary for checkpoint storage."""
@@ -325,6 +365,15 @@ class ModelConfig:
                 "freeze_backbone": self.tranception.freeze_backbone,
                 "max_seqs": self.tranception.max_seqs,
                 "scoring_direction": self.tranception.scoring_direction,
+            },
+            "pssm": {
+                "path": self.pssm.path,
+                "data_dir": self.pssm.data_dir,
+            },
+            "gated": {
+                "partner_a_type": self.gated.partner_a_type,
+                "partner_b_type": self.gated.partner_b_type,
+                "gate_variant": self.gated.gate_variant,
             },
         }
 
@@ -399,6 +448,19 @@ class ModelConfig:
             scoring_direction=tc_dict.get("scoring_direction", "both"),
         )
 
+        pssm_dict = d.get("pssm", {})
+        pssm_config = PSSMConfig(
+            path=pssm_dict.get("path"),
+            data_dir=pssm_dict.get("data_dir"),
+        )
+
+        gated_dict = d.get("gated", {})
+        gated_config = GatedFitnessConfig(
+            partner_a_type=gated_dict.get("partner_a_type", "esmc_fitness_predictor"),
+            partner_b_type=gated_dict.get("partner_b_type", "blosum62"),
+            gate_variant=gated_dict.get("gate_variant", "static"),
+        )
+
         return cls(
             model_type=ModelType(d["model_type"]),
             seq_len=d["seq_len"],
@@ -410,6 +472,8 @@ class ModelConfig:
             evcouplings=evcouplings_config,
             eve=eve_config,
             tranception=tranception_config,
+            pssm=pssm_config,
+            gated=gated_config,
         )
 
 

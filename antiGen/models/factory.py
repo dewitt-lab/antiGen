@@ -51,6 +51,9 @@ def create_model(
     elif config.model_type == ModelType.BLOSUM62:
         from antiGen.models.blosum62_fitness_predictor import BLOSUM62FitnessPredictor
         model = BLOSUM62FitnessPredictor(config)
+    elif config.model_type == ModelType.PSSM:
+        from antiGen.models.pssm_fitness_predictor import PSSMFitnessPredictor
+        model = PSSMFitnessPredictor(config)
     elif config.model_type == ModelType.EVCOUPLINGS:
         from antiGen.models.evcouplings_fitness_predictor import EVcouplingsFitnessPredictor
         model = EVcouplingsFitnessPredictor(config)
@@ -60,6 +63,9 @@ def create_model(
     elif config.model_type == ModelType.TRANCEPTION:
         from antiGen.models.tranception_fitness_predictor import TranceptionFitnessPredictor
         model = TranceptionFitnessPredictor(config)
+    elif config.model_type == ModelType.GATED_FITNESS_PREDICTOR:
+        from antiGen.models.gated_fitness_predictor import GatedFitnessPredictor
+        model = GatedFitnessPredictor(config)
     else:
         raise ValueError(f"Unknown model type: {config.model_type}")
 

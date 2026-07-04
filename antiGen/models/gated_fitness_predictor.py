@@ -4,7 +4,7 @@ Blends z-normalized outputs of two arbitrary BaseFitnessPredictor children
 via a learnable per-position sigmoid gate.
 
 Any model registered in the factory can be either partner; the children
-inherit the outer ModelConfig, so per-partner CLI flags (e.g. --esmc-model-name,
+inherit the outer ModelConfig, so per-partner CLI flags (e.g. --esm2-model-name,
 --d-model, --freeze-backbone) route into the right sub-config automatically.
 """
 from __future__ import annotations
@@ -109,8 +109,8 @@ def _make_gate(seq_len: int, gate_variant: str) -> nn.Module:
 def _partner_subconfig(outer: ModelConfig, partner_type: str) -> ModelConfig:
     """Sub-config for one partner.
 
-    Inherits all per-model sub-configs from `outer` (so e.g. ESMCConfig
-    populated from --esmc-model-name and TransformerConfig populated from
+    Inherits all per-model sub-configs from `outer` (so e.g. ESM2Config
+    populated from --esm2-model-name and TransformerConfig populated from
     --d-model both stay live), swapping only model_type to the partner.
     """
     return replace(outer, model_type=ModelType(partner_type))

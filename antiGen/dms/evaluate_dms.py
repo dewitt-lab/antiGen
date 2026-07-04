@@ -22,8 +22,7 @@ from antiGen.models.factory import load_model
 def forward_with_variable_length(model: torch.nn.Module, aa_indices: torch.Tensor) -> torch.Tensor:
     """Forward pass that handles variable sequence lengths.
 
-    For ESM2-based models (ESM2FitnessPredictor, VespaGFitnessPredictor, etc.):
-        directly passes through (handles any length).
+    For ESM2FitnessPredictor: directly passes through (handles any length).
     For FitnessPredictor: temporarily adjusts positional encoding for the input length.
 
     Args:
@@ -36,8 +35,8 @@ def forward_with_variable_length(model: torch.nn.Module, aa_indices: torch.Tenso
     seq_len = aa_indices.shape[1]
     model_seq_len = model.seq_len
 
-    # ESM2-based models handle variable lengths natively
-    if model.__class__.__name__ in ("ESM2FitnessPredictor", "VespaGFitnessPredictor"):
+    # ESM-2 handles variable lengths natively
+    if model.__class__.__name__ == "ESM2FitnessPredictor":
         return model(aa_indices)
 
     # For FitnessPredictor, handle length mismatch
@@ -162,18 +161,13 @@ def compute_mutation_scores_batch(
     except (RuntimeError, ValueError):
         return [float("nan")] * len(mutations)
 
-    model_name = model.__class__.__name__
-
     # Get fitness scores with single forward pass (handles variable lengths)
     with torch.no_grad():
         fitness = forward_with_variable_length(model, aa_indices)
 
     # Determine scoring method
     if scoring_method == "auto":
-        if model_name == "VespaGFitnessPredictor":
-            scoring_method = "mutant_only"
-        else:
-            scoring_method = "wt_marginal"
+        scoring_method = "wt_marginal"
 
     # Extract scores for each mutation
     scores = []
@@ -190,7 +184,7 @@ def compute_mutation_scores_batch(
         wt_idx = char_to_index(wt_aa, allowed_aas)
 
         if scoring_method == "mutant_only":
-            # Just the raw mutant score (used by VespaG)
+            # Just the raw mutant score
             score = fitness[0, pos, mt_idx]
         elif scoring_method == "wt_marginal":
             # Difference: mutant - wildtype (log-odds style)

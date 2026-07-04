@@ -22,7 +22,7 @@ class BaseFitnessPredictor(nn.Module, ABC):
     # AA columns rather than legitimate learned predictions. Eval will NaN-mask those
     # columns in the "All" hit-rate variant so the metric compares models on cells they
     # actually predict. Defaults are True (legit) so linear-head models (transformer,
-    # ESM-2 with '-' in vocab, ESM-C with '-' in vocab) get the default; overrides below
+    # ESM-2 with '-' in vocab) get the default; overrides below
     # for models with sentinels or unk-fallback behavior.
     OUTPUTS_LEGITIMATE_GAP: bool = True
     OUTPUTS_LEGITIMATE_STOP: bool = True

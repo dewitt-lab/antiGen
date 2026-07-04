@@ -32,8 +32,6 @@ from antiGen.models.factory import load_model
 # fixed, aligned coordinate frame and requires len(query) == model.seq_len.
 VARIABLE_LENGTH_OK = {
     ModelType.ESM2_FITNESS_PREDICTOR,
-    ModelType.ESMC_FITNESS_PREDICTOR,
-    ModelType.VESPAG_FITNESS,
     ModelType.BLOSUM62,
 }
 

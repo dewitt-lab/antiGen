@@ -132,16 +132,16 @@ def peek_checkpoint_meta(path):
 def config_label(prefix, config_dict, global_step):
     """Distinguishing label for a checkpoint whose filename prefix is ambiguous.
 
-    ESM-2/ESM-C encode only the learning rate in their run prefix, so the four
+    ESM-2 encodes only the learning rate in its run prefix, so the four
     finetuning configs collide (notably frozen vs noft, which share lr=0.001).
     Recover the config from freeze_backbone / finetune_layers, and use
     global_step to tell a trained frozen head (>0) from an untrained noft (0).
     Other model types keep their prefix unchanged.
     """
     mt = config_dict.get("model_type")
-    if mt not in ("esm2_fitness_predictor", "esmc_fitness_predictor"):
+    if mt != "esm2_fitness_predictor":
         return prefix
-    sub = config_dict.get("esm2" if mt == "esm2_fitness_predictor" else "esmc", {}) or {}
+    sub = config_dict.get("esm2", {}) or {}
     if not sub.get("freeze_backbone", True):
         tag = "full"
     elif (sub.get("finetune_layers") or 0) > 0:
@@ -268,10 +268,12 @@ def parse_args():
     parser.add_argument('--models', type=str, default=None,
                         help='Comma-separated prefix substrings to filter which model groups run '
                              '(explicit include; overrides --exclude)')
-    parser.add_argument('--exclude', type=str, default='esmc,vespag',
-                        help='Comma-separated prefix substrings to skip by default '
-                             '(default: esmc,vespag). Ignored for prefixes explicitly named in --models. '
-                             'Pass --exclude "" to include everything.')
+    parser.add_argument('--exclude', type=str, default='transformer_,esmc,vespag',
+                        help='Comma-separated prefix substrings to skip. Defaults to the legacy '
+                             '"transformer_" hyperparameter-sweep checkpoints (the from-scratch '
+                             'transformer to report is the "simple_" run) and the retired '
+                             '"esmc"/"vespag" models (removed from the package). Ignored for '
+                             'prefixes explicitly named in --models.')
     parser.add_argument('--priority-models', type=str, default=None,
                         help='Comma-separated label substrings to evaluate FIRST (before the '
                              'other models). Baselines are always computed first regardless.')
@@ -351,7 +353,7 @@ def main():
 
     # ── 3. Select the newest dataset-matching checkpoint per (prefix, config) ─
     # Match by train_args when present, else (legacy checkpoints) by seq_len.
-    # A single filename prefix can hold multiple distinct configs (ESM-2/ESM-C
+    # A single filename prefix can hold multiple distinct configs (ESM-2
     # encode only lr in the prefix, so full/partial/frozen/noft collide). Group by
     # a config-derived label and keep the newest dataset-matching checkpoint per
     # label, so all configs surface as separate rows.

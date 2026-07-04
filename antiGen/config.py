@@ -18,8 +18,6 @@ class ModelType(str, Enum):
     """Supported model architectures."""
     FITNESS_PREDICTOR = "fitness_predictor"
     ESM2_FITNESS_PREDICTOR = "esm2_fitness_predictor"
-    ESMC_FITNESS_PREDICTOR = "esmc_fitness_predictor"  # ESM C finetune
-    VESPAG_FITNESS = "vespag_fitness"  # VespaG: ESM2-3B embeddings + FNN
     BLOSUM62 = "blosum62"  # BLOSUM62 substitution matrix (no training)
     PSSM = "pssm"  # Per-position log(count+1) from variant-root PSSM (no training)
     EVCOUPLINGS = "evcouplings"  # EVcouplings mean-field DCA (no training)
@@ -96,44 +94,6 @@ class ESM2Config:
     hidden_size: int = 480  # Fixed by the 35M model
     freeze_backbone: bool = True
     finetune_layers: int = 0
-
-
-@dataclass(frozen=True)
-class ESMCConfig:
-    """Configuration for ESM C based model.
-
-    Attributes:
-        model_name: ESM C model identifier (esmc_300m, esmc_600m, esmc_6b).
-        freeze_backbone: Whether to freeze ESM C weights during training.
-        finetune_layers: Number of last transformer blocks to unfreeze when
-            freeze_backbone is True. 0 means freeze entire backbone.
-            Ignored when freeze_backbone is False.
-    """
-    model_name: str = "esmc_300m"
-    freeze_backbone: bool = True
-    finetune_layers: int = 0
-
-
-@dataclass(frozen=True)
-class VespaGConfig:
-    """Configuration for VespaG-based model.
-
-    VespaG uses ESM2 3B embeddings fed through a lightweight feedforward network.
-    The ESM2 model is fixed to esm2_t36_3B_UR50D as this is what VespaG was designed with.
-
-    Attributes:
-        hidden_sizes: FNN hidden layer sizes. Default [256] matches VespaG paper.
-        dropout: Dropout rate. Default 0.2 matches VespaG paper.
-        freeze_backbone: Whether to freeze ESM2 backbone during training.
-        normalize_scores: Apply sigmoid to normalize outputs to [0, 1].
-        load_pretrained: Load pretrained VespaG FNN weights (requires vespag package).
-    """
-    hidden_sizes: tuple[int, ...] = (256,)  # VespaG default: single 256-dim hidden layer
-    dropout: float = 0.2  # VespaG default dropout
-    freeze_backbone: bool = True
-    normalize_scores: bool = False  # Sigmoid to [0,1]
-    load_pretrained: bool = True  # Load pretrained VespaG weights
-    # Note: Uses ESM2 3B (esm2_t36_3B_UR50D) as VespaG was designed - not configurable
 
 
 @dataclass(frozen=True)
@@ -257,7 +217,7 @@ class GatedFitnessConfig:
 
     The gate produces a per-(batch, position) sigmoid weight blending z-normalized
     partner_a logits with z-normalized partner_b logits. Each partner inherits the outer
-    ModelConfig, so its sub-config (e.g. ESMCConfig, TransformerConfig) routes through the
+    ModelConfig, so its sub-config (e.g. ESM2Config, TransformerConfig) routes through the
     existing CLI flags for that model type.
 
     Attributes:
@@ -267,7 +227,7 @@ class GatedFitnessConfig:
         gate_variant: "static" = per-position learnable logit (data-blind);
             "uncertainty" = per-position MLP on partner softmax entropies (data-conditioned).
     """
-    partner_a_type: str = "esmc_fitness_predictor"
+    partner_a_type: str = "fitness_predictor"
     partner_b_type: str = "blosum62"
     gate_variant: str = "static"
 
@@ -288,8 +248,6 @@ class ModelConfig:
     alphabet: AlphabetConfig = field(default_factory=AlphabetConfig)
     transformer: TransformerConfig = field(default_factory=TransformerConfig)
     esm2: ESM2Config = field(default_factory=ESM2Config)
-    esmc: ESMCConfig = field(default_factory=ESMCConfig)
-    vespag: VespaGConfig = field(default_factory=VespaGConfig)
     evcouplings: EVcouplingsConfig = field(default_factory=EVcouplingsConfig)
     eve: EVEConfig = field(default_factory=EVEConfig)
     tranception: TranceptionConfig = field(default_factory=TranceptionConfig)
@@ -317,18 +275,6 @@ class ModelConfig:
                 "hidden_size": self.esm2.hidden_size,
                 "freeze_backbone": self.esm2.freeze_backbone,
                 "finetune_layers": self.esm2.finetune_layers,
-            },
-            "esmc": {
-                "model_name": self.esmc.model_name,
-                "freeze_backbone": self.esmc.freeze_backbone,
-                "finetune_layers": self.esmc.finetune_layers,
-            },
-            "vespag": {
-                "hidden_sizes": list(self.vespag.hidden_sizes),
-                "dropout": self.vespag.dropout,
-                "freeze_backbone": self.vespag.freeze_backbone,
-                "normalize_scores": self.vespag.normalize_scores,
-                "load_pretrained": self.vespag.load_pretrained,
             },
             "evcouplings": {
                 "msa_path": self.evcouplings.msa_path,
@@ -384,25 +330,6 @@ class ModelConfig:
         esm2_fields = {'model_name', 'hidden_size', 'freeze_backbone', 'finetune_layers'}
         esm2_dict = {k: v for k, v in d["esm2"].items() if k in esm2_fields}
 
-        # Parse ESM C config (with backward compat for old checkpoints)
-        esmc_dict = d.get("esmc", {})
-        esmc_config = ESMCConfig(
-            model_name=esmc_dict.get("model_name", "esmc_300m"),
-            freeze_backbone=esmc_dict.get("freeze_backbone", True),
-            finetune_layers=esmc_dict.get("finetune_layers", 0),
-        )
-
-        # Parse VespaG config (with backward compat for old checkpoints)
-        vespag_dict = d.get("vespag", {})
-        hidden_sizes = vespag_dict.get("hidden_sizes", [256])  # Default to VespaG architecture
-        vespag_config = VespaGConfig(
-            hidden_sizes=tuple(hidden_sizes),
-            dropout=vespag_dict.get("dropout", 0.2),
-            freeze_backbone=vespag_dict.get("freeze_backbone", True),
-            normalize_scores=vespag_dict.get("normalize_scores", False),
-            load_pretrained=vespag_dict.get("load_pretrained", True),
-        )
-
         # Parse EVcouplings config (with backward compat for old checkpoints)
         evc_dict = d.get("evcouplings", {})
         evcouplings_config = EVcouplingsConfig(
@@ -456,7 +383,7 @@ class ModelConfig:
 
         gated_dict = d.get("gated", {})
         gated_config = GatedFitnessConfig(
-            partner_a_type=gated_dict.get("partner_a_type", "esmc_fitness_predictor"),
+            partner_a_type=gated_dict.get("partner_a_type", "fitness_predictor"),
             partner_b_type=gated_dict.get("partner_b_type", "blosum62"),
             gate_variant=gated_dict.get("gate_variant", "static"),
         )
@@ -467,8 +394,6 @@ class ModelConfig:
             alphabet=AlphabetConfig(**d["alphabet"]),
             transformer=TransformerConfig(**d["transformer"]),
             esm2=ESM2Config(**esm2_dict),
-            esmc=esmc_config,
-            vespag=vespag_config,
             evcouplings=evcouplings_config,
             eve=eve_config,
             tranception=tranception_config,
@@ -567,8 +492,6 @@ class ExperimentConfig:
         # Defaults for configs not specified
         transformer_config = TransformerConfig()
         esm2_config = ESM2Config()
-        esmc_config = ESMCConfig()
-        vespag_config = VespaGConfig()
 
         if model_type_str == "esm2":
             model_type = ModelType.ESM2_FITNESS_PREDICTOR
@@ -577,25 +500,6 @@ class ExperimentConfig:
                 model_name=esm2_d.get("model_name", "facebook/esm2_t12_35M_UR50D"),
                 freeze_backbone=esm2_d.get("freeze_backbone", True),
                 finetune_layers=esm2_d.get("finetune_layers", 0),
-            )
-        elif model_type_str == "esmc":
-            model_type = ModelType.ESMC_FITNESS_PREDICTOR
-            esmc_d = model_d.get("esmc", {})
-            esmc_config = ESMCConfig(
-                model_name=esmc_d.get("model_name", "esmc_300m"),
-                freeze_backbone=esmc_d.get("freeze_backbone", True),
-                finetune_layers=esmc_d.get("finetune_layers", 0),
-            )
-        elif model_type_str == "vespag":
-            model_type = ModelType.VESPAG_FITNESS
-            vespag_d = model_d.get("vespag", {})
-            hidden_sizes = vespag_d.get("hidden_sizes", [256])  # VespaG default
-            vespag_config = VespaGConfig(
-                hidden_sizes=tuple(hidden_sizes),
-                dropout=vespag_d.get("dropout", 0.2),
-                freeze_backbone=vespag_d.get("freeze_backbone", True),
-                normalize_scores=vespag_d.get("normalize_scores", False),
-                load_pretrained=vespag_d.get("load_pretrained", True),
             )
         else:
             model_type = ModelType.FITNESS_PREDICTOR
@@ -619,8 +523,6 @@ class ExperimentConfig:
             seq_len=seq_len,
             transformer=transformer_config,
             esm2=esm2_config,
-            esmc=esmc_config,
-            vespag=vespag_config,
         )
 
         training_d = d.get("training", {})
@@ -658,10 +560,6 @@ class ExperimentConfig:
         # Convert to YAML-friendly structure
         if self.model.model_type == ModelType.ESM2_FITNESS_PREDICTOR:
             model_type_str = "esm2"
-        elif self.model.model_type == ModelType.ESMC_FITNESS_PREDICTOR:
-            model_type_str = "esmc"
-        elif self.model.model_type == ModelType.VESPAG_FITNESS:
-            model_type_str = "vespag"
         else:
             model_type_str = "transformer"
 
@@ -694,20 +592,6 @@ class ExperimentConfig:
                 "model_name": self.model.esm2.model_name,
                 "freeze_backbone": self.model.esm2.freeze_backbone,
                 "finetune_layers": self.model.esm2.finetune_layers,
-            }
-        elif model_type_str == "esmc":
-            d["model"]["esmc"] = {
-                "model_name": self.model.esmc.model_name,
-                "freeze_backbone": self.model.esmc.freeze_backbone,
-                "finetune_layers": self.model.esmc.finetune_layers,
-            }
-        elif model_type_str == "vespag":
-            d["model"]["vespag"] = {
-                "hidden_sizes": list(self.model.vespag.hidden_sizes),
-                "dropout": self.model.vespag.dropout,
-                "freeze_backbone": self.model.vespag.freeze_backbone,
-                "normalize_scores": self.model.vespag.normalize_scores,
-                "load_pretrained": self.model.vespag.load_pretrained,
             }
         else:
             d["model"]["transformer"] = {

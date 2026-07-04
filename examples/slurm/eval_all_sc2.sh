@@ -18,6 +18,6 @@ antiGen-eval \
     --data-dir /home/ivan.specht/antiGen-data/output1 \
     --checkpoint-dir /large_storage/hielab/ispecht/fitness-inference \
     --output-dir /large_storage/hielab/ispecht/fitness-inference/evals_sc2 \
-    --priority-models simple,transformer
+    --priority-models blosum62,esm2
 
 echo "Job finished at: $(date)"

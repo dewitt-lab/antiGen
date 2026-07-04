@@ -1,7 +1,7 @@
 """Unit tests for the partner-agnostic gated fitness predictor.
 
 Stubs `models.factory.create_model` so the test does not load any real
-backbone (no ESM C, no transformer init). Verifies that the gate composes
+backbone (no real init). Verifies that the gate composes
 two arbitrary BaseFitnessPredictor-like partners and that g→0 / g→1 limits
 recover the z-normalized partners.
 """
@@ -31,7 +31,7 @@ class _StubPartner(nn.Module):
 
 
 def _make_predictor(L: int = 8, partner_a_seed: int = 0, partner_b_seed: int = 1,
-                    a_type: str = "esmc_fitness_predictor",
+                    a_type: str = "esm2_fitness_predictor",
                     b_type: str = "blosum62"):
     config = ModelConfig(
         model_type=ModelType.GATED_FITNESS_PREDICTOR,

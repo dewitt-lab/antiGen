@@ -41,9 +41,6 @@ evals_*/
 *.pdf
 *.png
 
-# External repos
-vespag/
-
 # Scratch/temp files
 plan_optimizations.md
 

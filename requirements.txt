@@ -3,9 +3,8 @@
 #
 # Preferred install is the package itself:
 #   pip install -e .                       # core only
-#   pip install -e ".[esm]"                # + ESM-2 / ESM-C pretrained models
+#   pip install -e ".[esm]"                # + ESM-2 pretrained model
 #   pip install -e ".[dca]"                # + EVcouplings (also needs external `plmc`)
-#   pip install -e ".[vespag]"             # + VespaG
 #   pip install -e ".[plot,dev]"           # + matplotlib, pytest
 #
 # This file lists only the core deps for environments that prefer requirements.txt.

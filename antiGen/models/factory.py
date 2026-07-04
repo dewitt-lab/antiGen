@@ -42,12 +42,6 @@ def create_model(
     elif config.model_type == ModelType.ESM2_FITNESS_PREDICTOR:
         from antiGen.models.esm2_fitness_predictor import ESM2FitnessPredictor
         model = ESM2FitnessPredictor(config)
-    elif config.model_type == ModelType.ESMC_FITNESS_PREDICTOR:
-        from antiGen.models.esmc_fitness_predictor import ESMCFitnessPredictor
-        model = ESMCFitnessPredictor(config)
-    elif config.model_type == ModelType.VESPAG_FITNESS:
-        from antiGen.models.vespag_fitness_predictor import VespaGFitnessPredictor
-        model = VespaGFitnessPredictor(config)
     elif config.model_type == ModelType.BLOSUM62:
         from antiGen.models.blosum62_fitness_predictor import BLOSUM62FitnessPredictor
         model = BLOSUM62FitnessPredictor(config)
@@ -78,8 +72,7 @@ def create_model_from_yaml(
 ) -> BaseFitnessPredictor:
     """Create a model from a YAML config file.
 
-    This is useful for models with pretrained weights (e.g., VespaG)
-    that don't need a training checkpoint.
+    Useful for constructing a model from a config without a training checkpoint.
 
     Args:
         config_path: Path to YAML config file.
@@ -89,7 +82,7 @@ def create_model_from_yaml(
         Initialized model instance.
 
     Example:
-        >>> model = create_model_from_yaml("configs/vespag_fitness.yaml")
+        >>> model = create_model_from_yaml("configs/esm2_default.yaml")
     """
     exp_config = ExperimentConfig.from_yaml(config_path)
     return create_model(exp_config.model, device)
@@ -120,8 +113,8 @@ def load_model(
         >>> model, ckpt = load_model("trained_model.pt")
         >>> mu = torch.exp(ckpt["log_mu"])
 
-        >>> # Or load from config (for pretrained models like VespaG)
-        >>> model, ckpt = load_model("configs/vespag_fitness.yaml")
+        >>> # Or load from a YAML config
+        >>> model, ckpt = load_model("configs/esm2_default.yaml")
     """
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

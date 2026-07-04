@@ -14,7 +14,7 @@ from datetime import datetime
 import torch
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
-from antiGen.config import ModelConfig, ModelType, TransformerConfig, AlphabetConfig, ESM2Config, ESMCConfig, VespaGConfig, EVcouplingsConfig, EVEConfig, TranceptionConfig, PSSMConfig, GatedFitnessConfig
+from antiGen.config import ModelConfig, ModelType, TransformerConfig, AlphabetConfig, ESM2Config, EVcouplingsConfig, EVEConfig, TranceptionConfig, PSSMConfig, GatedFitnessConfig
 from antiGen.models.factory import create_model
 from antiGen.load import load_examples
 from antiGen.eval_utils import compute_probs, compute_loss_batch
@@ -42,20 +42,16 @@ def parse_args():
     parser.add_argument('--cutoff', type=float, default=1.0, help='Train/test cutoff (years since MRCA)')
     parser.add_argument('--ignore-dead-ends', action='store_true', default=False, help='Do not make examples for sequences with no downstream mutants')
 
-    parser.add_argument('--model-type', type=str, default='transformer', choices=['transformer', 'esm2', 'esmc', 'vespag', 'blosum62', 'pssm', 'evcouplings', 'eve', 'tranception', 'gated'],
-                        help='Model architecture: from-scratch transformer, ESM-2 finetune, ESM C finetune, VespaG, BLOSUM62 (eval only), PSSM (eval only), EVcouplings (eval only), EVE VAE, Tranception LM, or gated blend of two predictors')
+    parser.add_argument('--model-type', type=str, default='transformer', choices=['transformer', 'esm2', 'blosum62', 'pssm', 'evcouplings', 'eve', 'tranception', 'gated'],
+                        help='Model architecture: from-scratch transformer, ESM-2 finetune, BLOSUM62 (eval only), PSSM (eval only), EVcouplings (eval only), EVE VAE, Tranception LM, or gated blend of two predictors')
     parser.add_argument('--d-model', type=int, default=512, help='Model dimension (transformer only)')
     parser.add_argument('--num-layers', type=int, default=4, help='Number of transformer layers (transformer only)')
     parser.add_argument('--esm2-model-name', type=str, default='facebook/esm2_t12_35M_UR50D',
                         help='HuggingFace ESM-2 model name (esm2 only)')
-    parser.add_argument('--esmc-model-name', type=str, default='esmc_300m',
-                        help='ESM C model name: esmc_300m, esmc_600m, esmc_6b (esmc only)')
     parser.add_argument('--freeze-backbone', action='store_true', default=False,
-                        help='Freeze pretrained backbone, only train output head (esm2/esmc/vespag)')
+                        help='Freeze pretrained backbone, only train output head (esm2 only)')
     parser.add_argument('--finetune-layers', type=int, default=0,
-                        help='Number of last encoder layers to unfreeze (requires --freeze-backbone, esm2/esmc)')
-    parser.add_argument('--load-pretrained', action='store_true', default=False,
-                        help='Load pretrained VespaG FNN weights (vespag only)')
+                        help='Number of last encoder layers to unfreeze (requires --freeze-backbone, esm2 only)')
     parser.add_argument('--lr', type=float, default=0.0001, help='Learning rate')
     parser.add_argument('--epochs', type=int, default=10, help='Number of epochs')
     parser.add_argument('--batch-size', type=int, default=32, help='Batch size')
@@ -95,9 +91,9 @@ def parse_args():
     parser.add_argument('--scoring-direction', type=str, default='both',
                         choices=['forward', 'backward', 'both'],
                         help='Autoregressive scoring direction for Tranception (default: both)')
-    _partner_choices = ['fitness_predictor', 'esm2_fitness_predictor', 'esmc_fitness_predictor',
-                        'vespag_fitness', 'blosum62', 'pssm', 'evcouplings', 'eve', 'tranception']
-    parser.add_argument('--gate-partner-a', type=str, default='esmc_fitness_predictor',
+    _partner_choices = ['fitness_predictor', 'esm2_fitness_predictor',
+                        'blosum62', 'pssm', 'evcouplings', 'eve', 'tranception']
+    parser.add_argument('--gate-partner-a', type=str, default='fitness_predictor',
                         choices=_partner_choices,
                         help='ModelType.value of the first partner for --model-type gated '
                              '(reuses that model type\'s CLI flags).')
@@ -114,10 +110,8 @@ def parse_args():
 # ── Run-identity helpers ──────────────────────────────────────────────────────
 
 _PARTNER_SHORT = {
-    'esmc_fitness_predictor': 'esmc',
     'esm2_fitness_predictor': 'esm2',
     'fitness_predictor': 'xfmr',
-    'vespag_fitness': 'vespag',
     'blosum62': 'blosum62',
     'pssm': 'pssm',
     'evcouplings': 'evc',
@@ -297,31 +291,6 @@ def main():
         )
         model = create_model(model_config, device)
         print(f"Model: ESM-2 ({args.esm2_model_name}), freeze_backbone={args.freeze_backbone}, finetune_layers={args.finetune_layers}")
-    elif args.model_type == 'esmc':
-        model_config = ModelConfig(
-            model_type=ModelType.ESMC_FITNESS_PREDICTOR,
-            seq_len=seq_len_aa,
-            alphabet=alphabet_config,
-            esmc=ESMCConfig(
-                model_name=args.esmc_model_name,
-                freeze_backbone=args.freeze_backbone,
-                finetune_layers=args.finetune_layers,
-            ),
-        )
-        model = create_model(model_config, device)
-        print(f"Model: ESM C ({args.esmc_model_name}), freeze_backbone={args.freeze_backbone}, finetune_layers={args.finetune_layers}")
-    elif args.model_type == 'vespag':
-        model_config = ModelConfig(
-            model_type=ModelType.VESPAG_FITNESS,
-            seq_len=seq_len_aa,
-            alphabet=alphabet_config,
-            vespag=VespaGConfig(
-                freeze_backbone=args.freeze_backbone,
-                load_pretrained=args.load_pretrained,
-            ),
-        )
-        model = create_model(model_config, device)
-        print(f"Model: VespaG (ESM2-3B + FNN), freeze_backbone={args.freeze_backbone}, load_pretrained={args.load_pretrained}")
     elif args.model_type == 'blosum62':
         model_config = ModelConfig(
             model_type=ModelType.BLOSUM62,
@@ -410,10 +379,6 @@ def main():
             ),
             esm2=ESM2Config(
                 model_name=args.esm2_model_name,
-                freeze_backbone=args.freeze_backbone, finetune_layers=args.finetune_layers,
-            ),
-            esmc=ESMCConfig(
-                model_name=args.esmc_model_name,
                 freeze_backbone=args.freeze_backbone, finetune_layers=args.finetune_layers,
             ),
             pssm=PSSMConfig(data_dir=data_dir),
@@ -531,10 +496,6 @@ def main():
     if args.model_type == 'esm2':
         model_name_short = args.esm2_model_name.split('/')[-1]
         run_prefix = f"esm2_{model_name_short}_lr{args.lr}_{timestamp}"
-    elif args.model_type == 'esmc':
-        run_prefix = f"esmc_{args.esmc_model_name}_lr{args.lr}_{timestamp}"
-    elif args.model_type == 'vespag':
-        run_prefix = f"vespag_lr{args.lr}_{timestamp}"
     elif args.model_type == 'blosum62':
         run_prefix = f"blosum62_{timestamp}"
     elif args.model_type == 'evcouplings':

@@ -4,8 +4,8 @@
 Parses the file with the same reader used for training (``antiGen.load.load_examples``)
 and checks the invariants training/eval rely on: a single consistent sequence length,
 only alphabet characters, in-range mutation positions, at least one TRAINING example, and
-(if a variant is given) at least one variant root. See docs/examples_format.md for the
-format specification.
+(if a variant is given) at least one variant root. Such files are produced by the
+antiGen-data tool; see the README (Training).
 
 Usage:
     antiGen-validate-examples data/toy/examples_cutoff_toy.txt --variant toy
@@ -25,7 +25,7 @@ def validate(path, variant=None, alphabet=ALPHABET):
         examples = load_examples(path, alphabet, variant)
     except (ValueError, IndexError) as exc:
         raise SystemExit(f"Failed to parse '{path}': {exc}\n"
-                         f"See docs/examples_format.md for the required block structure.")
+                         f"Expected an antiGen-data examples_cutoff_*.txt file (see the README, Training).")
     if not examples:
         raise SystemExit(f"No examples parsed from '{path}'.")
 

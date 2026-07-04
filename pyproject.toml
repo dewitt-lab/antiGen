@@ -29,15 +29,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Pretrained protein language models (ESM-2 via transformers, ESM-C via esm).
-esm = ["transformers", "esm"]
+# ESM-2 pretrained protein language model (via HuggingFace transformers).
+esm = ["transformers"]
 # EVcouplings mean-field DCA. Also requires the external `plmc` binary on PATH
-# (or $PLMC_BINARY); see docs. The EVE and Tranception models are implemented
-# in-repo and need no extra pip packages (only an MSA at run time).
+# (or $PLMC_BINARY). The EVE and Tranception models are implemented in-repo and
+# need no extra pip packages (only an MSA at run time).
 dca = ["evcouplings"]
-# VespaG (ESM2-3B embeddings + pretrained FNN).
-vespag = ["vespag @ git+https://github.com/JSchlensok/VespaG.git"]
-# Deep-mutational-scanning evaluation (antiGen.eval.evaluate_dms).
+# Deep-mutational-scanning evaluation (antiGen.dms.evaluate_dms).
 dms = ["scipy"]
 # Plotting helpers (not required by the core CLIs).
 plot = ["matplotlib"]

@@ -19,6 +19,7 @@ antiGen-train \
     --max-seqs 10000 \
     --evc-pseudo-count 0.5 \
     --batch-size 64 \
+    --data-dir /home/ivan.specht/antiGen-data/output1 \
     --output-dir /large_storage/hielab/ispecht/fitness-inference
 
 echo "Job finished at: $(date)"

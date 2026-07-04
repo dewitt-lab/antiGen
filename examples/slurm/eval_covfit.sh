@@ -16,7 +16,7 @@ echo "GPU: $CUDA_VISIBLE_DEVICES"
 # Path to extracted CoVFit CLI
 COVFIT_CLI=/large_storage/hielab/ispecht/CoVFit_CLI/covfit_cli
 
-python python/baselines/covfit.py \
+python antiGen/baselines/covfit.py \
     --examples /home/ivan.specht/antiGen-data/output1/examples_cutoff_1.txt \
     --covfit-cli "$COVFIT_CLI" \
     --output ./data/baselines/CoVFit.csv \

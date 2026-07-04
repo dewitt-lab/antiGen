@@ -19,6 +19,7 @@ antiGen-train \
     --freeze-backbone --finetune-layers 4 \
     --cutoff 1.0 --ignore-dead-ends \
     --epochs 32 --batch-size 32 --lr 0.0001 \
+    --data-dir /home/ivan.specht/antiGen-data/output1 \
     --output-dir /large_storage/hielab/ispecht/fitness-inference
 
 echo "Job finished at: $(date)"

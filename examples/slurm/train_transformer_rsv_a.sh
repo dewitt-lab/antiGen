@@ -19,6 +19,7 @@ antiGen-train \
     --cutoff 74 --ignore-dead-ends \
     --d-model 128 --num-layers 2 \
     --epochs 32 --batch-size 64 --lr 0.0001 \
+    --data-dir /home/ivan.specht/antiGen-data/output_rsv_a_full_cutoff74 \
     --output-dir /large_storage/hielab/ispecht/fitness-inference
 
 echo "Job finished at: $(date)"

@@ -16,6 +16,7 @@ echo "Job ID: $SLURM_JOB_ID"
 antiGen-eval \
     --dataset flu \
     --checkpoint-dir /large_storage/hielab/ispecht/fitness-inference \
+    --data-dir /home/ivan.specht/antiGen-data/output_flu_full_cutoff12 \
     --output-dir /large_storage/hielab/ispecht/fitness-inference/evals_flu \
     --emergence-only
 

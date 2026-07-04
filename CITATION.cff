@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use antiGen, please cite it as below."
-title: "antiGen: sequence models of viral fitness for scoring amino-acid substitutions"
+title: "antiGen: Forecasting Viral Evolution from Phylogenetic Trees"
 authors:
   - family-names: Specht
     given-names: Ivan

@@ -13,7 +13,7 @@ echo "Running on node: $(hostname)"
 echo "Job ID: $SLURM_JOB_ID"
 echo "GPU: $CUDA_VISIBLE_DEVICES"
 
-python python/baselines/msa_transformer.py \
+python antiGen/baselines/msa_transformer.py \
     --msa /home/ivan.specht/h3n2/output/nextclade.cds_translation.HA.fasta \
     --metadata /home/ivan.specht/h3n2/metadata.tsv \
     --date-cutoff 2019-10-01 \

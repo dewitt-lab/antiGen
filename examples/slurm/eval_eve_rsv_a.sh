@@ -20,5 +20,6 @@ antiGen-train \
     --metadata /home/ivan.specht/rsv-a/metadata.tsv \
     --cutoff 74 --ignore-dead-ends \
     --batch-size 64 \
+    --data-dir /home/ivan.specht/antiGen-data/output_rsv_a_full_cutoff74 \
     --output-dir /large_storage/hielab/ispecht/fitness-inference
 echo "Job finished at: $(date)"

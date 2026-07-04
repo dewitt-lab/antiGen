@@ -18,6 +18,7 @@ antiGen-train \
     --esm2-model-name facebook/esm2_t12_35M_UR50D \
     --cutoff 1.0 --ignore-dead-ends \
     --epochs 32 --batch-size 16 --lr 0.00001 \
+    --data-dir /home/ivan.specht/antiGen-data/output1 \
     --output-dir /large_storage/hielab/ispecht/fitness-inference
 
 echo "Job finished at: $(date)"

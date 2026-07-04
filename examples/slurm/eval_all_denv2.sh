@@ -16,6 +16,7 @@ echo "GPU: $CUDA_VISIBLE_DEVICES"
 antiGen-eval \
     --dataset denv2 \
     --checkpoint-dir /large_storage/hielab/ispecht/fitness-inference \
+    --data-dir /home/ivan.specht/antiGen-data/output_denv2_full_cutoff191 \
     --output-dir /large_storage/hielab/ispecht/fitness-inference/evals_denv2
 
 echo "Job finished at: $(date)"

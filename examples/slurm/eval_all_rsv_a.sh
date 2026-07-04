@@ -16,6 +16,7 @@ echo "GPU: $CUDA_VISIBLE_DEVICES"
 antiGen-eval \
     --dataset rsv_a \
     --checkpoint-dir /large_storage/hielab/ispecht/fitness-inference \
+    --data-dir /home/ivan.specht/antiGen-data/output_rsv_a_full_cutoff74 \
     --output-dir /large_storage/hielab/ispecht/fitness-inference/evals_rsv_a
 
 echo "Job finished at: $(date)"

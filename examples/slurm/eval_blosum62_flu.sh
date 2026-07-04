@@ -16,6 +16,7 @@ antiGen-train \
     --model-type blosum62 \
     --cutoff 12 --ignore-dead-ends \
     --batch-size 64 \
+    --data-dir /home/ivan.specht/antiGen-data/output_flu_full_cutoff12 \
     --output-dir /large_storage/hielab/ispecht/fitness-inference
 
 echo "Job finished at: $(date)"

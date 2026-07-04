@@ -15,13 +15,13 @@ echo "GPU: $CUDA_VISIBLE_DEVICES"
 
 # Extract BA.2 testing root sequence
 QUERY_SEQ=$(python -c "
-import sys; sys.path.insert(0, 'python/baselines')
+import sys; sys.path.insert(0, 'antiGen/baselines')
 from covfit import extract_testing_root
 print(extract_testing_root('/home/ivan.specht/antiGen-data/output1/examples_cutoff_1.txt', 'BA.2'))
 ")
 echo "Query sequence length: ${#QUERY_SEQ}"
 
-python python/baselines/msa_transformer.py \
+python antiGen/baselines/msa_transformer.py \
     --msa /home/ivan.specht/sc2-open-data/spike.fasta \
     --metadata /home/ivan.specht/sc2-open-data/metadata.tsv \
     --date-cutoff 2020-12-23 \

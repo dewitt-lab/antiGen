@@ -15,13 +15,13 @@ echo "GPU: $CUDA_VISIBLE_DEVICES"
 
 # Extract flu J variant testing root sequence
 QUERY_SEQ=$(python -c "
-import sys; sys.path.insert(0, 'python/baselines')
+import sys; sys.path.insert(0, 'antiGen/baselines')
 from covfit import extract_testing_root
 print(extract_testing_root('/home/ivan.specht/antiGen-data/output_flu_full_cutoff12/examples_cutoff_12.txt', 'J'))
 ")
 echo "Query sequence length: ${#QUERY_SEQ}"
 
-python python/baselines/msa_transformer.py \
+python antiGen/baselines/msa_transformer.py \
     --msa /home/ivan.specht/h3n2/output/nextclade.cds_translation.HA.fasta \
     --metadata /home/ivan.specht/h3n2/metadata.tsv \
     --date-cutoff 2019-10-01 \

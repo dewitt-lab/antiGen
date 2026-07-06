@@ -70,8 +70,6 @@ def parse_args():
     parser.add_argument('--seed', type=int, default=42, help='Random seed')
     parser.add_argument('--hit-rate-buckets', type=int, default=10,
                         help='Number of quantile buckets for hit-rate evaluation')
-    parser.add_argument('--dms-eval-dir', type=str, default=None,
-                        help='Directory with DMS TSV files for evaluation')
     parser.add_argument('--variant', type=str, default=None,
                         help='Variant name (default: BA.2 for SARS-CoV-2, J for flu)')
     parser.add_argument('--flu', action='store_true', default=False,

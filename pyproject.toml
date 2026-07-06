@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "Ivan Specht" }]
-keywords = ["protein", "fitness", "viral evolution", "deep mutational scanning", "transformer"]
+keywords = ["protein", "fitness", "viral evolution", "transformer"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -35,8 +35,6 @@ esm = ["transformers"]
 # (or $PLMC_BINARY). The EVE and Tranception models are implemented in-repo and
 # need no extra pip packages (only an MSA at run time).
 dca = ["evcouplings"]
-# Deep-mutational-scanning evaluation (antiGen.dms.evaluate_dms).
-dms = ["scipy"]
 # Plotting helpers (not required by the core CLIs).
 plot = ["matplotlib"]
 dev = ["pytest"]

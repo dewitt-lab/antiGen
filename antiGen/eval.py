@@ -42,8 +42,8 @@ from antiGen.eval_utils import (
 # Named-dataset constants (paths, variants, cutoffs) live in antiGen.datasets so
 # train.py and eval.py share one portable source of truth (no hardcoded paths).
 
-# Top-q quantiles for variant-emergence: q = 0.1 (top decile) … 0.9 (top 90%).
-EMERGENCE_QUANTILES = [round(0.1 * i, 4) for i in range(1, 10)]
+# Top-q quantiles for variant-emergence: q = 0.1 (top decile) … 1.0 (all candidates).
+EMERGENCE_QUANTILES = [round(0.1 * i, 4) for i in range(1, 11)]
 
 
 def dataset_of_train_args(train_args):

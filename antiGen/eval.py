@@ -20,6 +20,7 @@ import glob
 import os
 import re
 
+import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
 
@@ -284,13 +285,50 @@ def parse_args():
                         help='Recompute only the variant-emergence CSVs (one forward pass per '
                              'model on the testing root; no test-set hit-rate passes). Reuses/'
                              'leaves the quantile_hit_rates CSVs untouched. Fast.')
+    parser.add_argument('--deterministic', action='store_true', default=False,
+                        help='Bit-reproducible mode: seed all RNGs, force deterministic torch '
+                             'algorithms (needs CUBLAS_WORKSPACE_CONFIG=:4096:8 in the env), and '
+                             're-seed before each model so stochastic rebuilds (EVE/Tranception '
+                             'sampling) are reproducible. NOTE: the EVcouplings plmc fit is an '
+                             'external binary and is not covered by this flag.')
     return parser.parse_args()
+
+
+def _enable_determinism(seed: int) -> None:
+    """Make the eval bit-reproducible run-to-run *without changing the numerics*.
+
+    Seeds every RNG (the only genuine randomness is EVE/Tranception's sampling and
+    the EVcouplings MSA subsample), enables deterministic algorithms in warn-only
+    mode, and disables cuDNN autotuning. Caller must also export
+    CUBLAS_WORKSPACE_CONFIG=:4096:8 *before* CUDA initializes.
+
+    Deliberately does NOT override the scaled-dot-product-attention backend: the
+    default (flash / mem-efficient) forward is already bit-reproducible within a
+    GPU architecture, and forcing the math backend would shift the from-scratch
+    transformer's logits (~4e-6) enough to flip near-boundary cells in the ranking
+    metrics — i.e. it would diverge from the non-deterministic reference results.
+    Keeping the default backend reproduces those results exactly (on the same GPU
+    class). The EVcouplings plmc fit is external and not covered by this flag.
+    """
+    import random
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    torch.use_deterministic_algorithms(True, warn_only=True)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
     args = parse_args()
+    if args.deterministic:
+        _enable_determinism(args.seed)
+        print(f"Mode: --deterministic (seed={args.seed}, deterministic torch algorithms; "
+              f"EVcouplings plmc fit is external and not covered)")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
     os.makedirs(args.output_dir, exist_ok=True)
@@ -619,6 +657,12 @@ def main():
         if prefix in already_done:
             print(f"[resume-skip] {prefix}: already present in output CSVs")
             continue
+        # Re-seed per model so stochastic rebuilds (EVE/Tranception sampling) are
+        # reproducible regardless of evaluation order / prior RNG consumption.
+        if args.deterministic:
+            torch.manual_seed(args.seed)
+            if torch.cuda.is_available():
+                torch.cuda.manual_seed_all(args.seed)
         print(f"\n=== Evaluating model group: {prefix} ===")
         try:
             ckpt, model_config = load_checkpoint(path, map_location=device)

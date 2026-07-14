@@ -13,20 +13,32 @@ pip install -e ".[dca]"          # + EVcouplings (needs external `plmc`)
 antiGen requires Python version ≥ 3.10. The above commands install the CLIs `antiGen-train`, `antiGen-infer`, `antiGen-eval`, and
 `antiGen-validate-examples`, and the importable package `import antiGen` (works from any directory).
 
-## Quickstart (train → infer, ~1 minute on CPU)
+## Quickstart (generate → train → infer)
 
-Uses the toy example dataset in `data/toy/`.
+Runs the whole pipeline on the bundled toy example: **generate** training data from a tiny
+Nextstrain tree + MSA with `antiGen-data`, then **train** a model and **score** substitutions.
+The data-generation step needs a **GPU** (the `antiGen-data` tool is CUDA); training and
+inference then run on CPU in seconds.
 
 ```bash
-# 1. (optional) sanity-check the training-data file
-antiGen-validate-examples data/toy/examples_cutoff_toy.txt --variant toy
+# 1. build the CUDA data-generation tool
+cd antiGen-data && make && cd ..
 
-# 2. train a small from-scratch transformer
-antiGen-train --model-type transformer --examples data/toy/examples_cutoff_toy.txt \
+# 2. generate training data from the toy Nextstrain JSON + MSA (needs a GPU; ~10 ms)
+antiGen-data/antiGen-data antiGen-data/example/out 100.0 toy \
+    antiGen-data/example/ref.json antiGen-data/example/tree.json \
+    antiGen-data/example/metadata.tsv antiGen-data/example/seqs.fasta
+
+# 3. (optional) sanity-check the generated examples file
+antiGen-validate-examples antiGen-data/example/out/examples_cutoff_100.txt
+
+# 4. train a small from-scratch transformer on it
+antiGen-train --model-type transformer \
+    --examples antiGen-data/example/out/examples_cutoff_100.txt \
     --d-model 32 --num-layers 1 --epochs 3 --batch-size 4 --output-dir ./checkpoints
 
-# 3. score substitutions for the query sequences in a FASTA
-antiGen-infer ./checkpoints/fitness_*.pt data/toy/query.fasta -o scores.csv
+# 5. score substitutions for the toy query sequences
+antiGen-infer ./checkpoints/fitness_*.pt antiGen-data/example/seqs.fasta -o scores.csv
 ```
 
 ---
@@ -53,8 +65,8 @@ An `examples_cutoff_*.txt` record holds a sequence, its `TRAINING`/`TESTING` spl
 descent flags, and the substitutions observed in that sequence's children (the training target).
 `antiGen-validate-examples <file> [--variant V]` checks a file is well-formed (single consistent
 sequence length, alphabet `ACDEFGHIKLMNPQRSTVWY*-`, in-range positions, ≥1 training example). The
-bundled `data/toy/examples_cutoff_toy.txt` is a hand-built miniature in the same format for the
-quickstart.
+Quickstart above generates a miniature example of this format from the toy inputs in
+[`antiGen-data/example/`](antiGen-data/example/).
 
 **Pointing antiGen at data.** Give an explicit file with `--examples <path>` (works for any
 dataset with no code edits), or use a built-in dataset shortcut which resolves

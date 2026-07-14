@@ -18,8 +18,8 @@ make
 ## Quick example
 
 A tiny self-contained dataset lives in [`example/`](example/) so you can verify the
-build end-to-end (requires a GPU). It is a 20-nucleotide toy "genome": a 2-leaf guide
-tree plus 4 short sequences to attach.
+build end-to-end (requires a GPU). It is a 25-residue toy protein: a 2-leaf guide
+tree plus 4 short amino-acid sequences to attach.
 
 ```bash
 ./antiGen-data example/out 100.0 toy \
@@ -31,6 +31,10 @@ existing tips, 2 as new branches — in ~10 ms, and writes:
 - `example/out/examples_cutoff_100.txt` — training examples (each a genotype plus the
   single-residue changes leading to its children)
 - `example/out/pssms/root.csv` — position-specific residue counts
+
+The examples use the amino-acid alphabet (`ACDEFGHIKLMNPQRSTVWY*-`), so they feed
+[antiGen](https://github.com/evo-design/antiGen) training directly — see the antiGen
+README Quickstart for the generate → train → infer walkthrough that uses this example.
 
 The cutoff (`100.0`) is the train/test split as years past the tree root; here it is
 far in the future, so every example is labelled `TRAINING`. Lower it to hold out

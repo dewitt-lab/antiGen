@@ -1,7 +1,7 @@
 {
   "version": "v2",
   "meta": {
-    "title": "antiGen-data toy example (nucleotide, L=20)"
+    "title": "antiGen-data toy example (amino acid, L=25)"
   },
   "tree": {
     "name": "NODE_ROOT",
@@ -23,8 +23,8 @@
         },
         "branch_attrs": {
           "mutations": {
-            "nuc": [
-              "A1G"
+            "protein": [
+              "M1L"
             ]
           }
         }
@@ -38,8 +38,8 @@
         },
         "branch_attrs": {
           "mutations": {
-            "nuc": [
-              "C2T"
+            "protein": [
+              "E3K"
             ]
           }
         }

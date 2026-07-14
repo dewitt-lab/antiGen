@@ -260,16 +260,22 @@ def main():
         train_dataset, batch_size=args.batch_size, shuffle=True,
         num_workers=4, pin_memory=True, drop_last=False,
     )
-    test_loader = DataLoader(
-        test_dataset, batch_size=args.batch_size, shuffle=True,
-        num_workers=4, pin_memory=True, drop_last=False,
-    )
-    # Infinite iterator for per-batch test minibatch sampling
+    # Per-batch test-loss monitoring is optional: a small or high-cutoff training set
+    # can have no TESTING examples, in which case we skip it (an empty DataLoader would
+    # raise num_samples=0).
     def cycle(loader):
         while True:
             for batch in loader:
                 yield batch
-    test_iter = cycle(test_loader)
+    if len(test_dataset) > 0:
+        test_loader = DataLoader(
+            test_dataset, batch_size=args.batch_size, shuffle=True,
+            num_workers=4, pin_memory=True, drop_last=False,
+        )
+        test_iter = cycle(test_loader)
+    else:
+        test_iter = None
+        print("No TESTING examples found — skipping per-batch test-loss monitoring.")
 
     print(f"Train batches per epoch: {math.ceil(len(train_dataset) / args.batch_size)}")
 
@@ -458,18 +464,23 @@ def main():
                 n_batches += 1
                 global_step += 1
 
-                # Test minibatch loss (cheap, per-batch monitoring)
-                test_aa, test_target = next(test_iter)
-                with torch.no_grad():
-                    model.eval()
-                    test_aa = test_aa.to(device)
-                    test_target = test_target.to(device)
-                    test_logits = model(test_aa).float()
-                    test_probs = compute_probs(test_logits, test_target, test_aa)
-                    test_batch_loss_val = compute_loss_batch(test_probs, test_target).item()
+                # Test minibatch loss (cheap, per-batch monitoring; skipped if no test set)
+                test_batch_loss_val = None
+                if test_iter is not None:
+                    test_aa, test_target = next(test_iter)
+                    with torch.no_grad():
+                        model.eval()
+                        test_aa = test_aa.to(device)
+                        test_target = test_target.to(device)
+                        test_logits = model(test_aa).float()
+                        test_probs = compute_probs(test_logits, test_target, test_aa)
+                        test_batch_loss_val = compute_loss_batch(test_probs, test_target).item()
 
                 if batch_num % 10 == 0:
-                    print(f"  Epoch {epoch}, batch {batch_num}: train_loss={train_loss_val:.8f}, test_batch_loss={test_batch_loss_val:.8f}")
+                    if test_batch_loss_val is not None:
+                        print(f"  Epoch {epoch}, batch {batch_num}: train_loss={train_loss_val:.8f}, test_batch_loss={test_batch_loss_val:.8f}")
+                    else:
+                        print(f"  Epoch {epoch}, batch {batch_num}: train_loss={train_loss_val:.8f}")
 
                 if args.max_batches is not None and global_step >= args.max_batches:
                     print(f"Reached max batches ({args.max_batches}), stopping.")

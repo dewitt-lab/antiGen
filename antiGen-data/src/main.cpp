@@ -96,16 +96,17 @@ DatasetConfig create_dataset_config(const std::string& type) {
             .ambig_char = 'N'
         };
     } else if (type == "toy") {
-        // Tiny self-contained nucleotide dataset for the example/ demo + smoke test
-        // (see example/). Sequence length 20; same handling as the sc2 nuc modes.
+        // Tiny self-contained amino-acid dataset for the example/ demo + smoke test
+        // (see example/). Single "protein" segment, length 25; emits AA examples so
+        // the toy trains the model on the same 22-token alphabet as the real datasets.
         return {
             .type = "toy",
-            .segment_names = {"nuc"},
-            .segment_lengths = {20},
+            .segment_names = {"protein"},
+            .segment_lengths = {25},
             .segment_offsets = {0},
-            .total_length = 20,
-            .alphabet = NUC_ALPHABET,
-            .ambig_char = 'N'
+            .total_length = 25,
+            .alphabet = AA_ALPHABET,
+            .ambig_char = 'X'
         };
     } else if (type == "h3n2") {
         return {
@@ -784,9 +785,12 @@ std::vector<char> sequence_from_root_or_ref(
         if (config.type == "sc2") {
             std::string spike_str = root_seq["S"].get<std::string>();
             root_protein_seq = std::vector<char>(spike_str.begin(), spike_str.end() - 1);
-        } else if (config.type == "sc2_nuc" || config.type == "sc2_spike_nuc" || config.type == "toy") {
+        } else if (config.type == "sc2_nuc" || config.type == "sc2_spike_nuc") {
             std::string nuc_str = root_seq["nuc"].get<std::string>();
             root_protein_seq = std::vector<char>(nuc_str.begin(), nuc_str.end()); // nucleotide: no stop codon
+        } else if (config.type == "toy") {
+            std::string aa_str = root_seq["protein"].get<std::string>();
+            root_protein_seq = std::vector<char>(aa_str.begin(), aa_str.end()); // toy protein: full sequence
         } else if (config.type == "h3n2") {
             std::string concat = root_seq["SigPep"].get<std::string>() +
                                  root_seq["HA1"].get<std::string>() +
@@ -804,9 +808,12 @@ std::vector<char> sequence_from_root_or_ref(
         if (config.type == "sc2") {
             std::string spike_str = ref["S"].get<std::string>();
             root_protein_seq = std::vector<char>(spike_str.begin(), spike_str.end() - 1);
-        } else if (config.type == "sc2_nuc" || config.type == "sc2_spike_nuc" || config.type == "toy") {
+        } else if (config.type == "sc2_nuc" || config.type == "sc2_spike_nuc") {
             std::string nuc_str = ref["nuc"].get<std::string>();
             root_protein_seq = std::vector<char>(nuc_str.begin(), nuc_str.end()); // nucleotide: no stop codon
+        } else if (config.type == "toy") {
+            std::string aa_str = ref["protein"].get<std::string>();
+            root_protein_seq = std::vector<char>(aa_str.begin(), aa_str.end()); // toy protein: full sequence
         } else if (config.type == "h3n2") {
             std::string concat = ref["SigPep"].get<std::string>() +
                                  ref["HA1"].get<std::string>() +

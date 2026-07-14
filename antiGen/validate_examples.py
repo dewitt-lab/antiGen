@@ -8,7 +8,7 @@ only alphabet characters, in-range mutation positions, at least one TRAINING exa
 antiGen-data tool; see the README (Training).
 
 Usage:
-    antiGen-validate-examples data/toy/examples_cutoff_toy.txt --variant toy
+    antiGen-validate-examples antiGen-data/example/out/examples_cutoff_100.txt
 """
 from __future__ import annotations
 

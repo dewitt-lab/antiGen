@@ -104,8 +104,16 @@ first (Part 1) and placed it under `$FITNESS_DATA_ROOT`:
 | `--denv2` | Dengue 2 envelope | 2II_F.1.1.2_annotated | 191 | full sequence |
 
 ```bash
+# built-in dataset: resolve the file from $FITNESS_DATA_ROOT via a shortcut
 export FITNESS_DATA_ROOT=/path/to/antiGen-data      # holds output1/, output_flu_full_cutoff12/, ...
 antiGen-train --flu --cutoff 12 --model-type transformer --output-dir ./checkpoints
+
+# your own data: point --examples straight at a file you generated in Part 1
+# (no $FITNESS_DATA_ROOT, no shortcut — works for any protein/pathogen). seq_len is read from
+# the file (alphabet is the standard 22 AAs); add --variant <label> if it has a variant of interest.
+antiGen-train --examples ./mydata/examples_cutoff_5.txt \
+    --model-type transformer --d-model 128 --num-layers 2 \
+    --epochs 64 --batch-size 64 --lr 1e-4 --output-dir ./checkpoints
 ```
 
 ## Model architectures (`--model-type`)

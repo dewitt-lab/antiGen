@@ -1,6 +1,6 @@
 # antiGen
 
-Welcome to antiGen, a model that learns amino acid substitution probabilities for viral proteins based on phylogenetic trees. This repository is intended for (1) generating training data from phylogenetic trees with the bundled `antiGen-data` tool, (2) training antiGen on that data, (3) querying substitution probabilities predicted by antiGen, and (4) running the evaluations reported in the antiGen manuscript.
+Welcome to antiGen, a model that predicts future mutations to viral proteins based on inferred phylogenetic trees. This repository is intended for (1) generating training data from phylogenetic trees, (2) training antiGen on said data, (3) querying substitution probabilities predicted by antiGen, and (4) running the evaluations reported in the antiGen manuscript.
 
 ## Install
 
@@ -15,12 +15,9 @@ antiGen requires Python version ≥ 3.10. The above commands install the CLIs `a
 
 ## Quickstart (generate → train → infer, runs on CPU)
 
-Runs the whole pipeline on the bundled toy example: **generate** training data from a tiny
-Nextstrain tree + MSA with `antiGen-data`, then **train** a model and **score** substitutions.
-The whole quickstart runs on CPU in seconds — no GPU required. `antiGen-data` builds with
-just a C++ compiler (`make` uses `nvcc` if present for GPU support, otherwise falls back to
-`g++`), and at run time it uses a GPU when one is available and otherwise the CPU
-(bit-identical results either way).
+Runs the whole pipeline on a toy example: **generate** training data from a tiny
+Nextstrain-format mutation-annotated tree and MSA using the included `antiGen-data` tool, then **train** a model and **score** substitutions.
+No GPU is required for this example.
 
 ```bash
 # 1. build the data-generation tool (make auto-selects nvcc if present, else g++)
@@ -47,12 +44,9 @@ antiGen-infer ./checkpoints/fitness_*.pt antiGen-data/example/seqs.fasta -o scor
 
 # 1. Generating training data
 
-antiGen training data is produced by the bundled **[`antiGen-data/`](antiGen-data/)** tool, a
-C++/CUDA application that grows a mutation-annotated phylogeny by parsimonious attachment and
-emits, per train/test cutoff, the training examples plus position-specific scoring matrices
-(PSSMs). Build it with `make` and try the self-contained toy run in
-[`antiGen-data/example/`](antiGen-data/example/) (see [`antiGen-data/README.md`](antiGen-data/README.md)
-for the "Quick example"). Each cutoff directory it writes contains:
+antiGen training data is produced by the included **[`antiGen-data/`](antiGen-data/)** tool, a
+C++/CUDA application that grows a mutation-annotated phylogeny by parsimonious attachment and returns training/testing examples, as well as position-specific scoring matrices
+(PSSMs) for the training window and at various cutoff times in the testing window. To build it, cd into the antiGen-data sub-directory and run `make`. The directory it writes contains:
 
 ```
 output_<dataset>/
@@ -61,8 +55,7 @@ output_<dataset>/
   pssms/<variant>/time_*.csv      # per-variant PSSMs over time (variant-emergence eval)
 ```
 
-An `examples_cutoff_*.txt` record holds a sequence, its `TRAINING`/`TESTING` split, variant-root /
-descent flags, and the substitutions observed in that sequence's children (the training target).
+Each example within `examples_cutoff_*.txt` holds a sequence, its `TRAINING`/`TESTING` designation, whether it is the root example of or is descended from a supplied variant of interest, and the substitutions observed in that sequence's children (the training target).
 `antiGen-validate-examples <file> [--variant V]` checks a file is well-formed (single consistent
 sequence length, alphabet `ACDEFGHIKLMNPQRSTVWY*-`, in-range positions, ≥1 training example). The
 Quickstart above generates a miniature example of this format from the toy inputs in
@@ -148,10 +141,8 @@ toy_root,0,M,C,0.00164760
 query (including premature stop codons `*` and gaps `-`, i.e. point indels). Use `--format wide`
 for a position × amino-acid matrix, and `--drop-gap-stop` to exclude the `-`/`*` columns.
 
-**Length / alignment.** All models are designed to
-predict on a **fixed, aligned coordinate frame**: query sequences must match the training
-reference length and alignment. `antiGen-infer`
-errors clearly if a query's length is incorrect.
+**Length / alignment.** antiGen operates on a **fixed, aligned coordinate frame**: provide
+query sequences aligned to the training reference (same length and alignment).
 
 ---
 

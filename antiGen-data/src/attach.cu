@@ -188,57 +188,61 @@ void check_branches_have_mutations(Node* node, char* h_sequences, long long L) {
 }
 
 char* attach_sequences(
-    char* d_sequences,
-    int* d_parent,
-    int* d_distance,
+    char* h_sequences,
+    std::vector<int>& h_parent,
     long long L,
     long long N,
     long long M,
     const std::vector<double>& est_times,
     std::map<int, Node*> idx_to_node,
     char ambig_char,
-    bool DEBUG
+    bool DEBUG,
+    bool use_gpu
 ) {
 
     int BLOCK_SIZE = 256;
     int L_int = (int)L;
-    int M_int = (int)M;
-
-    // Host parent and distance vector
-    std::vector<int> h_parent(M);
     long long total_chars = M * L;
-    char* h_sequences = (char*)malloc(total_chars);
 
-    std::cout << "attach_sequences: L=" << L << " N=" << N << " M=" << M << std::endl;
-    std::cout << "  total_chars=" << total_chars << " d_sequences=" << (void*)d_sequences
-              << " d_parent=" << (void*)d_parent << " d_distance=" << (void*)d_distance << std::endl;
+    std::cout << "attach_sequences: L=" << L << " N=" << N << " M=" << M
+              << " mode=" << (use_gpu ? "GPU" : "CPU") << std::endl;
 
-    cudaError_t err;
+    // Device mirrors of h_sequences / h_parent, used only in GPU mode. In GPU mode the
+    // distance kernel reads them, so per-case updates to the host arrays are pushed back
+    // to the device (via push_parent / push_seq below).
+    char* d_sequences = nullptr;
+    int* d_parent = nullptr;
+    int* d_distance = nullptr;
+    const int NUM_REDUCE_BLOCKS = 256;
+    int *d_best_idx = nullptr, *d_best_dist = nullptr, *d_block_vals = nullptr, *d_block_idxs = nullptr;
 
-    err = cudaMemcpy(h_sequences, d_sequences, total_chars, cudaMemcpyDeviceToHost);
-    if (err != cudaSuccess) {
-        std::cerr << "cudaMemcpy d_sequences->host failed: " << cudaGetErrorString(err) << std::endl;
-        free(h_sequences); return nullptr;
+    if (use_gpu) {
+        cudaError_t err;
+        err = cudaMalloc(&d_sequences, total_chars);
+        if (err != cudaSuccess) { std::cerr << "cudaMalloc d_sequences failed: " << cudaGetErrorString(err) << std::endl; return nullptr; }
+        err = cudaMalloc(&d_parent, M * sizeof(int));
+        if (err != cudaSuccess) { std::cerr << "cudaMalloc d_parent failed: " << cudaGetErrorString(err) << std::endl; return nullptr; }
+        err = cudaMalloc(&d_distance, M * sizeof(int));
+        if (err != cudaSuccess) { std::cerr << "cudaMalloc d_distance failed: " << cudaGetErrorString(err) << std::endl; return nullptr; }
+        cudaMemcpy(d_sequences, h_sequences, total_chars, cudaMemcpyHostToDevice);
+        cudaMemcpy(d_parent, h_parent.data(), M * sizeof(int), cudaMemcpyHostToDevice);
+        cudaMalloc(&d_best_idx, sizeof(int));
+        cudaMalloc(&d_best_dist, sizeof(int));
+        cudaMalloc(&d_block_vals, NUM_REDUCE_BLOCKS * sizeof(int));
+        cudaMalloc(&d_block_idxs, NUM_REDUCE_BLOCKS * sizeof(int));
+        err = cudaDeviceSynchronize();
+        if (err != cudaSuccess) { std::cerr << "cudaDeviceSynchronize (setup) failed: " << cudaGetErrorString(err) << std::endl; return nullptr; }
+        cudaGetLastError();  // clear any sticky error
+        std::cout << "  Pre-loop CUDA state OK" << std::endl;
     }
-    err = cudaMemcpy(h_parent.data(), d_parent, M * sizeof(int), cudaMemcpyDeviceToHost);
-    if (err != cudaSuccess) {
-        std::cerr << "cudaMemcpy d_parent->host failed: " << cudaGetErrorString(err) << std::endl;
-        free(h_sequences); return nullptr;
-    }
 
-    // Verify CUDA state is clean
-    err = cudaDeviceSynchronize();
-    if (err != cudaSuccess) {
-        std::cerr << "cudaDeviceSynchronize before loop failed: " << cudaGetErrorString(err) << std::endl;
-        free(h_sequences); return nullptr;
-    }
-    std::cout << "  Pre-loop CUDA state OK" << std::endl;
-
-    // Clear any prior sticky errors
-    err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        std::cout << "  Cleared prior sticky error: " << cudaGetErrorString(err) << std::endl;
-    }
+    // Push a host update back to the device mirror (no-op on CPU).
+    auto push_parent = [&](long long i) {
+        if (use_gpu) cudaMemcpy(d_parent + i, &h_parent[i], sizeof(int), cudaMemcpyHostToDevice);
+    };
+    auto push_seq = [&](long long off) {
+        if (use_gpu) cudaMemcpy(d_sequences + off, h_sequences + off, L_int, cudaMemcpyHostToDevice);
+    };
 
     // Next index available
     long long new_idx = ((M-N)/2) + N;
@@ -253,49 +257,45 @@ char* attach_sequences(
     long long n_seqs = (M - N) / 2;
     std::cout << "  n_seqs=" << n_seqs << " new_idx starts at " << new_idx << std::endl;
 
-    // Allocate device memory for min reduction
-    const int NUM_REDUCE_BLOCKS = 256;
-    int *d_best_idx, *d_best_dist;
-    int *d_block_vals, *d_block_idxs;
-    cudaMalloc(&d_best_idx, sizeof(int));
-    cudaMalloc(&d_best_dist, sizeof(int));
-    cudaMalloc(&d_block_vals, NUM_REDUCE_BLOCKS * sizeof(int));
-    cudaMalloc(&d_block_idxs, NUM_REDUCE_BLOCKS * sizeof(int));
-
-    // Profiling accumulators (microseconds)
-    double t_dist_kernel = 0, t_min_kernel = 0, t_find_min = 0, t_case_logic = 0;
-    auto now = []() { return std::chrono::high_resolution_clock::now(); };
-    auto us = [](auto start, auto end) {
-        return std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-    };
-
     // Attach each sequence
     for(long long idx = N; idx < N + n_seqs; idx++) {
 
         long long idx_offset = idx * L;
-        auto t0 = now();
 
-        // Get distances — pass pre-computed idx*L offset
-        int n_blocks = (int) idx + (new_idx - start_new_idx);
-        distance_kernel<<<n_blocks, BLOCK_SIZE>>>(idx_offset, d_sequences, d_parent, d_distance, L_int, BLOCK_SIZE, (int)idx, (int)start_new_idx, ambig_char);
-        cudaDeviceSynchronize();
-
-        auto t1 = now();
-
-        // Find min on device (two-phase reduction)
-        min_reduce_kernel<<<NUM_REDUCE_BLOCKS, BLOCK_SIZE>>>(d_distance, d_block_vals, d_block_idxs, d_parent, (int)idx, (int)start_new_idx, (int)new_idx);
-        final_reduce_kernel<<<1, NUM_REDUCE_BLOCKS>>>(d_block_vals, d_block_idxs, NUM_REDUCE_BLOCKS, d_best_idx, d_best_dist);
-        cudaDeviceSynchronize();
-
-        auto t1b = now();
-
-        // Copy only the 2 scalars back
+        // Get the nearest attachment point k (min integer Hamming distance over
+        // candidates [0, idx) U [start_new_idx, new_idx) with parent != -1; ties broken
+        // by lowest index). GPU and CPU paths are bit-identical.
         int k, best_dist;
-        cudaMemcpy(&k, d_best_idx, sizeof(int), cudaMemcpyDeviceToHost);
-        cudaMemcpy(&best_dist, d_best_dist, sizeof(int), cudaMemcpyDeviceToHost);
+        if (use_gpu) {
+            int n_blocks = (int) idx + (int)(new_idx - start_new_idx);
+            distance_kernel<<<n_blocks, BLOCK_SIZE>>>(idx_offset, d_sequences, d_parent, d_distance, L_int, BLOCK_SIZE, (int)idx, (int)start_new_idx, ambig_char);
+            min_reduce_kernel<<<NUM_REDUCE_BLOCKS, BLOCK_SIZE>>>(d_distance, d_block_vals, d_block_idxs, d_parent, (int)idx, (int)start_new_idx, (int)new_idx);
+            final_reduce_kernel<<<1, NUM_REDUCE_BLOCKS>>>(d_block_vals, d_block_idxs, NUM_REDUCE_BLOCKS, d_best_idx, d_best_dist);
+            cudaDeviceSynchronize();
+            cudaMemcpy(&k, d_best_idx, sizeof(int), cudaMemcpyDeviceToHost);
+            cudaMemcpy(&best_dist, d_best_dist, sizeof(int), cudaMemcpyDeviceToHost);
+        } else {
+            // CPU fallback: same computation as distance_kernel + the two reduce kernels.
+            best_dist = INT_MAX;
+            int best_k = -1;
+            auto consider = [&](long long kk) {
+                if (h_parent[kk] == -1) return;
+                long long ko = kk * L;
+                long long kpo = (long long)h_parent[kk] * L;
+                int dist = 0;
+                for (int pos = 0; pos < L_int; pos++) {
+                    char aa = h_sequences[idx_offset + pos];
+                    dist += (aa != ambig_char) & (aa != h_sequences[ko + pos]) & (aa != h_sequences[kpo + pos]);
+                }
+                // Ascending iteration + strict '<' keeps the lowest index at the minimum,
+                // matching the kernels' (dist < min) || (dist == min && i < min_idx).
+                if (dist < best_dist) { best_dist = dist; best_k = (int)kk; }
+            };
+            for (long long kk = 0; kk < idx; kk++) consider(kk);
+            for (long long kk = start_new_idx; kk < new_idx; kk++) consider(kk);
+            k = best_k;
+        }
         int k_parent = h_parent[k];
-
-        auto t3 = now();
 
         // Pre-compute offsets for host-side comparisons
         long long k_offset = (long long)k * L;
@@ -367,15 +367,15 @@ char* attach_sequences(
                 case_counts[2]++;
                 h_parent[k] = idx;
                 h_parent[idx] = k_parent;
-                cudaMemcpy(d_parent + k, &h_parent[k], sizeof(int), cudaMemcpyHostToDevice);
-                cudaMemcpy(d_parent + idx, &h_parent[idx], sizeof(int), cudaMemcpyHostToDevice);
+                push_parent(k);
+                push_parent(idx);
                 // No new index needed, but need to resolve ambiguities in idx
                 for(int pos = 0; pos < L_int; pos++) {
                     if(h_sequences[idx_offset + pos] == ambig_char) {
                         h_sequences[idx_offset + pos] = h_sequences[kp_offset + pos];
                     }
                 }
-                cudaMemcpy(d_sequences + idx_offset, h_sequences + idx_offset, L_int, cudaMemcpyHostToDevice);
+                push_seq(idx_offset);
 
                 // New node in the tree
                 Node* new_node = new Node;
@@ -415,13 +415,13 @@ char* attach_sequences(
                 // Case 4: Comes off of k_parent
                 case_counts[3]++;
                 h_parent[idx] = k_parent;
-                cudaMemcpy(d_parent + idx, &h_parent[idx], sizeof(int), cudaMemcpyHostToDevice);
+                push_parent(idx);
                 for(int pos = 0; pos < L_int; pos++) {
                     if(h_sequences[idx_offset + pos] == ambig_char) {
                         h_sequences[idx_offset + pos] = h_sequences[kp_offset + pos];
                     }
                 }
-                cudaMemcpy(d_sequences + idx_offset, h_sequences + idx_offset, L_int, cudaMemcpyHostToDevice);
+                push_seq(idx_offset);
 
                 // New leaf in the tree
                 Node* new_leaf = new Node;
@@ -453,13 +453,13 @@ char* attach_sequences(
                 // Case 5: Comes off k
                 case_counts[4]++;
                 h_parent[idx] = k;
-                cudaMemcpy(d_parent + idx, &h_parent[idx], sizeof(int), cudaMemcpyHostToDevice);
+                push_parent(idx);
                 for(int pos = 0; pos < L_int; pos++) {
                     if(h_sequences[idx_offset + pos] == ambig_char) {
                         h_sequences[idx_offset + pos] = h_sequences[k_offset + pos];
                     }
                 }
-                cudaMemcpy(d_sequences + idx_offset, h_sequences + idx_offset, L_int, cudaMemcpyHostToDevice);
+                push_seq(idx_offset);
 
                 // New leaf in the tree
                 Node* new_leaf = new Node;
@@ -510,12 +510,12 @@ char* attach_sequences(
                 h_parent[new_idx] = k_parent;
                 h_parent[k] = new_idx;
                 h_parent[idx] = new_idx;
-                cudaMemcpy(d_parent + new_idx, &h_parent[new_idx], sizeof(int), cudaMemcpyHostToDevice);
-                cudaMemcpy(d_parent + k, &h_parent[k], sizeof(int), cudaMemcpyHostToDevice);
-                cudaMemcpy(d_parent + idx, &h_parent[idx], sizeof(int), cudaMemcpyHostToDevice);
+                push_parent(new_idx);
+                push_parent(k);
+                push_parent(idx);
 
-                cudaMemcpy(d_sequences + idx_offset, h_sequences + idx_offset, L_int, cudaMemcpyHostToDevice);
-                cudaMemcpy(d_sequences + new_idx_offset, h_sequences + new_idx_offset, L_int, cudaMemcpyHostToDevice);
+                push_seq(idx_offset);
+                push_seq(new_idx_offset);
 
 
                 // New (internal) node in the tree
@@ -575,27 +575,13 @@ char* attach_sequences(
 
 
 
-        auto t4 = now();
-
-        t_dist_kernel += us(t0, t1);
-        t_min_kernel += us(t1, t1b);
-        t_find_min += us(t1b, t3);
-        t_case_logic += us(t3, t4);
-
         long long done = idx - N + 1;
         if(done % 1000 == 0) {
-            double total = t_dist_kernel + t_min_kernel + t_find_min + t_case_logic;
             std::cout << "Attached " << done << " / " << n_seqs
                       << " [cases: " << case_counts[0] << " " << case_counts[1] << " " << case_counts[2]
                       << " " << case_counts[3] << " " << case_counts[4] << " " << case_counts[5] << "]"
+                      << " (pushed backward: " << n_bumped << ")"
                       << std::endl;
-            std::cout << "  Timing (ms): dist_kernel=" << t_dist_kernel/1000
-                      << " min_kernel=" << t_min_kernel/1000
-                      << " d2h_scalars=" << t_find_min/1000
-                      << " case_logic+h2d=" << t_case_logic/1000
-                      << " total=" << total/1000
-                      << std::endl;
-            std::cout << " Number of times pushed backward: " << n_bumped << std::endl;
         }
 
     }
@@ -608,9 +594,14 @@ char* attach_sequences(
     std::cout << "  Case 5 (child of k):            " << case_counts[4] << std::endl;
     std::cout << "  Case 6 (new intermediate node): " << case_counts[5] << std::endl;
 
-    cudaFree(d_best_idx);
-    cudaFree(d_best_dist);
-    cudaFree(d_block_vals);
-    cudaFree(d_block_idxs);
+    if (use_gpu) {
+        cudaFree(d_sequences);
+        cudaFree(d_parent);
+        cudaFree(d_distance);
+        cudaFree(d_best_idx);
+        cudaFree(d_best_dist);
+        cudaFree(d_block_vals);
+        cudaFree(d_block_idxs);
+    }
     return h_sequences;
 }

@@ -5,10 +5,12 @@ Hello! This repository generates training data for [antiGen](https://github.com/
 ## Installation
 
 ### Prerequisites
-- CUDA-capable GPU (Compute Capability 7.0+)
-- NVIDIA CUDA Toolkit 11.0+
+- NVIDIA CUDA Toolkit 11.0+ (`nvcc`) — required to **build**
 - C++17 compatible compiler
-- nlohmann/json library
+- nlohmann/json library (bundled in `include/`)
+- A CUDA-capable GPU (Compute Capability 7.0+) is **optional**: it is used when present
+  and otherwise the tool falls back to CPU with bit-identical results. Pass `--cpu` to
+  force the CPU path even when a GPU is available.
 
 ### Build
 ```bash
@@ -18,8 +20,8 @@ make
 ## Quick example
 
 A tiny self-contained dataset lives in [`example/`](example/) so you can verify the
-build end-to-end (requires a GPU). It is a 25-residue toy protein: a 2-leaf guide
-tree plus 4 short amino-acid sequences to attach.
+build end-to-end (no GPU required — runs on CPU, or GPU if present). It is a 25-residue
+toy protein: a 2-leaf guide tree plus 4 short amino-acid sequences to attach.
 
 ```bash
 ./antiGen-data example/out 100.0 toy \

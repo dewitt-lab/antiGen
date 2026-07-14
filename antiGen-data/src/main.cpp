@@ -11,6 +11,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cstdlib>
+#include <cstring>
 #include "json.hpp"
 #include "types.h"
 #include "read_fasta.h"
@@ -272,14 +273,14 @@ void index_nodes(Node* node, int& idx, std::map<int, Node*>& idx_to_node) {
     }
 }
 
-void spike_seqs_to_device(Node* node, char* d_sequences, std::vector<int>& h_parent, long long L, long long M) {
-    cudaMemcpy(d_sequences + ((long long)node->idx * L), node->seq.data(), L * sizeof(char), cudaMemcpyHostToDevice);
+void spike_seqs_to_host(Node* node, char* h_sequences, std::vector<int>& h_parent, long long L) {
+    std::memcpy(h_sequences + ((long long)node->idx * L), node->seq.data(), L * sizeof(char));
     if(node->parent != nullptr) {
         h_parent[node->idx] = node->parent->idx;
     }
 
     for(Node* n : node->children) {
-        spike_seqs_to_device(n, d_sequences, h_parent, L, M);
+        spike_seqs_to_host(n, h_sequences, h_parent, L);
     }
 
 }
@@ -733,6 +734,7 @@ struct CliOptions {
     int grid_count = 0;
     bool grid_interior = false;
     std::string grid_output_dir;
+    bool force_cpu = false;  // --cpu: force the CPU attachment path even if a GPU is present
 };
 
 bool is_integer_arg(const std::string& arg) {
@@ -964,14 +966,29 @@ AttachedTree build_attached_tree(
     std::map<int, Node*> idx_to_node;
     index_nodes(root, idx, idx_to_node);
 
-    char* d_sequences;
+    // Decide GPU vs CPU: honor --cpu, else use a GPU only if one is actually present.
+    bool use_gpu = !opts.force_cpu;
+    if (use_gpu) {
+        int ndev = 0;
+        if (cudaGetDeviceCount(&ndev) != cudaSuccess || ndev == 0) {
+            std::cout << "No CUDA device detected — falling back to the CPU attachment path." << std::endl;
+            use_gpu = false;
+        }
+        cudaGetLastError();  // clear the no-device sticky error so nothing downstream trips on it
+    } else {
+        std::cout << "--cpu requested — using the CPU attachment path." << std::endl;
+    }
+
+    // Build the host sequence buffer (M*L): guide-tree sequences at their node indices,
+    // then the N sequences to attach starting at row N. attach_sequences mirrors this to
+    // the device internally when use_gpu is true.
     long long seq_bytes = L * M;
-    std::cout << "Allocating " << seq_bytes / (1024 * 1024) << " MB for d_sequences" << std::endl;
-    cudaError_t err = cudaMalloc(&d_sequences, seq_bytes);
-    if (err != cudaSuccess) throw std::runtime_error(std::string("cudaMalloc d_sequences failed: ") + cudaGetErrorString(err));
+    char* h_sequences = (char*)malloc(seq_bytes);
+    if (h_sequences == nullptr) throw std::runtime_error("malloc h_sequences failed");
 
     std::vector<int> h_parent(M, -1);
-    spike_seqs_to_device(root, d_sequences, h_parent, L, M);
+    spike_seqs_to_host(root, h_sequences, h_parent, L);
+    std::memcpy(h_sequences + (L * N), protein_aa.data(), protein_aa.size() * sizeof(char));
 
     std::cout << "Root spike: ";
     for (long long j = 0; j < std::min(80LL, L); j++) std::cout << root_protein_seq[j];
@@ -985,26 +1002,9 @@ AttachedTree build_attached_tree(
         std::cout << "..." << std::endl;
     }
 
-    cudaMemcpy(d_sequences + (L * N), protein_aa.data(), protein_aa.size() * sizeof(char), cudaMemcpyHostToDevice);
-    err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        std::cout << "Cleared sticky error after setup: " << cudaGetErrorString(err) << std::endl;
-    }
-
-    int* d_parent;
-    err = cudaMalloc(&d_parent, M * sizeof(int));
-    if (err != cudaSuccess) throw std::runtime_error(std::string("cudaMalloc d_parent failed: ") + cudaGetErrorString(err));
-    cudaMemcpy(d_parent, h_parent.data(), M * sizeof(int), cudaMemcpyHostToDevice);
-
-    int* d_distance;
-    err = cudaMalloc(&d_distance, M * sizeof(int));
-    if (err != cudaSuccess) throw std::runtime_error(std::string("cudaMalloc d_distance failed: ") + cudaGetErrorString(err));
-
-    cudaDeviceSynchronize();
     auto attach_t0 = std::chrono::high_resolution_clock::now();
-    char* h_sequences = attach_sequences(d_sequences, d_parent, d_distance, L, N, M, est_times, idx_to_node, config.ambig_char, false);
+    h_sequences = attach_sequences(h_sequences, h_parent, L, N, M, est_times, idx_to_node, config.ambig_char, false, use_gpu);
     if (h_sequences == nullptr) throw std::runtime_error("attach_sequences failed");
-    cudaDeviceSynchronize();
     auto attach_t1 = std::chrono::high_resolution_clock::now();
     double attach_ms = std::chrono::duration_cast<std::chrono::milliseconds>(attach_t1 - attach_t0).count();
     std::cout << "AUGMENTATION_WALL_CLOCK_MS: " << (long long)attach_ms
@@ -1016,10 +1016,6 @@ AttachedTree build_attached_tree(
     std::cout << "Resetting node times to min of downstream leaf times..." << std::endl;
     set_node_times(root);
     std::cout << "Done resetting node times" << std::endl;
-
-    cudaFree(d_sequences);
-    cudaFree(d_parent);
-    cudaFree(d_distance);
 
     AttachedTree attached;
     attached.root = root;
@@ -1194,6 +1190,8 @@ CliOptions parse_cli(int argc, char* argv[]) {
                 opts.force_rebuild_cache = true;
             } else if (arg == "--no-cache") {
                 opts.no_cache = true;
+            } else if (arg == "--cpu") {
+                opts.force_cpu = true;
             } else if (arg == "--grid") {
                 if (++i >= argc) throw std::runtime_error("--grid requires a count");
                 opts.grid_count = std::atoi(argv[i]);
@@ -1238,6 +1236,8 @@ CliOptions parse_cli(int argc, char* argv[]) {
             opts.force_rebuild_cache = true;
         } else if (arg == "--no-cache") {
             opts.no_cache = true;
+        } else if (arg == "--cpu") {
+            opts.force_cpu = true;
         } else if (arg == "--grid") {
             if (++i >= argc) throw std::runtime_error("--grid requires a count");
             opts.grid_count = std::atoi(argv[i]);

@@ -13,18 +13,19 @@ pip install -e ".[dca]"          # + EVcouplings (needs external `plmc`)
 antiGen requires Python version ≥ 3.10. The above commands install the CLIs `antiGen-train`, `antiGen-infer`, `antiGen-eval`, and
 `antiGen-validate-examples`, and the importable package `import antiGen` (works from any directory).
 
-## Quickstart (generate → train → infer)
+## Quickstart (generate → train → infer, runs on CPU)
 
 Runs the whole pipeline on the bundled toy example: **generate** training data from a tiny
 Nextstrain tree + MSA with `antiGen-data`, then **train** a model and **score** substitutions.
-The data-generation step needs a **GPU** (the `antiGen-data` tool is CUDA); training and
-inference then run on CPU in seconds.
+`antiGen-data` uses a GPU when one is available and otherwise falls back to CPU
+(bit-identical results), so the whole quickstart runs on CPU in seconds. Building
+`antiGen-data` requires the CUDA toolkit (`nvcc`).
 
 ```bash
-# 1. build the CUDA data-generation tool
+# 1. build the data-generation tool (needs the CUDA toolkit / nvcc; runs on CPU or GPU)
 cd antiGen-data && make && cd ..
 
-# 2. generate training data from the toy Nextstrain JSON + MSA (needs a GPU; ~10 ms)
+# 2. generate training data from the toy Nextstrain JSON + MSA (~ms; GPU if present, else CPU)
 antiGen-data/antiGen-data antiGen-data/example/out 100.0 toy \
     antiGen-data/example/ref.json antiGen-data/example/tree.json \
     antiGen-data/example/metadata.tsv antiGen-data/example/seqs.fasta

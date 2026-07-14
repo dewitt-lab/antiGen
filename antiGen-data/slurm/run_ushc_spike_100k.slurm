@@ -9,7 +9,7 @@
 # Classic UShER (original Turakhia et al. placement) on the spike-restricted
 # N=100k append set. Appends one row to bench/results_spike.csv.
 set -uo pipefail
-cd /home/ivan.specht/antiGen-data
+cd /home/ivan.specht/antiGen/antiGen-data
 export DATASET=sc2_spike_nuc GUIDE_PB=bench/guide_spike.pb SUF=_spike GUIDE_NODES=2719
 bash bench/run_tool.sh ushc 100000 16 bench/results_spike.csv
 echo "=== classic spike 100k row ==="; grep "usher-classic,place-only,100000," bench/results_spike.csv

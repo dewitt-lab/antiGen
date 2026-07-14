@@ -5,7 +5,7 @@
 #   bench/prep_spike.sh <N>
 set -euo pipefail
 N="$1"
-cd /home/ivan.specht/antiGen-data
+cd /home/ivan.specht/antiGen/antiGen-data
 OUT=bench/data/append
 REF_SPIKE=/home/ivan.specht/sc2-open-data/ref_spike.json
 SRC="$OUT/append_${N}.vcf"

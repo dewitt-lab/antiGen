@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=300G
 set -uo pipefail
-cd /home/ivan.specht/antiGen-data
+cd /home/ivan.specht/antiGen/antiGen-data
 echo "Host: $(hostname); free -g:"; free -g | head -2
 time bash bench/prep.sh 1000000
 echo "=== 1M inputs ==="

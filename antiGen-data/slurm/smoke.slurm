@@ -7,7 +7,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mem=32G
 
-cd /home/ivan.specht/antiGen-data
+cd /home/ivan.specht/antiGen/antiGen-data
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 
 export ANTIGEN_BENCH_ATTACH_ONLY=1

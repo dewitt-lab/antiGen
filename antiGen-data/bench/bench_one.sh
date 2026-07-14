@@ -9,7 +9,7 @@
 #   wall_s  : /usr/bin/time elapsed for the whole invocation (guide prebuilt).
 set -uo pipefail
 N="$1"; THREADS="${2:-16}"; RUN_CLASSIC="${3:-1}"
-cd /home/ivan.specht/antiGen-data
+cd /home/ivan.specht/antiGen/antiGen-data
 source /home/ivan.specht/miniconda/etc/profile.d/conda.sh; conda activate usher
 export PATH=/usr/local/cuda/bin:$PATH
 

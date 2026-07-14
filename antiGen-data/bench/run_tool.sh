@@ -11,7 +11,7 @@
 #   GUIDE_NODES  antiGen guide node count for the CSV annotation (default 5853)
 set -uo pipefail
 TOOL="$1"; N="$2"; THREADS="${3:-16}"; CSV="${4:-bench/results.csv}"
-cd /home/ivan.specht/antiGen-data
+cd /home/ivan.specht/antiGen/antiGen-data
 source /home/ivan.specht/miniconda/etc/profile.d/conda.sh; conda activate usher
 export PATH=/usr/local/cuda/bin:$PATH
 OUT=bench/data/append

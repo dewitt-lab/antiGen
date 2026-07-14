@@ -752,7 +752,7 @@ std::string infer_legacy_sc2_json_path(const std::filesystem::path& fasta_dir, c
     std::vector<std::filesystem::path> candidates = {
         fasta_dir / filename,
         std::filesystem::current_path() / filename,
-        std::filesystem::path("/home/ivan.specht/antiGen-data") / filename,
+        std::filesystem::path("/home/ivan.specht/antiGen/antiGen-data") / filename,
     };
     for (const auto& path : candidates) {
         if (std::filesystem::exists(path)) return path.string();

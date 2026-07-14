@@ -7,7 +7,7 @@
 #   append_<N>_meta.tsv    -> antiGen-data metadata (strain, date)
 set -euo pipefail
 N="$1"
-cd /home/ivan.specht/antiGen-data
+cd /home/ivan.specht/antiGen/antiGen-data
 source /home/ivan.specht/miniconda/etc/profile.d/conda.sh; conda activate usher
 
 PB=bench/data/public-latest.all.masked.pb

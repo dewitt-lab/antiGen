@@ -11,7 +11,7 @@
 # Mismatch" -> segfault). This mirrors real incremental UShER usage. Only the
 # placement invocations are timed; VCF extraction (data prep) is not.
 set -uo pipefail
-cd /home/ivan.specht/antiGen-data
+cd /home/ivan.specht/antiGen/antiGen-data
 source /home/ivan.specht/miniconda/etc/profile.d/conda.sh; conda activate usher
 echo "Host: $(hostname); CPUs: $(nproc)"
 

@@ -11,7 +11,7 @@
 # Runs the augmentation benchmark (antiGen-data GPU + usher-sampled + classic usher)
 # for each N. Assumes inputs already prepared by bench/prep.sh.
 set -uo pipefail
-cd /home/ivan.specht/antiGen-data
+cd /home/ivan.specht/antiGen/antiGen-data
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 echo "CPUs: $(nproc)"
 

@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=64G
 set -uo pipefail
-cd /home/ivan.specht/antiGen-data
+cd /home/ivan.specht/antiGen/antiGen-data
 echo "Host: $(hostname)"
 # ensure no partial outputs get reused
 rm -f bench/data/append/append_1000000_spike.vcf bench/data/append/append_1000000_spike.vcf.tmp \

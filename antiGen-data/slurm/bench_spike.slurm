@@ -11,7 +11,7 @@
 # UShER (CPU), guide + append filtered to spike coords (1..3822).
 # Usage: sbatch slurm/bench_spike.slurm <N1> [N2 ...]  (inputs prepped by bench/prep_spike.sh)
 set -uo pipefail
-cd /home/ivan.specht/antiGen-data
+cd /home/ivan.specht/antiGen/antiGen-data
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 echo "CPUs: $(nproc)"
 

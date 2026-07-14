@@ -11,7 +11,7 @@
 # (single-batch attempt). If usher-sampled crashes single-batch at 1M (as it did
 # on whole genome), fall back to the batched approach.
 set -uo pipefail
-cd /home/ivan.specht/antiGen-data
+cd /home/ivan.specht/antiGen/antiGen-data
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 export DATASET=sc2_spike_nuc
 export REF=/home/ivan.specht/sc2-open-data/ref_spike.json

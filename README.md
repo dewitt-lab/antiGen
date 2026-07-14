@@ -26,16 +26,16 @@ No GPU is required for this example.
 cd antiGen-data && make && cd ..
 
 # 2. generate training data from the toy Nextstrain JSON + MSA (~ms; GPU if present, else CPU)
-antiGen-data/antiGen-data antiGen-data/example/out 100.0 toy \
+antiGen-data/antiGen-data antiGen-data/example/out 0.6 toy \
     antiGen-data/example/ref.json antiGen-data/example/tree.json \
     antiGen-data/example/metadata.tsv antiGen-data/example/seqs.fasta
 
 # 3. (optional) sanity-check the generated examples file
-antiGen-validate-examples antiGen-data/example/out/examples_cutoff_100.txt
+antiGen-validate-examples antiGen-data/example/out/examples_cutoff_0.6.txt
 
 # 4. train a small from-scratch transformer on it
 antiGen-train --model-type transformer \
-    --examples antiGen-data/example/out/examples_cutoff_100.txt \
+    --examples antiGen-data/example/out/examples_cutoff_0.6.txt \
     --d-model 32 --num-layers 1 --epochs 3 --batch-size 4 --output-dir ./checkpoints
 
 # 5. score substitutions for the toy query sequences

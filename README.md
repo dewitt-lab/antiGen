@@ -4,7 +4,7 @@ Welcome to antiGen, a model that predicts future mutations to viral proteins bas
 
 ## Install
 
-antiGen is not yet on PyPI, so install it from source. Clone the repo and `pip install` it
+antiGen is not yet on PyPI [TODO BEFORE PUBLICATION], so install it from source. Clone the repo and `pip install` it
 (Python ≥ 3.10):
 
 ```bash
@@ -14,19 +14,6 @@ pip install .                    # core: from-scratch transformer + BLOSUM62 / P
 pip install ".[esm]"             # + ESM-2 pretrained language model
 pip install ".[dca]"             # + EVcouplings (needs external `plmc`)
 ```
-
-Use `pip install -e .` instead for an editable (development) install. If you have repo access
-and just want the Python CLIs, you can install in one line without cloning:
-
-```bash
-pip install "git+ssh://git@github.com/evo-design/antiGen.git"
-```
-
-Either way you get the CLIs `antiGen-train`, `antiGen-infer`, `antiGen-eval`, and
-`antiGen-validate-examples`, plus the importable package `import antiGen` (works from any
-directory). Generating training data also needs the bundled `antiGen-data` tool, which is built
-with `make` from a clone (see the Quickstart below) — it is not part of the pip package, so the
-one-line install above covers training/inference/eval only.
 
 ## Quickstart (generate → train → infer, runs on CPU)
 
@@ -61,13 +48,36 @@ antiGen-infer ./checkpoints/fitness_*.pt antiGen-data/example/seqs.fasta -o scor
 
 antiGen training data is produced by the included **[`antiGen-data/`](antiGen-data/)** tool, a
 C++/CUDA application that grows a mutation-annotated phylogeny by parsimonious attachment and returns training/testing examples, as well as position-specific scoring matrices
-(PSSMs) for the training window and at various cutoff times in the testing window. To build it, cd into the antiGen-data sub-directory and run `make`. The directory it writes contains:
+(PSSMs) for the training window and at various cutoff times in the testing window. To build it, cd into the antiGen-data sub-directory and run `make` (needs a C++17 compiler; `nvcc` is optional, for GPU support).
+
+Run it as:
+
+```bash
+antiGen-data <output_dir> <cutoff> <dataset_type> <ref_json> <tree_json> <metadata_tsv> <alignment_files...> [max_seqs] [--cpu]
+```
+
+- `output_dir` — where outputs are written (created if absent).
+- `cutoff` — train/test split, in **years after the tree's root date**: examples dated before `root + cutoff` are labeled `TRAINING`, later ones `TESTING`.
+- `dataset_type` — one of `sc2`, `h3n2`, `rsv_a`, `rsv_b`, `denv2`, or `toy`; selects the alphabet, segment layout, and evaluation region.
+- `ref_json`, `tree_json`, `metadata_tsv` — the reference sequence, guide phylogeny, and per-strain dates (formats under **Input files** below).
+- `alignment_files` — one or more MSA FASTAs of the sequences to attach, one per segment (1 for most datasets; 3 for H3N2 HA).
+- `max_seqs` *(optional)* — cap on how many sequences to attach.
+- `--cpu` *(optional)* — force the CPU path; a GPU is used automatically when present.
+
+**Input files.** The three inputs follow the Nextstrain convention; see
+[`antiGen-data/example/`](antiGen-data/example/) for a complete, runnable set.
+
+- `ref_json` — root sequence per segment, e.g. `{"S": "MFVF…"}`.
+- `tree_json` — a Nextstrain tree whose nodes carry `node_attrs.num_date.value` (decimal year) and `branch_attrs.mutations`, one list per segment of `<ref><pos><alt>` strings, 1-indexed (e.g. `"S": ["A222V", "D614G"]`).
+- `metadata_tsv` — `strain`⇥`date` (ISO `YYYY-MM-DD`) for each sequence in the alignment(s).
+
+Each run writes to `<output_dir>/`, formated as follows:
 
 ```
 output_<dataset>/
-  examples_cutoff_<value>.txt     # training/testing examples (one record per ancestral sequence)
-  pssms/root.csv                  # root PSSM (the pssm_root / PSSM-model source)
-  pssms/<variant>/time_*.csv      # per-variant PSSMs over time (variant-emergence eval)
+  examples_cutoff_<value>.txt     # training/testing examples (one entry per inferred ancestral genotype; see below)
+  pssms/root.csv                  # PSSM of all sequences in the training window
+  pssms/<variant>/time_*.csv      # PSSM of all sequences in the testing window up through the cutoff time specified in the file name
 ```
 
 Each example within `examples_cutoff_*.txt` holds a sequence, its `TRAINING`/`TESTING` designation, whether it is the root example of or is descended from a supplied variant of interest, and the substitutions observed in that sequence's children (the training target).
@@ -82,7 +92,9 @@ Quickstart above generates a miniature example of this format from the toy input
 
 **Pointing antiGen at data.** Give an explicit file with `--examples <path>` (works for any
 dataset with no code edits), or use a built-in dataset shortcut which resolves
-`examples_cutoff_<cutoff>.txt` under `$FITNESS_DATA_ROOT` (or an explicit `--data-dir`):
+`examples_cutoff_<cutoff>.txt` under `$FITNESS_DATA_ROOT` (or an explicit `--data-dir`). These
+shortcuts only build a local path — the data is never downloaded, so you must have generated it
+first (Part 1) and placed it under `$FITNESS_DATA_ROOT`:
 
 | Flag | Dataset | Variant | `--cutoff` | Eval region |
 |------|---------|---------|------------|-------------|

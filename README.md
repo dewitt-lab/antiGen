@@ -17,12 +17,13 @@ antiGen requires Python version ≥ 3.10. The above commands install the CLIs `a
 
 Runs the whole pipeline on the bundled toy example: **generate** training data from a tiny
 Nextstrain tree + MSA with `antiGen-data`, then **train** a model and **score** substitutions.
-`antiGen-data` uses a GPU when one is available and otherwise falls back to CPU
-(bit-identical results), so the whole quickstart runs on CPU in seconds. Building
-`antiGen-data` requires the CUDA toolkit (`nvcc`).
+The whole quickstart runs on CPU in seconds — no GPU required. `antiGen-data` builds with
+just a C++ compiler (`make` uses `nvcc` if present for GPU support, otherwise falls back to
+`g++`), and at run time it uses a GPU when one is available and otherwise the CPU
+(bit-identical results either way).
 
 ```bash
-# 1. build the data-generation tool (needs the CUDA toolkit / nvcc; runs on CPU or GPU)
+# 1. build the data-generation tool (make auto-selects nvcc if present, else g++)
 cd antiGen-data && make && cd ..
 
 # 2. generate training data from the toy Nextstrain JSON + MSA (~ms; GPU if present, else CPU)

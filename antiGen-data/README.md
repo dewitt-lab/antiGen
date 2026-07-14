@@ -5,17 +5,19 @@ Hello! This repository generates training data for [antiGen](https://github.com/
 ## Installation
 
 ### Prerequisites
-- NVIDIA CUDA Toolkit 11.0+ (`nvcc`) — required to **build**
-- C++17 compatible compiler
+- A C++17 compiler (e.g. `g++`) — enough for a CPU-only build
 - nlohmann/json library (bundled in `include/`)
-- A CUDA-capable GPU (Compute Capability 7.0+) is **optional**: it is used when present
-  and otherwise the tool falls back to CPU with bit-identical results. Pass `--cpu` to
-  force the CPU path even when a GPU is available.
+- **Optional, for GPU acceleration:** NVIDIA CUDA Toolkit 11.0+ (`nvcc`) and a
+  CUDA-capable GPU (Compute Capability 7.0+). When a GPU is present it is used; otherwise
+  the tool runs on the CPU with bit-identical results. Pass `--cpu` to force the CPU path.
 
 ### Build
 ```bash
 make
 ```
+`make` auto-selects the toolchain: if `nvcc` is on `PATH` it builds with CUDA (GPU + CPU);
+otherwise it builds a CPU-only binary with `g++` (override with `make CPUCXX=clang++`). The
+two builds produce identical results.
 
 ## Quick example
 

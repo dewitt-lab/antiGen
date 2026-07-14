@@ -17,7 +17,9 @@
 #include "read_fasta.h"
 #include "attach.h"
 #include "cache.h"
+#ifdef USE_CUDA
 #include <cuda_runtime.h>
+#endif
 
 using json = nlohmann::json;
 
@@ -967,7 +969,9 @@ AttachedTree build_attached_tree(
     index_nodes(root, idx, idx_to_node);
 
     // Decide GPU vs CPU: honor --cpu, else use a GPU only if one is actually present.
+    // A build without CUDA (no nvcc) has no GPU path at all and always uses the CPU.
     bool use_gpu = !opts.force_cpu;
+#ifdef USE_CUDA
     if (use_gpu) {
         int ndev = 0;
         if (cudaGetDeviceCount(&ndev) != cudaSuccess || ndev == 0) {
@@ -978,6 +982,10 @@ AttachedTree build_attached_tree(
     } else {
         std::cout << "--cpu requested — using the CPU attachment path." << std::endl;
     }
+#else
+    use_gpu = false;  // built without CUDA (nvcc not available at build time)
+    std::cout << "Built without CUDA — using the CPU attachment path." << std::endl;
+#endif
 
     // Build the host sequence buffer (M*L): guide-tree sequences at their node indices,
     // then the N sequences to attach starting at row N. attach_sequences mirrors this to

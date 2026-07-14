@@ -2,10 +2,13 @@
 #include <iostream>
 #include <climits>
 #include <chrono>
+#ifdef USE_CUDA
 #include <cuda_runtime.h>
+#endif
 #include <vector>
 #include <algorithm>
 
+#ifdef USE_CUDA
 // Kernel to compute distance to each attachment point.
 // idx_offset = idx * L, pre-computed on host to avoid 64-bit math in kernel.
 __global__ void distance_kernel(
@@ -162,6 +165,7 @@ __global__ void final_reduce_kernel(
         *d_best_idx = s_idx[0];
     }
 }
+#endif  // USE_CUDA
 
 void check_branches_have_mutations(Node* node, char* h_sequences, long long L) {
     if(node->parent != nullptr) {
@@ -203,6 +207,11 @@ char* attach_sequences(
     int BLOCK_SIZE = 256;
     int L_int = (int)L;
     long long total_chars = M * L;
+    (void)BLOCK_SIZE; (void)total_chars;  // unused when built without CUDA
+
+#ifndef USE_CUDA
+    use_gpu = false;  // GPU path not compiled in (built without nvcc)
+#endif
 
     std::cout << "attach_sequences: L=" << L << " N=" << N << " M=" << M
               << " mode=" << (use_gpu ? "GPU" : "CPU") << std::endl;
@@ -215,7 +224,10 @@ char* attach_sequences(
     int* d_distance = nullptr;
     const int NUM_REDUCE_BLOCKS = 256;
     int *d_best_idx = nullptr, *d_best_dist = nullptr, *d_block_vals = nullptr, *d_block_idxs = nullptr;
+    (void)d_sequences; (void)d_parent; (void)d_distance; (void)NUM_REDUCE_BLOCKS;
+    (void)d_best_idx; (void)d_best_dist; (void)d_block_vals; (void)d_block_idxs;
 
+#ifdef USE_CUDA
     if (use_gpu) {
         cudaError_t err;
         err = cudaMalloc(&d_sequences, total_chars);
@@ -235,13 +247,20 @@ char* attach_sequences(
         cudaGetLastError();  // clear any sticky error
         std::cout << "  Pre-loop CUDA state OK" << std::endl;
     }
+#endif  // USE_CUDA
 
-    // Push a host update back to the device mirror (no-op on CPU).
+    // Push a host update back to the device mirror (no-op on CPU / no-CUDA build).
     auto push_parent = [&](long long i) {
+        (void)i;
+#ifdef USE_CUDA
         if (use_gpu) cudaMemcpy(d_parent + i, &h_parent[i], sizeof(int), cudaMemcpyHostToDevice);
+#endif
     };
     auto push_seq = [&](long long off) {
+        (void)off;
+#ifdef USE_CUDA
         if (use_gpu) cudaMemcpy(d_sequences + off, h_sequences + off, L_int, cudaMemcpyHostToDevice);
+#endif
     };
 
     // Next index available
@@ -267,6 +286,7 @@ char* attach_sequences(
         // by lowest index). GPU and CPU paths are bit-identical.
         int k, best_dist;
         if (use_gpu) {
+#ifdef USE_CUDA
             int n_blocks = (int) idx + (int)(new_idx - start_new_idx);
             distance_kernel<<<n_blocks, BLOCK_SIZE>>>(idx_offset, d_sequences, d_parent, d_distance, L_int, BLOCK_SIZE, (int)idx, (int)start_new_idx, ambig_char);
             min_reduce_kernel<<<NUM_REDUCE_BLOCKS, BLOCK_SIZE>>>(d_distance, d_block_vals, d_block_idxs, d_parent, (int)idx, (int)start_new_idx, (int)new_idx);
@@ -274,6 +294,7 @@ char* attach_sequences(
             cudaDeviceSynchronize();
             cudaMemcpy(&k, d_best_idx, sizeof(int), cudaMemcpyDeviceToHost);
             cudaMemcpy(&best_dist, d_best_dist, sizeof(int), cudaMemcpyDeviceToHost);
+#endif
         } else {
             // CPU fallback: same computation as distance_kernel + the two reduce kernels.
             best_dist = INT_MAX;
@@ -594,6 +615,7 @@ char* attach_sequences(
     std::cout << "  Case 5 (child of k):            " << case_counts[4] << std::endl;
     std::cout << "  Case 6 (new intermediate node): " << case_counts[5] << std::endl;
 
+#ifdef USE_CUDA
     if (use_gpu) {
         cudaFree(d_sequences);
         cudaFree(d_parent);
@@ -603,5 +625,6 @@ char* attach_sequences(
         cudaFree(d_block_vals);
         cudaFree(d_block_idxs);
     }
+#endif
     return h_sequences;
 }

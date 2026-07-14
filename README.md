@@ -4,14 +4,29 @@ Welcome to antiGen, a model that predicts future mutations to viral proteins bas
 
 ## Install
 
+antiGen is not yet on PyPI, so install it from source. Clone the repo and `pip install` it
+(Python ≥ 3.10):
+
 ```bash
-pip install -e .                 # core: from-scratch transformer + BLOSUM62 / PSSM / gated (no model downloads)
-pip install -e ".[esm]"          # + ESM-2 pretrained language model
-pip install -e ".[dca]"          # + EVcouplings (needs external `plmc`)
+git clone git@github.com:evo-design/antiGen.git
+cd antiGen
+pip install .                    # core: from-scratch transformer + BLOSUM62 / PSSM / gated (no model downloads)
+pip install ".[esm]"             # + ESM-2 pretrained language model
+pip install ".[dca]"             # + EVcouplings (needs external `plmc`)
 ```
 
-antiGen requires Python version ≥ 3.10. The above commands install the CLIs `antiGen-train`, `antiGen-infer`, `antiGen-eval`, and
-`antiGen-validate-examples`, and the importable package `import antiGen` (works from any directory).
+Use `pip install -e .` instead for an editable (development) install. If you have repo access
+and just want the Python CLIs, you can install in one line without cloning:
+
+```bash
+pip install "git+ssh://git@github.com/evo-design/antiGen.git"
+```
+
+Either way you get the CLIs `antiGen-train`, `antiGen-infer`, `antiGen-eval`, and
+`antiGen-validate-examples`, plus the importable package `import antiGen` (works from any
+directory). Generating training data also needs the bundled `antiGen-data` tool, which is built
+with `make` from a clone (see the Quickstart below) — it is not part of the pip package, so the
+one-line install above covers training/inference/eval only.
 
 ## Quickstart (generate → train → infer, runs on CPU)
 

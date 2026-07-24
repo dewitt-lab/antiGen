@@ -24,6 +24,8 @@ plots/
 scratch/
 checkpoints/
 evals_*/
+# ...but antiGen-figures ships a pooled eval folder that must be tracked.
+!antiGen-figures/data/evals_sc2/
 # NOTE: do not blanket-ignore *.csv — data/baselines*/ and data/toy/ ship tracked CSVs.
 # Eval/training outputs are written outside the repo (or to the ignored dirs above).
 

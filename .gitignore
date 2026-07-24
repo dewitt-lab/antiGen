@@ -42,6 +42,10 @@ evals_*/
 # Visualizations
 *.pdf
 *.png
+# ...but the antiGen-figures rendered outputs are committed so they show on GitHub.
+!antiGen-figures/figs/**
+!antiGen-figures/figs_vector/**
+!antiGen-figures/fig1/**
 
 # Scratch/temp files
 plan_optimizations.md

@@ -1,0 +1,1071 @@
+## ---------------------------------------------------------------------------
+## Figure 2 and its supplements: SARS-CoV-2 benchmarks.
+##
+## Two metric families run through this script:
+##
+##   next-mutation recall  P(an observed mutation lands in the model's top
+##                         q-quantile), as a function of q
+##   PSSM precision        P(a mutation in the model's top decile is observed
+##                         at >= M cases by time t), as a function of t
+##
+## Each comes in four variants: all mutations vs de novo only, with and
+## without the gap/stop mask (recall) or at a 1+ vs 100+ case threshold
+## (precision).
+##
+## Output: figs/sc2_results.png            figs_vector/sc2_results.pdf
+##         figs/supp_recall.png            + .pdf
+##         figs/supp_precision.png         + .pdf
+##         figs/supp_summaries.png         + .pdf
+##         figs/supp_dms.png               + .pdf
+##         figs/supp_gating_recall.png     + .pdf
+##         figs/supp_gating_precision.png  + .pdf
+##         fig1/auc.png  (recall-AUC inset reused in Figure 1)
+## ---------------------------------------------------------------------------
+
+source("R/common.R")
+
+library(reshape2)
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(tidyr)
+  library(tibble)
+  library(forcats)
+  library(magick)      # cowplot::draw_image
+  library(ggtext)      # element_markdown, for bolding one legend entry
+})
+
+apply_paper_defaults()
+
+EVAL_DIR   <- "data/evals_sc2"
+MODEL_DIR  <- "data/sc2"
+GATING_DIR <- "data/gating"
+
+
+## --- Model inventory -------------------------------------------------------
+
+## Baselines, grouped by what data they had access to. The group determines
+## the colour and the legend entry; antiGen itself is its own group.
+subsets <- list(
+  pre_pandemic_data = c(
+    "EVEscape",
+    "esm2_noft",
+    "esm2_650m_noft",
+    "blosum62"
+  ),
+  pandemic_training_data = c(
+    "pssm_root",
+    "pssm_root_position",
+    "MSA_Transformer",
+    "MSA_Transformer_BA2",
+    "eve_frozen",
+    "tranception_frozen",
+    "evcouplings"
+  ),
+  dms_models = c(
+    "Omicron_BA1_bind",
+    "Omicron_BA1_expr",
+    "Omicron_BA2_bind",
+    "Omicron_BA2_expr"
+  ),
+  trained_models = c(
+    "esm2_frozen",
+    "esm2_full",
+    "esm2_partial",
+    "esm2_650m_frozen",
+    "esm2_650m_full",
+    "esm2_650m_partial",
+    "eve_ft",
+    "tranception_ft"
+  )
+)
+
+## Group labels, in the order of `subsets` above.
+longform_subset_names <- c(
+  "Pre-Pandemic Data Only",
+  "Pandemic Data in Training Window",
+  "Deep Mutational Scans",
+  "antiGen Finetunes"
+)
+stopifnot(length(longform_subset_names) == length(subsets),
+          all(longform_subset_names %in% MODEL_TYPE_LEVELS))
+
+all_models <- unique(c("simple", unlist(subsets)))
+longform_names <- c(
+  "antiGen",
+  "EVEscape",
+  "ESM 2 (35M)",
+  "ESM 2 (650M)",
+  "BLOSUM62",
+  "PSSM",
+  "PSSM Conservation",
+  "MSA Transfomer",
+  "MSA Trans. (BA.2 eval)",
+  "EVE",
+  "Tranception",
+  "EVmutation",
+  "BA.1 DMS (bind)",
+  "BA.1 DMS (expression)",
+  "BA.2 DMS (bind)",
+  "BA.2 DMS (expression)",
+  "antiGen as ESM 2 (35M) LM head FT",
+  "antiGen as ESM 2 (35M) full FT",
+  "antiGen as ESM 2 (35M) partial FT",
+  "antiGen as ESM 2 (650M) LM head FT",
+  "antiGen as ESM 2 (650M) full FT",
+  "antiGen as ESM 2 (650M) partial FT",
+  "antiGen as EVE full FT",
+  "antiGen as Tranception full FT"
+)
+stopifnot(length(all_models) == length(longform_names))
+
+## The pooled evaluation CSVs identify runs by their full training tag; map
+## those onto the short names used in `subsets` above.
+RUN_TAG_TO_MODEL <- c(
+  "esm2_esm2_t12_35M_UR50D_lr0.0001_partial4"  = "esm2_partial",
+  "esm2_esm2_t12_35M_UR50D_lr0.001_frozen"     = "esm2_frozen",
+  "esm2_esm2_t12_35M_UR50D_lr0.001_noft"       = "esm2_noft",
+  "esm2_esm2_t12_35M_UR50D_lr1e-05_full"       = "esm2_full",
+  "esm2_esm2_t33_650M_UR50D_lr0.0001_partial4" = "esm2_650m_partial",
+  "esm2_esm2_t33_650M_UR50D_lr0.001_frozen"    = "esm2_650m_frozen",
+  "esm2_esm2_t33_650M_UR50D_lr0.001_noft"      = "esm2_650m_noft",
+  "esm2_esm2_t33_650M_UR50D_lr1e-05_full"      = "esm2_650m_full",
+  "eve_ft_lr0.0001"                            = "eve_ft",
+  "simple_d128_n2_lr0.0001"                    = "simple",
+  "tranception_frozen_both"                    = "tranception_frozen",
+  "tranception_ft_both_lr0.0001"               = "tranception_ft"
+)
+
+## Present in the pooled evaluation files but not shown here. MSA Transformer
+## scored against XFG is redundant with MSA_Transformer_BA2; PyR0 and CoVFit
+## are evaluated separately (CoVFit in figS_covfit.R).
+EXCLUDED_MODELS <- c("MSA_Transformer_XFG", "pyr0", "CoVFit")
+
+longform_hit_rate_metrics <- c(
+  "all mutations",
+  "de novo",
+  "gap/stop mask",
+  "de novo + gap/stop mask"
+)
+
+longform_variant_emergence_metrics <- c(
+  "all mutations, 1+ cases",
+  "de novo, 1+ cases",
+  "all mutations, 100+ cases",
+  "de novo, 100+ cases"
+)
+
+
+## --- Load the pooled evaluation curves -------------------------------------
+
+## Recall: one row per model, one column per interior quantile. Anchor the
+## curve at (0, 0) and (1, 1).
+recall_curves <- lapply(HIT_RATE_METRICS, function(metric) {
+  df <- read.csv(file.path(EVAL_DIR, paste0(metric, "_all-models.csv")))
+  df$top_0.0.   <- 0
+  df$top_100.0. <- 1
+  df <- melt(df, id.vars = "model")
+  df$variable <- as.numeric(gsub("\\..*", "", gsub("top_", "", df$variable))) / 100
+  colnames(df)[2] <- "x"
+  df$metric <- metric
+  df
+})
+
+## Precision: one row per (model, top_quantile), one column per time point.
+## Only the top decile is shown.
+precision_curves <- lapply(VARIANT_EMERGENCE_METRICS, function(metric) {
+  df <- read.csv(file.path(EVAL_DIR, paste0(metric, "_all-models.csv")))
+  df <- df[df$top_quantile == 0.1, -2]
+  df <- melt(df, id.vars = "model")
+  df$variable <- as.numeric(gsub("t_", "", df$variable))
+  colnames(df)[2] <- "x"
+  df$metric <- metric
+  df
+})
+
+performance_by_x <- do.call(rbind, c(recall_curves, precision_curves))
+
+tagged <- performance_by_x$model %in% names(RUN_TAG_TO_MODEL)
+performance_by_x$model[tagged] <- unname(RUN_TAG_TO_MODEL[performance_by_x$model[tagged]])
+performance_by_x <- performance_by_x[!(performance_by_x$model %in% EXCLUDED_MODELS), ]
+performance_by_x <- performance_by_x[, c("model", "metric", "x", "value")]
+
+
+## --- Reduce each curve to a single summary number --------------------------
+
+#' Trapezoidal area under a recall curve.
+#'
+#' NOTE: rows arrive in evaluation-CSV *column* order -- q = 0.1 ... 0.9, then
+#' the appended anchors q = 0 and q = 1 -- not sorted by q. The pairwise sum
+#' below therefore pairs (0.9, 0) and (0, 1) at the end, which makes the
+#' result differ from a sorted trapezoid by exactly value(q = 0.1) / 20.
+#' Preserved as-is: this is the AUC reported in the published figures.
+recall_auc <- function(value) {
+  sum(value[2:11] + value[1:10]) / 20
+}
+
+summarise_curves <- function(df, metrics, reduce) {
+  models <- unique(df$model)
+  rows <- lapply(metrics, function(metric) {
+    do.call(rbind, lapply(models, function(model) {
+      sub <- df[df$model == model & df$metric == metric, ]
+      out <- sub[1, c("model", "metric", "value")]
+      out$value <- reduce(sub$value)
+      out
+    }))
+  })
+  do.call(rbind, rows)
+}
+
+performance <- rbind(
+  summarise_curves(performance_by_x, HIT_RATE_METRICS, recall_auc),
+  ## Precision curves are monotone in t, so their peak is the summary.
+  summarise_curves(performance_by_x, VARIANT_EMERGENCE_METRICS, max)
+)
+
+
+## --- Attach display names and groups ---------------------------------------
+
+add_group_and_label <- function(df) {
+  df$group <- NA_character_
+  for (j in seq_along(subsets)) {
+    df$group[df$model %in% subsets[[j]]] <- longform_subset_names[j]
+  }
+  df$group[is.na(df$group)] <- "antiGen"
+  df$model <- factor(longform_names[match(df$model, all_models)],
+                     levels = longform_names)
+  df
+}
+
+performance      <- add_group_and_label(performance)
+performance_by_x <- add_group_and_label(performance_by_x)
+
+relabel_metrics <- function(df, metrics, labels) {
+  df <- df[df$metric %in% metrics, ]
+  df$metric <- labels[match(df$metric, metrics)]
+  df
+}
+
+hit_rate_performance   <- relabel_metrics(performance, HIT_RATE_METRICS,
+                                          longform_hit_rate_metrics)
+hit_rate_performance_x <- relabel_metrics(performance_by_x, HIT_RATE_METRICS,
+                                          longform_hit_rate_metrics)
+
+variant_emergence_performance   <- relabel_metrics(performance,
+                                                   VARIANT_EMERGENCE_METRICS,
+                                                   longform_variant_emergence_metrics)
+variant_emergence_performance_x <- relabel_metrics(performance_by_x,
+                                                   VARIANT_EMERGENCE_METRICS,
+                                                   longform_variant_emergence_metrics)
+
+
+## --- Summary bar panels ----------------------------------------------------
+
+#' Horizontal bars of one summary statistic, one panel per metric.
+#'
+#' `legend_only = TRUE` returns just the shared legend grob. Otherwise the
+#' first panel is repeated at reduced width, stripped of its title and x
+#' axis, purely to supply the model labels for the row.
+plot_auc <- function(performance_df, metric_names, labels, xlab, title_prefix,
+                     legend_only = FALSE, xmin = 0, shorten_title = TRUE,
+                     SUPP = FALSE) {
+  plots <- lapply(seq_along(metric_names), function(i) {
+    title <- metric_names[i]
+    if (shorten_title) title <- gsub("\\,.*", "", title)
+    title <- paste0(title_prefix, ", ", title)
+
+    sub <- performance_df[performance_df$metric == metric_names[i], ]
+    if (!SUPP) sub <- sub[sub$group != "antiGen Finetunes", ]
+
+    ## antiGen at the top of the y-axis (last factor level).
+    lev <- levels(sub$model)
+    sub$model <- factor(sub$model, levels = c(setdiff(lev, "antiGen"), "antiGen"))
+
+    ## Medal text for the top three models in this panel.
+    sub$medal <- c("1st", "2nd", "3rd")[rank(-sub$value, ties.method = "first")]
+    top3 <- sub[!is.na(sub$medal), ]
+
+    ggplot(sub, aes(y = model, x = value, fill = group)) +
+      geom_col() +
+      geom_text(
+        data = top3,
+        aes(x = value, y = model, label = medal),
+        inherit.aes = FALSE,
+        hjust = 1.1,
+        size = 2.5,
+        fontface = "bold",
+        color = "white"
+      ) +
+      coord_cartesian(xlim = c(xmin, max(sub$value))) +
+      theme_paper() +
+      theme(legend.position = "top", axis.title.y = element_blank()) +
+      theme(legend.key.size = unit(0.8, "lines")) +
+      scale_fill_manual(values = if (SUPP) MODEL_TYPE_COLORS_SUPP else MODEL_TYPE_COLORS) +
+      xlab(xlab) +
+      scale_x_continuous(expand = expansion(mult = c(0, 0.05))) +
+      labs(fill = "Model type") +
+      ggtitle(title)
+  })
+
+  if (legend_only) return(extract_legend(plots[[1]]))
+
+  plot_grid(
+    # Label gutter: panel 1 with everything but the y-axis text hidden.
+    plots[[1]] + theme(legend.position = "none", axis.ticks.x = element_blank(),
+                       axis.text.x = element_text(color = "white")) +
+      ggtitle("") + xlab(""),
+    plots[[1]] + theme(legend.position = "none") + theme(axis.text.y = element_blank()),
+    plots[[2]] + theme(legend.position = "none") + theme(axis.text.y = element_blank()),
+    rel_widths = c(0.5, 1, 1),
+    nrow = 1,
+    labels = c("", labels),
+    label_x = -0.07
+  )
+}
+
+
+## --- Curve panels ----------------------------------------------------------
+
+#' Curves for the best model of each group, plus antiGen.
+#'
+#' `cartoon = TRUE` instead draws antiGen alone with its area shaded and the
+#' AUC annotated -- the schematic inset used in Figure 1.
+plot_by_x <- function(performance_df, auc_df, metric_names, metric_indices,
+                      labels, xlab, ylab, title_prefix, cutoff = 0,
+                      shorten_title = TRUE, cartoon = FALSE) {
+  plots <- lapply(metric_indices, function(i) {
+    title <- metric_names[i]
+    if (shorten_title) title <- gsub("\\,.*", "", title)
+    title <- paste0(title_prefix, ", ", title)
+
+    sub     <- performance_df[performance_df$metric == metric_names[i], ]
+    sub_auc <- auc_df[auc_df$metric == metric_names[i], ]
+
+    ## Keep the strongest model in each group, so the panel stays readable.
+    keep <- vapply(setdiff(unique(sub_auc$group), "antiGen Finetunes"), function(group) {
+      sub2 <- sub_auc[sub_auc$group == group, ]
+      as.character(sub2$model)[which.max(sub2$value)]
+    }, character(1))
+
+    sub <- sub[as.character(sub$model) %in% keep, ]
+    if (cartoon) sub <- sub[as.character(sub$model) == "antiGen", ]
+    sub <- sub[sub$x >= cutoff, ]
+
+    ## Label the legend by model name, but colour by group.
+    group_to_model <- sub %>%
+      distinct(group, model) %>%
+      mutate(model = as.character(model)) %>%
+      deframe()
+
+    p <- ggplot(sub, aes(x = x, y = value, color = group,
+                         linetype = (group != "antiGen")))
+
+    if (cartoon) p <- p + geom_area(aes(fill = group), alpha = 0.3, color = NA)
+
+    p <- p +
+      geom_line(linewidth = 0.75) +
+      scale_color_manual(values = MODEL_TYPE_COLORS, labels = group_to_model) +
+      scale_linetype_manual(values = c(`FALSE` = "solid", `TRUE` = "21"),
+                            guide = "none") +
+      theme_paper() +
+      labs(color = "Model", x = xlab, y = ylab) +
+      ggtitle(title)
+
+    if (cartoon) {
+      p +
+        scale_fill_manual(values = MODEL_TYPE_COLORS) +
+        annotate(
+          "text",
+          x = mean(range(sub$x)),
+          y = max(sub$value) * 0.4,
+          label = paste0("AUC = ",
+                         round(sub_auc$value[as.character(sub_auc$model) == "antiGen"], 3)),
+          size = 4
+        ) +
+        theme(legend.position = "none") +
+        ggtitle("")
+    } else {
+      p + theme(
+        legend.position       = c(0.98, 0.02),
+        legend.justification  = c(1, 0),
+        legend.key.height     = unit(0.5, "lines"),
+        legend.spacing.y      = unit(0, "pt"),
+        legend.text.position  = "left",
+        legend.text           = element_text(hjust = 1),
+        legend.title          = element_text(hjust = 1)
+      )
+    }
+  })
+
+  plot_grid(plotlist = plots, nrow = 1, labels = labels)
+}
+
+
+## --- DMS correlation -------------------------------------------------------
+
+## How well does each model's predicted mutation matrix correlate with the
+## BA.2 deep mutational scan? Negative DMS entries encode "not measured".
+bind <- as.matrix(read.csv("dms/Omicron_BA2_bind.csv")[RBD_RANGE, ])
+expr <- as.matrix(read.csv("dms/Omicron_BA2_expr.csv")[RBD_RANGE, ])
+bind[bind < 0] <- NA
+expr[expr < 0] <- NA
+
+ref <- strsplit(readLines("ref/BA.2.txt", warn = FALSE), "")[[1]][RBD_RANGE]
+bind <- mask_wildtype(bind, ref)
+expr <- mask_wildtype(expr, ref)
+
+models         <- list.files(MODEL_DIR)
+baseline_files <- list.files("baselines")
+
+#' Predicted RBD matrix for one antiGen-pipeline model directory.
+read_model_predictions <- function(model) {
+  dir <- file.path(MODEL_DIR, model)
+  files <- list.files(dir)
+  files <- files[!grepl("unseen", files) & !grepl("nogapstop", files)]
+  pred <- as.matrix(read.csv(
+    file.path(dir, files[grepl("variant_root_predictions", files)])
+  )[RBD_RANGE, ])
+  pred[pred == -Inf] <- NA   # log-space model output
+  pred
+}
+
+#' Predicted RBD matrix for one external baseline CSV.
+read_baseline_predictions <- function(file) {
+  pred <- as.matrix(read.csv(file.path("baselines", file))[RBD_RANGE, ])
+  pred[pred < 0] <- NA       # probability-space, negative encodes "no value"
+  pred
+}
+
+## antiGen-pipeline models predict in log space and baselines in probability
+## space, so each is compared both in its native space and transformed into
+## the other. `mean_norm` replaces every row by its mean, which measures how
+## much of the correlation is explained by position alone.
+dms_performance <- data.frame()
+for (i in seq_len(length(models) + length(baseline_files))) {
+  is_pipeline_model <- i <= length(models)
+  if (is_pipeline_model) {
+    model_name <- models[i]
+    pred <- read_model_predictions(model_name)
+  } else {
+    file <- baseline_files[i - length(models)]
+    model_name <- sub("\\.csv$", "", file)
+    pred <- read_baseline_predictions(file)
+  }
+  pred <- mask_wildtype(pred, ref)
+
+  for (take_log in c(FALSE, TRUE)) {
+    new_pred <- pred
+    if (take_log && !is_pipeline_model)  new_pred <- log(new_pred + 0.00000001)
+    if (!take_log && is_pipeline_model)  new_pred <- exp(new_pred)
+
+    for (mean_norm in c(FALSE, TRUE)) {
+      if (mean_norm) {
+        for (j in seq_len(nrow(new_pred))) {
+          new_pred[j, ] <- mean(new_pred[j, ], na.rm = TRUE)
+        }
+      }
+      dms_performance <- rbind(dms_performance, data.frame(
+        model     = model_name,
+        bind_corr = cor_with_NA_mask(new_pred, bind),
+        expr_corr = cor_with_NA_mask(new_pred, expr),
+        mean_norm = mean_norm,
+        take_log  = take_log
+      ))
+    }
+  }
+}
+
+dms_long <- dms_performance %>%
+  mutate(
+    take_log  = ifelse(take_log, "log", "linear"),
+    mean_norm = ifelse(mean_norm, "mean", "raw")
+  ) %>%
+  pivot_longer(cols = c(bind_corr, expr_corr),
+               names_to = "metric", values_to = "correlation") %>%
+  mutate(metric = ifelse(metric == "bind_corr", "Binding", "Expression"))
+
+dms_long$model <- factor(dms_long$model, levels = all_models)
+dms_long$group <- NA_character_
+for (i in seq_along(subsets)) {
+  dms_long$group[dms_long$model %in% subsets[[i]]] <- longform_subset_names[i]
+}
+dms_long$group[is.na(dms_long$group)] <- "antiGen"
+dms_long$model <- longform_names[match(dms_long$model, all_models)]
+
+make_dms_corr_plot <- function(df, metric_name, legend_only = FALSE, SUPP = FALSE) {
+  ## The BA.2 DMS is the target here, so it cannot also be a predictor.
+  df <- df[!(df$model %in% c("BA.2 DMS (bind)", "BA.2 DMS (expression)")), ]
+  if (!SUPP) {
+    colors_here <- MODEL_TYPE_COLORS[c(1, 3, 4)]
+    df <- df[!(df$model %in%
+                 longform_names[all_models %in% c(subsets$trained_models,
+                                                  subsets$dms_models)]), ]
+  } else {
+    colors_here <- MODEL_TYPE_COLORS_SUPP
+  }
+
+  df_filtered <- df %>%
+    filter(metric == metric_name) %>%
+    mutate(
+      transformation = paste0(mean_norm, ", ", take_log),
+      transformation = dplyr::case_when(
+        transformation == "mean, linear" ~ "Mean",
+        transformation == "mean, log"    ~ "Mean, log",
+        transformation == "raw, linear"  ~ "None",
+        transformation == "raw, log"     ~ "Log"
+      ),
+      transformation = factor(transformation,
+                              levels = c("Mean", "Mean, log", "None", "Log")),
+      model = fct_reorder(model, as.integer(factor(group)))
+    )
+
+  p <- ggplot(df_filtered,
+              aes(x = model, y = correlation,
+                  fill = group, alpha = transformation,
+                  group = interaction(group, transformation))) +
+    geom_col(position = position_dodge(width = 0.8, preserve = "single"),
+             width = 0.6) +
+    scale_fill_manual(values = colors_here) +
+    scale_alpha_discrete(range = c(1, 0.4)) +
+    theme_paper(base_size = 12) +
+    ggtitle("DMS correlation") +
+    theme(
+      axis.text.x          = element_text(angle = 45, hjust = 1),
+      legend.position      = "bottom",
+      legend.box           = "vertical",
+      legend.justification = "center",
+      legend.direction     = "horizontal",
+      legend.key.size      = unit(0.8, "lines"),
+      legend.spacing.y     = unit(0.5, "pt"),
+      legend.margin        = margin(0, 0, 0, 0),
+      legend.box.spacing   = unit(2, "pt")
+    ) +
+    labs(x = NULL, y = paste0("Corr. (", metric_name, ")"),
+         fill = "Model type", alpha = "Transformation") +
+    guides(
+      fill  = guide_legend(override.aes = list(alpha = 1)),
+      alpha = guide_legend(override.aes = list(fill = "grey30"))
+    )
+
+  if (legend_only) return(extract_legend(p))
+  if (SUPP) p <- p + ggtitle(metric_name)
+  p
+}
+
+p_expr      <- make_dms_corr_plot(dms_long, "Expression", SUPP = FALSE)
+p_bind_supp <- make_dms_corr_plot(dms_long, "Binding",    SUPP = TRUE)
+p_expr_supp <- make_dms_corr_plot(dms_long, "Expression", SUPP = TRUE)
+
+save_figure(
+  plot_grid(
+    make_dms_corr_plot(dms_long, "Binding", SUPP = TRUE, legend_only = TRUE),
+    plot_grid(
+      p_expr_supp + theme(legend.position = "none"),
+      p_bind_supp + theme(legend.position = "none"),
+      labels = "AUTO",
+      ncol = 1
+    ),
+    ncol = 1,
+    rel_heights = c(0.075, 1)
+  ),
+  "supp_dms", width = 10, height = 8
+)
+
+
+## --- Fine-tuning panel -----------------------------------------------------
+
+## One case where fine-tuning an existing model on antiGen's objective beats
+## antiGen itself. The 650M variants are dropped to keep the panel readable.
+ft_df <- variant_emergence_performance_x[
+  variant_emergence_performance_x$group %in% c("antiGen Finetunes", "antiGen") &
+    variant_emergence_performance_x$metric == "de novo, 100+ cases" &
+    variant_emergence_performance_x$x >= 2,
+]
+ft_df <- ft_df[!grepl("(650M)", as.character(ft_df$model), fixed = TRUE), ]
+
+ft_plot <- ggplot(ft_df, aes(x = x, y = value, color = model, group = model)) +
+  geom_line(linewidth = 0.75) +
+  scale_color_manual(
+    values = c(ANTIGEN_BLUE, FINETUNE_COLORS),
+    labels = function(x) ifelse(x == "antiGen as EVE full FT", paste0("**", x, "**"), x)
+  ) +
+  theme_paper() +
+  labs(color = NULL, x = "Date (t, years into pandemic)",
+       y = "P(mut. in top decile obs. by t)") +
+  ggtitle("PSSM precision, 100+ de novo") +
+  theme(
+    legend.position       = c(0.98, 0.02),
+    legend.justification  = c(1, 0),
+    legend.key.height     = unit(0.5, "lines"),
+    legend.spacing.y      = unit(0, "pt"),
+    legend.text.position  = "left",
+    legend.text           = element_markdown(hjust = 1, size = 6.5),
+    legend.title          = element_text(hjust = 1)
+  )
+
+
+## --- Recall-AUC inset for Figure 1 -----------------------------------------
+
+ggsave(
+  "fig1/auc.png",
+  plot_by_x(
+    hit_rate_performance_x, hit_rate_performance,
+    longform_hit_rate_metrics, 2,
+    labels = "", xlab = "Quantile", ylab = "Recall", title_prefix = "Recall",
+    cartoon = TRUE
+  ),
+  width = 2, height = 2
+)
+
+
+## --- Gating: recall vs train/test cutoff -----------------------------------
+
+## For each train/test cutoff, how well does a hard gate between antiGen and a
+## simpler model do? The evaluation writes one directory per model and one
+## subdirectory per cutoff.
+GATE_MODELS <- c("blosum62", "gated_static_esm2_35m_xfmr",
+                 "gated_static_esm2_xfmr", "gated_static_xfmr_pssm",
+                 "transformer")
+
+GATE_MODEL_LABELS <- c(
+  "transformer"                  = "antiGen",
+  "pssm_root"                    = "PSSM",
+  "blosum62"                     = "BLOSUM62",
+  "gated_static_xfmr_pssm"       = "antiGen / PSSM gate",
+  "gated_static_esm2_35m_xfmr"   = "antiGen / ESM 2 (35M) FT gate",
+  "gated_static_esm2_xfmr"       = "antiGen / ESM 2 (650M) FT gate"
+)
+
+gate_cutoff_dirs <- list.files(file.path(GATING_DIR, GATE_MODELS[1]))
+
+## Rows 1, 2 and 4 of each recall file are the gated/base model, PSSM and
+## EVEscape. Row 1 is whichever model the directory is for, so it is renamed;
+## rows 2 and 4 are the same two reference curves in every directory and are
+## therefore only read from the first.
+gate_recall <- data.frame()
+for (i in seq_along(GATE_MODELS)) {
+  for (cutoff_dir in gate_cutoff_dirs) {
+    dir <- file.path(GATING_DIR, GATE_MODELS[i], cutoff_dir)
+    new_df <- read.csv(find_metric_file(dir, "quantile_hit_rates_all_"))
+    new_df <- new_df[, c(1, 2, 3, 6)]
+    colnames(new_df)[2:4] <- c("recall", "recall_20", "recall_50")
+    new_df$model[1] <- GATE_MODELS[i]
+    new_df$cutoff <- as.numeric(gsub(".*\\_", "", cutoff_dir))
+    new_df <- new_df[if (i == 1) c(1, 2, 4) else 1, ]
+    gate_recall <- rbind(gate_recall, new_df)
+  }
+}
+gate_recall$model <- ifelse(gate_recall$model %in% names(GATE_MODEL_LABELS),
+                            GATE_MODEL_LABELS[gate_recall$model],
+                            gate_recall$model)
+
+## Training-set size at each cutoff, for the two scatter rows of the
+## supplement: how many sequences, and how many distinct mutations, the
+## pandemic-to-date PSSM was built from.
+stats_by_cutoff <- do.call(rbind, lapply(list.files("pssm_by_cutoff"), function(file) {
+  pssm <- read.csv(file.path("pssm_by_cutoff", file))[, -1]
+  data.frame(
+    cutoff = as.numeric(gsub(".csv", "", gsub(".*_", "", file))),
+    n_seqs = rowSums(pssm)[1],
+    n_muts = sum(pssm > 0) - nrow(pssm)   # minus one wild-type cell per site
+  )
+}))
+
+gate_recall$n_muts <- stats_by_cutoff$n_muts[match(gate_recall$cutoff, stats_by_cutoff$cutoff)]
+gate_recall$n_seqs <- stats_by_cutoff$n_seqs[match(gate_recall$cutoff, stats_by_cutoff$cutoff)]
+
+## Baselines that are not antiGen-derived are drawn dashed.
+GATE_BASELINES <- c("PSSM", "BLOSUM62", "EVEscape")
+
+make_gate_plot <- function(df, col_name, title, ylab, SUPP = FALSE,
+                           show_legend = FALSE, xvar = "cutoff",
+                           xlab_text = "Train / test cutoff (years into pandemic)",
+                           geom = "line", xlim_hi = 5) {
+  if (SUPP) {
+    color_vals <- c(ANTIGEN_BLUE, FINETUNE_COLORS[2:3], GATE_BLUE,
+                    MODEL_TYPE_COLORS[4], FINETUNE_COLORS[4], MODEL_TYPE_COLORS[3])
+  } else {
+    color_vals <- c(ANTIGEN_BLUE, GATE_BLUE, MODEL_TYPE_COLORS[4],
+                    FINETUNE_COLORS[1], MODEL_TYPE_COLORS[3])
+    df <- df[!(df$model %in% c("antiGen / ESM 2 (35M) FT gate",
+                               "antiGen / ESM 2 (650M) FT gate")), ]
+  }
+
+  p <- ggplot(df, aes(x = .data[[xvar]], y = .data[[col_name]],
+                      group = model, color = model,
+                      linetype = (model %in% GATE_BASELINES))) +
+    ylim(0, NA)
+  p <- p + if (geom == "line") geom_line(linewidth = 0.75) else geom_point(size = 1)
+
+  p <- p +
+    scale_color_manual(
+      values = color_vals,
+      ## Highlight the gate that made it into the main figure.
+      labels = if (SUPP) waiver() else
+        function(x) ifelse(x == "antiGen / PSSM gate", paste0("**", x, "**"), x)
+    ) +
+    scale_linetype_manual(values = c(`FALSE` = "solid", `TRUE` = "21"),
+                          guide = "none") +
+    xlab(xlab_text) +
+    ylab(ylab) +
+    ggtitle(title) +
+    theme_paper()
+
+  if (!is.na(xlim_hi)) p <- p + xlim(c(NA, xlim_hi))
+  if (!show_legend) return(p + theme(legend.position = "none"))
+
+  if (SUPP) {
+    ## Horizontal strip along the top, extracted as the shared legend.
+    p +
+      guides(color = guide_legend(nrow = 1)) +
+      theme(
+        legend.position      = "top",
+        legend.direction     = "horizontal",
+        legend.justification = "center",
+        legend.title         = element_blank(),
+        legend.key.height    = unit(0.6, "lines"),
+        legend.text          = element_markdown()
+      )
+  } else {
+    ## Inline in the lower-left corner, over the panel grid.
+    p +
+      guides(color = guide_legend(nrow = 3, byrow = TRUE)) +
+      theme(
+        legend.position      = c(0.98, 0.02),
+        legend.justification = c(1, 0),
+        legend.direction     = "horizontal",
+        legend.background    = element_blank(),
+        legend.title         = element_blank(),
+        legend.key.spacing.y = unit(0, "pt"),
+        legend.key.height    = unit(0.6, "lines"),
+        legend.text          = element_markdown(hjust = 1),
+        legend.text.position = "left"
+      )
+  }
+}
+
+gate_plot <- make_gate_plot(gate_recall, "recall", "Recall, top decile",
+                            "P(obs. mut. in top decile)",
+                            SUPP = FALSE, show_legend = TRUE)
+
+## Supplement: the same three recall quantiles against cutoff, then against
+## training-set size measured two ways.
+gate_supp_row <- function(titles, labels, xvar, xlab_text, geom, xlim_hi) {
+  cols  <- c("recall", "recall_20", "recall_50")
+  ylabs <- c("P(obs. mut. in top decile)",
+             "P(obs. mut. in top 20% quantile)",
+             "P(obs. mut. in top 50% quantile)")
+  plot_grid(
+    plotlist = lapply(seq_along(cols), function(i) {
+      make_gate_plot(gate_recall, cols[i], titles[i], ylabs[i], SUPP = TRUE,
+                     xvar = xvar, xlab_text = xlab_text, geom = geom,
+                     xlim_hi = xlim_hi)
+    }),
+    nrow = 1, labels = labels
+  )
+}
+
+save_figure(
+  plot_grid(
+    extract_legend(make_gate_plot(gate_recall, "recall", "", "",
+                                  SUPP = TRUE, show_legend = TRUE)),
+    gate_supp_row(c("Recall, top decile", "Recall, top 20% quantile",
+                    "Recall, top 50% quantile"),
+                  LETTERS[1:3], "cutoff",
+                  "Train / test cutoff (years into pandemic)", "line", 5),
+    gate_supp_row(rep("", 3), LETTERS[4:6], "n_muts",
+                  "Number of mutations", "point", NA),
+    gate_supp_row(rep("", 3), LETTERS[7:9], "n_seqs",
+                  "Number of sequences", "point", NA),
+    ncol = 1,
+    rel_heights = c(0.15, 1, 1, 1)
+  ),
+  "supp_gating_recall", width = 10, height = 10
+)
+
+
+## --- Gating: PSSM precision vs cutoff --------------------------------------
+
+## Same idea for the precision metric, but resolved by emergence date. Only
+## the earliest four cutoffs are shown -- later ones leave too little test
+## window for a variant to emerge in.
+PRECISION_GATE_MODELS <- c("blosum62", "gated_static_xfmr_pssm", "transformer")
+precision_cutoff_dirs <- gate_cutoff_dirs[1:4]
+
+## Columns 2, 3 and 5 are the gated/base model, PSSM and EVEscape; as above,
+## only the first directory contributes the two reference curves.
+gate_precision <- data.frame()
+for (i in seq_along(PRECISION_GATE_MODELS)) {
+  for (cutoff_dir in precision_cutoff_dirs) {
+    dir <- file.path(GATING_DIR, PRECISION_GATE_MODELS[i], cutoff_dir)
+    for (thresh1 in c(TRUE, FALSE)) {
+      files <- list.files(dir)
+      files <- if (thresh1) {
+        files[grepl("variant_emergence_all_thresh1_", files)]
+      } else {
+        files[grepl("variant_emergence_all_", files) & !grepl("thresh1", files)]
+      }
+      new_df <- read.csv(file.path(dir, files[which.min(nchar(files))]))
+      new_df$step <- new_df$step / 10
+      new_df <- new_df[new_df$step >= 2.0, c(1:3, 5)]
+      colnames(new_df)[2] <- PRECISION_GATE_MODELS[i]
+      if (i != 1) new_df <- new_df[, 1:2]
+      new_df <- melt(new_df, id.vars = "step")
+      new_df$cutoff  <- as.numeric(gsub(".*\\_", "", cutoff_dir))
+      new_df$thresh1 <- thresh1
+      gate_precision <- rbind(gate_precision, new_df)
+    }
+  }
+}
+
+gate_precision$variable <- as.character(gate_precision$variable)
+gate_precision$variable <- ifelse(
+  gate_precision$variable %in% names(GATE_MODEL_LABELS),
+  GATE_MODEL_LABELS[gate_precision$variable],
+  gate_precision$variable
+)
+
+PANDEMIC_START <- as.Date("2019-12-20")
+precision_cutoffs <- unique(gate_precision$cutoff)
+
+## Rows share a y-range so panels are comparable left to right.
+y_range_top <- range(gate_precision$value[gate_precision$thresh1],  na.rm = TRUE)
+y_range_bot <- range(gate_precision$value[!gate_precision$thresh1], na.rm = TRUE)
+
+plot_emergence_given_cutoff <- function(cutoff_val, thresh1_val, xlab, ylab,
+                                        ylim_range, show_legend = FALSE,
+                                        show_title = TRUE) {
+  sub <- gate_precision[gate_precision$cutoff == cutoff_val &
+                          gate_precision$thresh1 == thresh1_val, ]
+
+  p <- ggplot(sub, aes(x = step, y = value, color = variable)) +
+    geom_line(linewidth = 0.75) +
+    scale_color_manual(values = c(ANTIGEN_BLUE, GATE_BLUE, MODEL_TYPE_COLORS[4],
+                                  FINETUNE_COLORS[1], MODEL_TYPE_COLORS[3])) +
+    coord_cartesian(ylim = ylim_range) +
+    xlab(xlab) + ylab(ylab) +
+    theme_paper() +
+    theme(plot.title = element_text(face = "bold"))
+
+  if (show_title) {
+    p <- p + ggtitle(format(PANDEMIC_START + round(cutoff_val * 365.25), "%Y-%m-%d"))
+  }
+
+  if (show_legend) {
+    p +
+      guides(color = guide_legend(nrow = 1)) +
+      theme(
+        legend.position      = "top",
+        legend.direction     = "horizontal",
+        legend.justification = "center",
+        legend.title         = element_blank(),
+        legend.key.height    = unit(0.6, "lines")
+      )
+  } else {
+    p + theme(legend.position = "none")
+  }
+}
+
+row_label <- function(txt) {
+  ggdraw() + draw_label(txt, fontface = "bold", size = 13, angle = 90)
+}
+
+#' One row of per-cutoff panels, with a rotated row label on the left.
+emergence_row <- function(thresh1_val, label, xlab, ylim_range, labels,
+                          show_title) {
+  plot_grid(
+    row_label(label),
+    plot_grid(
+      plotlist = lapply(precision_cutoffs, function(c) {
+        plot_emergence_given_cutoff(
+          c, thresh1_val,
+          xlab       = xlab,
+          ylab       = "P(mut. in top decile obs. by t)",
+          ylim_range = ylim_range,
+          show_title = show_title
+        )
+      }),
+      nrow = 1, labels = labels
+    ),
+    nrow = 1,
+    rel_widths = c(0.04, 1)
+  )
+}
+
+save_figure(
+  plot_grid(
+    # Legend strip, indented to line up with the panels.
+    plot_grid(
+      NULL,
+      extract_legend(plot_emergence_given_cutoff(
+        precision_cutoffs[1], TRUE, "", "",
+        ylim_range = y_range_top, show_legend = TRUE
+      )),
+      nrow = 1, rel_widths = c(0.04, 1)
+    ),
+    emergence_row(TRUE,  "1+ cases",   "",
+                  y_range_top, "AUTO",        show_title = TRUE),
+    emergence_row(FALSE, "100+ cases", "Date (t, years into pandemic)",
+                  y_range_bot, LETTERS[5:8],  show_title = FALSE),
+    ncol = 1,
+    rel_heights = c(0.1, 1, 1)
+  ),
+  "supp_gating_precision", width = 9, height = 6
+)
+
+
+## --- Main figure -----------------------------------------------------------
+
+recall_block <- plot_grid(
+  plot_cartoon("cartoons/recall_definition.png",
+               "Definition of next-mutation recall", base_theme = theme_paper()),
+  plot_by_x(
+    hit_rate_performance_x, hit_rate_performance,
+    longform_hit_rate_metrics, 1:2, LETTERS[2:3],
+    "Quantile (q)", "P(obs. mut. in top q-quantile)", "Next-mutation recall"
+  ),
+  plot_auc(hit_rate_performance, longform_hit_rate_metrics[1:2], LETTERS[4:5],
+           "AUC, recall by quantile", "Recall AUC", xmin = 0.45),
+  ncol = 1,
+  labels = c("A", "", "")
+)
+
+precision_block <- plot_grid(
+  plot_cartoon("cartoons/precision_definition.png",
+               "Definition of PSSM precision", base_theme = theme_paper()),
+  plot_by_x(
+    variant_emergence_performance_x, variant_emergence_performance,
+    longform_variant_emergence_metrics, 1:2, LETTERS[7:8],
+    "Date (t, years into pandemic)", "P(mut. in top decile obs. by t)",
+    "PSSM precision", cutoff = 2
+  ),
+  plot_auc(variant_emergence_performance, longform_variant_emergence_metrics[1:2],
+           LETTERS[9:10], "Max PSSM precision", "Max precision"),
+  ncol = 1,
+  labels = c("F", "", "")
+)
+
+save_figure(
+  plot_grid(
+    plot_grid(recall_block, precision_block, nrow = 1),
+    plot_auc(hit_rate_performance, longform_hit_rate_metrics, LETTERS[4:7],
+             "", "", legend_only = TRUE),
+    plot_grid(p_expr, ft_plot, gate_plot, nrow = 1,
+              rel_widths = c(2, 1, 1), labels = LETTERS[11:13]),
+    ncol = 1,
+    rel_heights = c(3, 0.1, 1.1)
+  ),
+  "sc2_results", width = 13.5, height = 12
+)
+
+
+## --- Supplement: every model, every metric ---------------------------------
+
+#' Grid of curves: one row per metric, one column per baseline group, with
+#' antiGen repeated in each column for reference.
+plot_by_x_supp <- function(df, metrics, longform_metrics, xlab, ylab, cutoff = 0) {
+  groups <- setdiff(unique(df$group), "antiGen")
+  n_cols <- length(groups)
+
+  make_plot <- function(metric, group, show_legend = FALSE) {
+    sub <- df[df$group %in% c(group, "antiGen") & df$metric == metric, ]
+    sub <- sub[sub$x >= cutoff, ]
+
+    other_models <- setdiff(unique(sub$model), "antiGen")
+    p <- ggplot(sub, aes(x = x, y = value, color = model, group = model)) +
+      geom_line(linewidth = 0.75) +
+      scale_color_manual(values = setNames(
+        c(ANTIGEN_BLUE, scales::hue_pal()(length(other_models))),
+        c("antiGen", other_models)
+      )) +
+      xlab(xlab) +
+      ylab(ylab) +
+      theme_paper() +
+      labs(color = NULL)
+
+    if (!show_legend) return(p + theme(legend.position = "none"))
+
+    p +
+      guides(color = guide_legend(ncol = 2, byrow = TRUE)) +
+      theme(
+        legend.position      = "top",
+        legend.direction     = "vertical",
+        legend.justification = "center",
+        legend.key.width     = unit(1, "lines"),
+        legend.key.height    = unit(0.6, "lines"),
+        legend.spacing.y     = unit(0, "pt"),
+        legend.margin        = margin(0, 0, 0, 0)
+      )
+  }
+
+  ## Column headers: bold group name over that column's legend. The model set
+  ## is constant down a column, so the first metric supplies the legend.
+  col_headers <- lapply(groups, function(g) {
+    plot_grid(
+      ggdraw() + draw_label(g, fontface = "bold", size = 13),
+      extract_legend(make_plot(metrics[1], g, show_legend = TRUE)),
+      ncol = 1,
+      rel_heights = c(0.5, 1)
+    )
+  })
+
+  rows <- lapply(seq_along(metrics), function(i) {
+    idx <- ((i - 1) * n_cols + 1):(i * n_cols)
+    plot_grid(
+      ggdraw() + draw_label(longform_metrics[i], fontface = "bold",
+                            size = 13, angle = 90),
+      plot_grid(
+        plotlist = lapply(groups, function(g) make_plot(metrics[i], g)),
+        nrow     = 1,
+        labels   = LETTERS[idx]
+      ),
+      nrow = 1,
+      rel_widths = c(0.04, 1)
+    )
+  })
+
+  plot_grid(
+    plot_grid(NULL, plot_grid(plotlist = col_headers, nrow = 1),
+              nrow = 1, rel_widths = c(0.04, 1)),
+    plot_grid(plotlist = rows, ncol = 1),
+    ncol = 1,
+    rel_heights = c(0.3, length(metrics))
+  )
+}
+
+save_figure(
+  plot_by_x_supp(performance_by_x, HIT_RATE_METRICS, longform_hit_rate_metrics,
+                 "Quantile (q)", "P(obs. mut. in top q-quantile)"),
+  "supp_recall", width = 15, height = 13
+)
+
+save_figure(
+  plot_by_x_supp(performance_by_x, VARIANT_EMERGENCE_METRICS,
+                 longform_variant_emergence_metrics,
+                 "Date (t, years into pandemic)",
+                 "P(mut. in top decile obs. by t)", cutoff = 2),
+  "supp_precision", width = 15, height = 13
+)
+
+## Summary bars for all four variants of both metrics, including the
+## fine-tuned models that the main figure leaves out.
+save_figure(
+  plot_grid(
+    plot_auc(hit_rate_performance, longform_hit_rate_metrics[1:2], LETTERS[1:2],
+             "AUC, recall by quantile", "Recall AUC", xmin = 0.45,
+             SUPP = TRUE, shorten_title = FALSE),
+    plot_auc(hit_rate_performance, longform_hit_rate_metrics[3:4], LETTERS[3:4],
+             "AUC, recall by quantile", "Recall AUC", xmin = 0.45,
+             SUPP = TRUE, shorten_title = FALSE),
+    plot_auc(variant_emergence_performance, longform_variant_emergence_metrics[1:2],
+             LETTERS[5:6], "Max PSSM precision", "Max precision",
+             SUPP = TRUE, shorten_title = FALSE),
+    plot_auc(variant_emergence_performance, longform_variant_emergence_metrics[3:4],
+             LETTERS[7:8], "Max PSSM precision", "Max precision",
+             SUPP = TRUE, shorten_title = FALSE),
+    plot_auc(hit_rate_performance, longform_hit_rate_metrics, LETTERS[4:7],
+             "", "", legend_only = TRUE, SUPP = TRUE),
+    ncol = 1,
+    rel_heights = c(1, 1, 1, 1, 0.1)
+  ),
+  "supp_summaries", width = 11, height = 14
+)

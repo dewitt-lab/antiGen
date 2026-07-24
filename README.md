@@ -1,6 +1,6 @@
 # antiGen
 
-Welcome to antiGen, a model that predicts future mutations to viral proteins based on inferred phylogenetic trees. This repository is intended for (1) generating training data from phylogenetic trees, (2) training antiGen on said data, (3) querying substitution probabilities predicted by antiGen, and (4) running the evaluations reported in the antiGen manuscript.
+Welcome to antiGen, a model that predicts future mutations to viral proteins based on inferred phylogenetic trees. This repository is intended for (1) generating training data from phylogenetic trees, (2) training antiGen on said data, (3) querying substitution probabilities predicted by antiGen, (4) running the evaluations reported in the antiGen manuscript, and (5) reproducing the manuscript figures.
 
 ## Install
 
@@ -199,6 +199,17 @@ q = 0.1 … 1.0). These are termed next-mutation recall and PSSM precision in th
 
 The SLURM scripts used for the manuscript runs are in [`examples/slurm/`](examples/slurm/); they
 embed lab-specific paths/partitions and are meant to be copied and edited for your environment.
+
+---
+
+# 5. Reproducing the paper figures
+
+[`antiGen-figures/`](antiGen-figures/) is R code that plots the evaluation outputs into the
+manuscript figures (it trains and evaluates nothing). From that directory, `Rscript run_all.R`
+regenerates everything into `figs/` (PNG) and `figs_vector/` (PDF), or `Rscript figures/<script>.R`
+runs a single figure; the inputs it reads live in `antiGen-figures/data/` and sibling directories.
+Requires R with ggplot2, cowplot, reshape2, dplyr, tidyr, tibble, forcats, magick, ggtext,
+jsonlite, and scales.
 
 ---
 

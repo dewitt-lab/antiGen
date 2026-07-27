@@ -16,6 +16,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Operating System :: OS Independent",
 ]
 
 # Core dependencies — enough for the hero path (from-scratch transformer + BLOSUM62):
@@ -27,6 +28,10 @@ dependencies = [
     "biopython",
     "pyyaml",
 ]
+
+[project.urls]
+Repository = "https://github.com/evo-design/antiGen"
+Issues = "https://github.com/evo-design/antiGen/issues"
 
 [project.optional-dependencies]
 # ESM-2 pretrained protein language model (via HuggingFace transformers).

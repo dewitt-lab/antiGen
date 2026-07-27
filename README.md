@@ -4,15 +4,25 @@ Welcome to antiGen, a model that predicts future mutations to viral proteins bas
 
 ## Install
 
-antiGen is not yet on PyPI [TODO BEFORE PUBLICATION], so install it from source. Clone the repo and `pip install` it
-(Python ≥ 3.10):
+Install the modeling package and its command-line tools from PyPI (Python ≥ 3.10):
+
+```bash
+pip install antigen-model            # core: from-scratch transformer + BLOSUM62 / PSSM / gated (no model downloads)
+pip install "antigen-model[esm]"     # + ESM-2 pretrained language model
+pip install "antigen-model[dca]"     # + EVcouplings (needs external `plmc`)
+```
+
+The distribution is named `antigen-model`, but the import name and CLIs keep the
+`antiGen` spelling (`import antiGen`; `antiGen-train`/`-infer`/`-eval`). This is
+all you need to train antiGen and score substitutions (Parts 2–3). The
+training-data generator (Part 1, C++/CUDA) and the figure-reproduction code
+(Part 5, R) are not part of the wheel — clone the repo for those and, if you want
+a source install of the package, `pip install` it from the clone:
 
 ```bash
 git clone git@github.com:evo-design/antiGen.git
 cd antiGen
-pip install .                    # core: from-scratch transformer + BLOSUM62 / PSSM / gated (no model downloads)
-pip install ".[esm]"             # + ESM-2 pretrained language model
-pip install ".[dca]"             # + EVcouplings (needs external `plmc`)
+pip install ".[esm]"                 # editable/source install of the same package
 ```
 
 ## Quickstart (generate → train → infer, runs on CPU)

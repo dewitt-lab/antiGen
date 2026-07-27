@@ -22,7 +22,7 @@ classifiers = [
 # Core dependencies — enough for the hero path (from-scratch transformer + BLOSUM62):
 # train on an examples file and run inference on a query FASTA. No model downloads.
 dependencies = [
-    "torch~=2.7.0",
+    "torch>=2.7",
     "numpy",
     "pandas",
     "biopython",

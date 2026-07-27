@@ -1,18 +1,53 @@
 cff-version: 1.2.0
 message: "If you use antiGen, please cite it as below."
-title: "antiGen: Forecasting Viral Evolution from Phylogenetic Trees"
+title: "antiGen: Forecasting viral evolution from phylogenetic trees"
 authors:
   - family-names: Specht
     given-names: Ivan
+    affiliation: "Stanford University, Stanford, CA, USA; Arc Institute, Palo Alto, CA, USA"
+  - family-names: Park
+    given-names: Soyoon
+    affiliation: "Stanford University, Stanford, CA, USA; Arc Institute, Palo Alto, CA, USA"
+  - family-names: Chithrananda
+    given-names: Seyone
+    affiliation: "Stanford University, Stanford, CA, USA; Arc Institute, Palo Alto, CA, USA"
+  - family-names: Driscoll
+    given-names: Claudia L.
+    affiliation: "Stanford University, Stanford, CA, USA; Arc Institute, Palo Alto, CA, USA"
+  - family-names: Brixi
+    given-names: Garyk
+    affiliation: "Stanford University, Stanford, CA, USA; Arc Institute, Palo Alto, CA, USA"
+  - family-names: Palacios
+    given-names: Julia A.
+    affiliation: "Stanford University, Stanford, CA, USA"
+  - family-names: Hie
+    given-names: Brian L.
+    affiliation: "Stanford University, Stanford, CA, USA; Arc Institute, Palo Alto, CA, USA"
+    email: brianhie@stanford.edu
 version: 0.1.0
 license: MIT
-repository-code: "https://github.com/"  # TODO: set repository URL before release
-# TODO: add the accompanying paper's DOI/preprint reference before release, e.g.:
-# preferred-citation:
-#   type: article
-#   title: "<paper title>"
-#   authors:
-#     - family-names: Specht
-#       given-names: Ivan
-#   year: 2026
-#   doi: "<DOI>"
+repository-code: "https://github.com/evo-design/antiGen"
+# Ivan Specht and Soyoon Park are co-first authors; Brian L. Hie is the corresponding author.
+preferred-citation:
+  type: article
+  title: "Forecasting viral evolution from phylogenetic trees"
+  authors:
+    - family-names: Specht
+      given-names: Ivan
+    - family-names: Park
+      given-names: Soyoon
+    - family-names: Chithrananda
+      given-names: Seyone
+    - family-names: Driscoll
+      given-names: Claudia L.
+    - family-names: Brixi
+      given-names: Garyk
+    - family-names: Palacios
+      given-names: Julia A.
+    - family-names: Hie
+      given-names: Brian L.
+  year: 2026
+  notes: "Preprint on bioRxiv."
+  # TODO: add the bioRxiv DOI and URL once the preprint is posted, e.g.:
+  # doi: "10.1101/..."
+  # url: "https://www.biorxiv.org/content/..."

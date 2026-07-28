@@ -12,17 +12,16 @@ pip install "antigen-model[esm]"     # + ESM-2 pretrained language model
 pip install "antigen-model[dca]"     # + EVcouplings (needs external `plmc`)
 ```
 
-The distribution is named `antigen-model`, but the import name and CLIs keep the
+Note that the distribution is named `antigen-model`, but the import name and CLIs keep the
 `antiGen` spelling (`import antiGen`; `antiGen-train`/`-infer`/`-eval`). This is
 all you need to train antiGen and score substitutions (Parts 2–3). The
 training-data generator (Part 1, C++/CUDA) and the figure-reproduction code
-(Part 5, R) are not part of the wheel — clone the repo for those and, if you want
-a source install of the package, `pip install` it from the clone:
+(Part 5, R) are not part of the distribution; they can be obtained by cloning this repo.
 
 ```bash
 git clone git@github.com:evo-design/antiGen.git
 cd antiGen
-pip install ".[esm]"                 # editable/source install of the same package
+pip install ".[esm]"                 # optional source install of the same package
 ```
 
 ## Quickstart (generate → train → infer, runs on CPU)
@@ -81,7 +80,7 @@ antiGen-data <output_dir> <cutoff> <dataset_type> <ref_json> <tree_json> <metada
 - `tree_json` — a Nextstrain tree whose nodes carry `node_attrs.num_date.value` (decimal year) and `branch_attrs.mutations`, one list per segment of `<ref><pos><alt>` strings, 1-indexed (e.g. `"S": ["A222V", "D614G"]`).
 - `metadata_tsv` — `strain`⇥`date` (ISO `YYYY-MM-DD`) for each sequence in the alignment(s).
 
-Each run writes to `<output_dir>/`, formated as follows:
+Each run writes to `<output_dir>/`, formatted as follows:
 
 ```
 output_<dataset>/
@@ -108,7 +107,7 @@ first (Part 1) and placed it under `$FITNESS_DATA_ROOT`:
 
 | Flag | Dataset | Variant | `--cutoff` | Eval region |
 |------|---------|---------|------------|-------------|
-| *(default)* | SARS-CoV-2 spike | BA.2 (or `--variant`) | 1, 4, or 5 | RBD (330–530) |
+| *(default)* | SARS-CoV-2 spike | BA.2 (or `--variant`) | 1, 4, or 5 | RBD (330–530, 0-indexed) |
 | `--flu` | Influenza HA | J or K | 12 | full sequence |
 | `--rsv-a` | RSV-A F | A.D.1.6 | 74 | full sequence |
 | `--denv2` | Dengue 2 envelope | 2II_F.1.1.2_annotated | 191 | full sequence |
@@ -135,11 +134,11 @@ antiGen-train --examples ./mydata/examples_cutoff_5.txt \
 | BLOSUM62 | `blosum62` | — (core) | Static BLOSUM62 substitution matrix (no training, eval only) |
 | PSSM | `pssm` | — (core) | Per-position `log(count+1)` from the root PSSM (no training, eval only) |
 | Gated | `gated` | — (core) | Learnable per-position blend of two predictors (`--gate-partner-a/-b`, `--gate-variant`) |
-| EVcouplings | `evcouplings` | `.[dca]` + `plmc` | Mean-field DCA Potts model fitted from a pandemic MSA (eval only) |
+| EVcouplings | `evcouplings` | `.[dca]` + `plmc` | DCA Potts model fit from a pandemic MSA via `plmc` (pseudo-likelihood; eval only) |
 | EVE | `eve` | — (core) | EVE VAE (frozen or finetuned) trained on a pandemic MSA |
 | Tranception | `tranception` | — (core) | Tranception autoregressive scorer (frozen or finetuned) |
 
-For the pretrained ESM-2 backbone, three finetuning strategies: **frozen**
+For the pretrained ESM-2 backbone, we provide three finetuning strategies: **frozen**
 (`--freeze-backbone`, head only), **partial** (`--freeze-backbone --finetune-layers N`), and
 **full** (no freeze flags). MSA models (`evcouplings`/`eve`/`tranception`) additionally need
 `--msa` / `--metadata`; their date cutoff is derived from the dataset MRCA + `--cutoff` (or

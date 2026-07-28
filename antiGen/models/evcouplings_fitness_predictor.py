@@ -1,8 +1,8 @@
-"""EVcouplings mean-field DCA as a fitness predictor.
+"""EVcouplings DCA (plmc) as a fitness predictor.
 
 No learnable parameters. Fits a Potts model (h_i fields + J_ij couplings)
-from a filtered pandemic MSA using mean-field DCA, then scores mutations
-via delta-Hamiltonian for each input sequence.
+from a filtered pandemic MSA using plmc (pseudo-likelihood DCA), then scores
+mutations via delta-Hamiltonian for each input sequence.
 """
 from __future__ import annotations
 
@@ -142,7 +142,7 @@ def _fit_model_plmc(msa, seq_len, theta, plmc_binary, lambda_h=None,
 
 
 class EVcouplingsFitnessPredictor(BaseFitnessPredictor):
-    """EVcouplings mean-field DCA as a non-trainable fitness predictor.
+    """EVcouplings DCA (plmc) as a non-trainable fitness predictor.
 
     Fits a Potts model from a filtered pandemic MSA at init time. For each
     input sequence, computes the negated delta-Hamiltonian for all possible

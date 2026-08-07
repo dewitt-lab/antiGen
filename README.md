@@ -74,7 +74,7 @@ antiGen training data is produced by the included **[`antiGen-data/`](antiGen-da
 C++/CUDA application that grows a mutation-annotated phylogeny by parsimonious attachment and returns training/testing examples, as well as position-specific scoring matrices
 (PSSMs) for the training window and at various cutoff times in the testing window. To build it, cd into the antiGen-data sub-directory and run `make` (needs a C++17 compiler; `nvcc` is optional, for GPU support).
 
-The raw inputs (reference sequences, mutation-annotated trees, metadata, and MSAs) for the four datasets analyzed in the paper are archived on Zenodo at [doi:10.5281/zenodo.21842015](https://doi.org/10.5281/zenodo.21842015); they are too large to include in this repository.
+The raw inputs (reference sequences, mutation-annotated trees, metadata, and MSAs) for the four datasets analyzed in the paper are archived on Zenodo at [doi:10.5281/zenodo.21842015](https://doi.org/10.5281/zenodo.21842015).
 
 Run it as:
 

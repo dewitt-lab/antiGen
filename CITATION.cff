@@ -48,6 +48,5 @@ preferred-citation:
       given-names: Brian L.
   year: 2026
   notes: "Preprint on bioRxiv."
-  # TODO: add the bioRxiv DOI and URL once the preprint is posted, e.g.:
-  # doi: "10.1101/..."
-  # url: "https://www.biorxiv.org/content/..."
+  doi: "10.64898/2026.08.27.741102"
+  url: "https://www.biorxiv.org/content/10.64898/2026.08.27.741102v1"

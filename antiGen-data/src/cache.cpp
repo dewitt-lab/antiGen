@@ -16,7 +16,9 @@ namespace fs = std::filesystem;
 namespace {
 
 constexpr char CACHE_MAGIC[8] = {'A', 'T', 'C', 'A', 'C', 'H', 'E', '1'};
-constexpr std::uint32_t CACHE_VERSION = 1;
+// v2: attached-sequence nodes carry their real strain ID in node->name (see attach_sequences());
+// a v1 cache has those names blank, so it must not be reused
+constexpr std::uint32_t CACHE_VERSION = 2;
 
 template <typename T>
 void write_pod(std::ofstream& out, const T& value) {

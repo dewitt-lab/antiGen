@@ -167,6 +167,9 @@ ProcessedFasta read_and_process_fasta(const std::string& fasta_path,
         std::vector<char> aa(seq_line.begin(), seq_line.begin() + expected_length);
         result.protein_aa.push_back(std::move(aa));
 
+        // Keep the strain ID so attach_sequences() can name the node this sequence becomes
+        result.strain_names.push_back(name);
+
         // Look up date
         std::string date_str;
         auto it = date_map.find(name);
@@ -286,6 +289,9 @@ ProcessedFasta read_multiple_alignments(
 
         result.protein_aa.emplace_back(concatenated.begin(), concatenated.end());
 
+        // Keep the strain ID so attach_sequences() can name the node this sequence becomes
+        result.strain_names.push_back(strain);
+
         // Look up date
         std::string date_str;
         auto it = date_map.find(strain);
@@ -326,15 +332,22 @@ void sort_by_date(ProcessedFasta& fasta) {
         return fasta.decimal_dates[a] < fasta.decimal_dates[b];
     });
 
+    // strain_names must be permuted in lockstep with protein_aa, or every attached node ends up
+    // labeled with some other sequence's strain ID
+    bool have_names = (int)fasta.strain_names.size() == fasta.n_seqs;
+
     std::vector<std::vector<char>> sorted_aa(fasta.n_seqs);
+    std::vector<std::string> sorted_names(have_names ? fasta.n_seqs : 0);
     std::vector<std::string> sorted_dates(fasta.n_seqs);
     std::vector<double> sorted_decimal(fasta.n_seqs);
     for (int i = 0; i < fasta.n_seqs; i++) {
         sorted_aa[i] = std::move(fasta.protein_aa[order[i]]);
+        if (have_names) sorted_names[i] = std::move(fasta.strain_names[order[i]]);
         sorted_dates[i] = std::move(fasta.dates[order[i]]);
         sorted_decimal[i] = fasta.decimal_dates[order[i]];
     }
     fasta.protein_aa = std::move(sorted_aa);
+    if (have_names) fasta.strain_names = std::move(sorted_names);
     fasta.dates = std::move(sorted_dates);
     fasta.decimal_dates = std::move(sorted_decimal);
 }

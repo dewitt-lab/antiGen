@@ -554,6 +554,7 @@ void write_training_examples(
     Node* node,
     char* h_sequences,
     std::ofstream& txt_out,
+    std::ofstream& names_out,
     long long L,
     bool is_testing,
     int& example_id,
@@ -633,9 +634,18 @@ void write_training_examples(
         // Write the sequence and its (one) mutation
         txt_out << "EXAMPLE_ID: " << example_id << std::endl;
 
-        
+        // node->name is blank for synthetic pruned-fragment roots (see prune_node()); written to a
+        // separate side file so examples_cutoff_<cutoff>.txt's block format stays exactly what
+        // antiGen-validate-examples/antiGen-train/antiGen-infer already parse (fixed line offsets,
+        // no tolerance for an extra field).
+        //
+        // NODE_IDX is the node's row in h_sequences. prune_node() gives a pruned fragment root the
+        // idx of the true pre-cutoff parent it was detached from, so a fragment root's NODE_IDX
+        // identifies that parent directly -- no name lookup needed, and unlike a name it works for
+        // attached strains, which are absent from tree.json entirely.
+        names_out << example_id << "\t" << node->name << "\t" << node->idx << std::endl;
+
         /*
-        txt_out << "NAME: " << node->name << std::endl;
         txt_out << "POSSIBLE_CLADES: " << std::endl;
         for(std::string c : node->possible_clades) {
             txt_out << c << std::endl;
@@ -712,6 +722,7 @@ void write_training_examples(
             n,
             h_sequences,
             txt_out,
+            names_out,
             L,
             is_testing,
             example_id,
@@ -1011,7 +1022,7 @@ AttachedTree build_attached_tree(
     }
 
     auto attach_t0 = std::chrono::high_resolution_clock::now();
-    h_sequences = attach_sequences(h_sequences, h_parent, L, N, M, est_times, idx_to_node, config.ambig_char, false, use_gpu);
+    h_sequences = attach_sequences(h_sequences, h_parent, L, N, M, est_times, idx_to_node, config.ambig_char, false, use_gpu, fasta.strain_names);
     if (h_sequences == nullptr) throw std::runtime_error("attach_sequences failed");
     auto attach_t1 = std::chrono::high_resolution_clock::now();
     double attach_ms = std::chrono::duration_cast<std::chrono::milliseconds>(attach_t1 - attach_t0).count();
@@ -1157,13 +1168,19 @@ void generate_cutoff_outputs(
     std::ofstream txt_out(txt_path);
     if (!txt_out.is_open()) throw std::runtime_error("Could not open " + txt_path + " for writing");
 
+    std::string names_path = output_dir + "/examples_cutoff_" + cutoff_ss.str() + "_names.tsv";
+    std::ofstream names_out(names_path);
+    if (!names_out.is_open()) throw std::runtime_error("Could not open " + names_path + " for writing");
+
     int example_id = 0;
-    write_training_examples(root, h_sequences, txt_out, L, false, example_id, variants);
+    write_training_examples(root, h_sequences, txt_out, names_out, L, false, example_id, variants);
     for (Node* n : pruned_roots) {
-        write_training_examples(n, h_sequences, txt_out, L, true, example_id, variants);
+        write_training_examples(n, h_sequences, txt_out, names_out, L, true, example_id, variants);
     }
     txt_out.close();
+    names_out.close();
     std::cout << "Wrote " << txt_path << std::endl;
+    std::cout << "Wrote " << names_path << std::endl;
 
     delete_tree(root);
     for (Node* n : pruned_roots) delete_tree(n);

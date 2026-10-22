@@ -201,7 +201,8 @@ char* attach_sequences(
     std::map<int, Node*> idx_to_node,
     char ambig_char,
     bool DEBUG,
-    bool use_gpu
+    bool use_gpu,
+    const std::vector<std::string>& strain_names
 ) {
 
     int BLOCK_SIZE = 256;
@@ -275,6 +276,23 @@ char* attach_sequences(
     int case_counts[6] = {0, 0, 0, 0, 0, 0};
     long long n_seqs = (M - N) / 2;
     std::cout << "  n_seqs=" << n_seqs << " new_idx starts at " << new_idx << std::endl;
+
+    // Label the node an input sequence becomes with that sequence's real strain ID. Sequence idx
+    // sits at row idx of h_sequences, so it is strain_names[idx - N] (strain_names is in the same
+    // post-sort_by_date order as those rows). Only applied to nodes that ARE an input sequence:
+    // case 6's intermediate node is a synthetic reconstruction and correctly stays unnamed, as do
+    // nodes in cases 1/2 (there the sequence merges into an existing, already-named node rather
+    // than creating one). No-op when strain_names is empty.
+    bool have_names = !strain_names.empty();
+    if (have_names && (long long)strain_names.size() != n_seqs) {
+        std::cerr << "attach_sequences: strain_names has " << strain_names.size()
+                  << " entries but n_seqs=" << n_seqs << " — refusing to attach possibly "
+                  << "mismatched names" << std::endl;
+        return nullptr;
+    }
+    auto name_node = [&](Node* node, long long seq_idx) {
+        if (have_names) node->name = strain_names[seq_idx - N];
+    };
 
     // Attach each sequence
     for(long long idx = N; idx < N + n_seqs; idx++) {
@@ -419,6 +437,7 @@ char* attach_sequences(
 
                 // Index of new node
                 new_node->idx = idx;
+                name_node(new_node, idx);
                 idx_to_node[idx] = new_node;
 
                 // Wiring parents
@@ -463,6 +482,7 @@ char* attach_sequences(
 
                 // Index of new node
                 new_leaf->idx = idx;
+                name_node(new_leaf, idx);
                 idx_to_node[idx] = new_leaf;
 
                 // Wire parent and child
@@ -501,6 +521,7 @@ char* attach_sequences(
 
                 // Index of new node
                 new_leaf->idx = idx;
+                name_node(new_leaf, idx);
                 idx_to_node[idx] = new_leaf;
 
                 // Wire parent and child
@@ -582,6 +603,7 @@ char* attach_sequences(
 
                 // Index of new leaf
                 new_leaf->idx = idx;
+                name_node(new_leaf, idx);
                 idx_to_node[idx] = new_leaf;
 
                 // Wire parent and child

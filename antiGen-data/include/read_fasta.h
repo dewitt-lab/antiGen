@@ -6,6 +6,7 @@
 
 struct ProcessedFasta {
     std::vector<std::vector<char>> protein_aa; // one vector per sequence (renamed from spike_aa)
+    std::vector<std::string> strain_names;     // strain ID per sequence (FASTA header), parallel to protein_aa
     std::vector<std::string> dates;            // collection date per sequence (YYYY-MM-DD or "")
     std::vector<double> decimal_dates;         // decimal year (e.g. 2020.598), -inf if missing
     int n_seqs;
